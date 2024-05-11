@@ -53,18 +53,16 @@ target("LeviBoom") -- Change this to your plugin name.
     end
 
     if is_config("target", "tpsystem") then
-        add_defines("LEVIBOOM_TARGET_TPSYSTEM")
         set_basename("LeviBoom_TPSystem")
+        add_defines("LEVIBOOM_TARGET_TPSYSTEM")
+        add_defines("PLUGIN_NAME=\"LeviBoom_TPSystem\"")
 
     elseif is_config("target", "fakeplayer") then
-        add_defines("LEVIBOOM_TARGET_FAKEPLAYER")
         set_basename("LeviBoom_FakePlayer")
+        add_defines("LEVIBOOM_TARGET_FAKEPLAYER")
+        add_defines("PLUGIN_NAME=\"LeviBoom_FakePlayer\"")
 
     end
-
-    on_build(function (target)
-        add_defines("PLUGIN_NAME=\"" .. target:basename() .. "\"")
-    end)
 
     after_build(function (target)
         local plugin_packer = import("scripts.after_build")

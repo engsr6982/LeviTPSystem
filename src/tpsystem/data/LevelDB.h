@@ -1,3 +1,4 @@
+#pragma once
 #include "Entry/Entry.h"
 #include "Structure.h"
 #include "ll/api/data/KeyValueDB.h"
