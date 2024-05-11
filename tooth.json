@@ -1,0 +1,28 @@
+{
+    "format_version": 2,
+    "tooth": "githbu.com/engsr6982/LeviBoom",
+    "version": "0.1.0",
+    "info": {
+        "name": "LeviBoom",
+        "description": "All in one plugin for LeviLamina",
+        "author": "engsr6982",
+        "tags": [
+            "levilamina",
+            "plugin",
+            "leviboom"
+        ]
+    },
+    "asset_url": "https://github.com/engsr6982/LeviBoom/releases/download/v0.8.0/LeviBoom-windows-x64.zip",
+    "prerequisites": {
+        "github.com/LiteLDev/LeviLamina": "0.12.1",
+        "github.com/engsr6982/PermissionCore": "0.8.0"
+    },
+    "files": {
+        "place": [
+            {
+                "src": "LeviBoom/*",
+                "dest": "plugins/LeviBoom/"
+            }
+        ]
+    }
+}
