@@ -72,7 +72,8 @@ target("LeviBoom") -- Change this to your plugin name.
             major, minor, patch = 0, 0, 0
         end
         local plugin_define = {
-            pluginName = target:name(),
+            -- pluginName = target:name(),
+            pluginName = target:basename(),
             pluginFile = path.filename(target:targetfile()),
             pluginVersion = major .. "." .. minor .. "." .. patch,
         }
