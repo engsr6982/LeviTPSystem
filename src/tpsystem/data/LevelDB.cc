@@ -125,7 +125,7 @@ bool LevelDB::importData(const string& fileName) {
             mDB->set(key, value.dump());
             lbm::entry::getInstance().getSelf().getLogger().info("导入Key: {0} => {1}"_tr(key, value.dump()));
         }
-        return true;
+        return initKey();
     } catch (const json::parse_error& e) {
         lbm::entry::getInstance().getSelf().getLogger().error(
             "[Json Error] 导入文件失败: {0}\n{1}"_tr(fileName, e.what())
