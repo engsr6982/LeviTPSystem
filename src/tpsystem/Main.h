@@ -1,7 +1,4 @@
 #pragma once
-#include "ll/api/Logger.h"
-#include <filesystem>
-#include <memory>
 
-
-namespace lbm::tpsystem {} // namespace lbm::tpsystem
+#include "tpsystem/config/Config.h"
+#include "tpsystem/data/LevelDB.h"

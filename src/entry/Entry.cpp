@@ -6,6 +6,9 @@
 #include "ll/api/plugin/NativePlugin.h"
 #include "ll/api/plugin/RegisterHelper.h"
 
+#ifdef LEVIBOOM_TARGET_TPSYSTEM
+#include "tpsystem/Main.h"
+#endif
 
 namespace lbm {
 
@@ -17,6 +20,11 @@ bool entry::load() {
     getSelf().getLogger().info("Loading...");
 
     ll::i18n::load(getSelf().getLangDir());
+
+#ifdef LEVIBOOM_TARGET_TPSYSTEM
+    lbm::tpsystem::config::loadConfig();
+    lbm::tpsystem::data::LevelDB::getInstance().loadDB();
+#endif
 
     return true;
 }
