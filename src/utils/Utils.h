@@ -1,0 +1,50 @@
+#pragma once
+#include "entry/Entry.h"
+#include <fmt/format.h>
+#include <iostream>
+#include <numeric>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+
+namespace lbm::utils {
+
+using string = std::string;
+
+inline int    string2int(const string& str) { return std::stoi(str); }
+inline float  string2float(const string& str) { return std::stof(str); }
+inline double string2double(const string& str) { return std::stod(str); }
+
+inline string join(const std::vector<string>& vec, const string splitter = ", ") {
+    if (vec.empty()) return "";
+    return std::accumulate(
+        std::next(vec.begin()),
+        vec.end(),
+        vec[0],
+        [splitter](const string& a, const string& b) -> string { return a + splitter + b; }
+    );
+}
+
+inline string join(const std::vector<int>& vec, const string splitter = ", ") {
+    if (vec.empty()) return "";
+    return std::accumulate(
+        std::next(vec.begin()),
+        vec.end(),
+        std::to_string(vec[0]),
+        [splitter](const string& a, const int& b) -> string { return a + splitter + std::to_string(b); }
+    );
+}
+
+template <typename... Args>
+inline string format(const string& fmt, Args&&... args) {
+    try {
+        return fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...));
+    } catch (const std::exception& e) {
+        std::cerr << "\033[31m"
+                  << "[C++ Exception] Formatting string \"" << fmt << "\" failed: " << e.what() << "\033[0m"
+                  << std::endl;
+        return fmt;
+    }
+}
+} // namespace lbm::utils

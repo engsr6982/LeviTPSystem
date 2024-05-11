@@ -36,6 +36,10 @@ public:
 
     std::vector<string> getAllKeys();
 
+    string getRaw(const string& key);
+    json   getJson(const string& key);
+    bool   setJson(const string& key, const json& value);
+
     // TPSystem data
     Home getHome();
     bool setHome(const Home& home);

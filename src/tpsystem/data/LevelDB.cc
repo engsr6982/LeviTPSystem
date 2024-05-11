@@ -52,6 +52,18 @@ std::vector<string> LevelDB::getAllKeys() {
     return keys;
 }
 
+string LevelDB::getRaw(const string& key) {
+    if (!hasKey(key)) return "{}";
+    return *mDB->get(key);
+}
+
+json LevelDB::getJson(const string& key) {
+    if (!hasKey(key)) return json::object();
+    return json::parse(*mDB->get(key));
+}
+
+bool LevelDB::setJson(const string& key, const json& value) { return mDB->set(key, value.dump()); }
+
 // TPSystem data
 
 Home LevelDB::getHome() {

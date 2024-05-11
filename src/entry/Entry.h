@@ -4,7 +4,7 @@
 
 namespace lbm {
 
-#define MSG_TITLE   "§6[§a" PLUGIN_NAME "§6]§b "
+#define MSG_TITLE "§6[§a" PLUGIN_NAME "§6]§r "
 
 class entry {
 

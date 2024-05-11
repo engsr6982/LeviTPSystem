@@ -83,7 +83,7 @@ inline bool checkPlayerPermission(CommandOrigin const& origin, CommandOutput& ou
             .getPermissionCore(string(PLUGIN_NAME))
             ->checkUserPermission(player.getUuid().asString().c_str(), permission);
     } else {
-        output.error("获取实体指针失败！"_tr());
+        output.error("§c获取实体指针失败！"_tr());
         return false;
     };
 }
@@ -145,7 +145,7 @@ inline string CommandOriginTypeToString(CommandOriginType type) {
                 __allowedTypesStr << CommandOriginTypeToString(__allowedType);                                         \
                 __first = false;                                                                                       \
             }                                                                                                          \
-            output.error("{0}此命令仅限 {1} 使用!"_tr(MSG_TITLE, __allowedTypesStr.str()));                            \
+            output.error("§c{0}此命令仅限 {1} 使用!"_tr(MSG_TITLE, __allowedTypesStr.str()));                          \
             return;                                                                                                    \
         }                                                                                                              \
     }

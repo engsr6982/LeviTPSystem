@@ -2,6 +2,8 @@
 #include "tpsystem/data/LevelDB.h"
 #include "utils/Command.h"
 #include "utils/Mc.h"
+#include "utils/Utils.h"
+
 namespace lbm::tpsystem::command {
 
 using string = std::string;
@@ -9,6 +11,7 @@ using ll::i18n_literals::operator""_tr;
 using ll::command::CommandRegistrar;
 using namespace lbm::utils::cmdtools;
 using namespace lbm::utils::mc;
+using namespace lbm::utils;
 
 bool registerCommands();
 void registerCommandWithHome(const string& name);
