@@ -62,6 +62,10 @@ target("LeviBoom") -- Change this to your plugin name.
 
     end
 
+    on_build(function (target)
+        add_defines("PLUGIN_NAME=\"" .. target:basename() .. "\"")
+    end)
+
     after_build(function (target)
         local plugin_packer = import("scripts.after_build")
 

@@ -22,8 +22,7 @@ bool entry::load() {
     ll::i18n::load(getSelf().getLangDir());
 
 #ifdef LEVIBOOM_TARGET_TPSYSTEM
-    lbm::tpsystem::config::loadConfig();
-    lbm::tpsystem::data::LevelDB::getInstance().loadDB();
+    lbm::tpsystem::onLoad();
 #endif
 
     return true;
@@ -31,7 +30,11 @@ bool entry::load() {
 
 bool entry::enable() {
     getSelf().getLogger().info("Enabling...");
-    // Code for enabling the plugin goes here.
+
+#ifdef LEVIBOOM_TARGET_TPSYSTEM
+    lbm::tpsystem::onEnable();
+#endif
+
     return true;
 }
 
