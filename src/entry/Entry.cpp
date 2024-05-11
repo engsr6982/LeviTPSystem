@@ -6,7 +6,7 @@
 #include "ll/api/plugin/NativePlugin.h"
 #include "ll/api/plugin/RegisterHelper.h"
 
-#ifdef LEVIBOOM_TARGET_TPSYSTEM
+#ifdef LEVIBOOM_PLUGIN_TPSYSTEM
 #include "tpsystem/Main.h"
 #endif
 
@@ -21,7 +21,7 @@ bool entry::load() {
 
     ll::i18n::load(getSelf().getLangDir());
 
-#ifdef LEVIBOOM_TARGET_TPSYSTEM
+#ifdef LEVIBOOM_PLUGIN_TPSYSTEM
     lbm::tpsystem::onLoad();
 #endif
 
@@ -31,7 +31,7 @@ bool entry::load() {
 bool entry::enable() {
     getSelf().getLogger().info("Enabling...");
 
-#ifdef LEVIBOOM_TARGET_TPSYSTEM
+#ifdef LEVIBOOM_PLUGIN_TPSYSTEM
     lbm::tpsystem::onEnable();
 #endif
 

@@ -14,7 +14,7 @@ if not has_config("vs_runtime") then
     set_runtimes("MD")
 end
 
-option("target")
+option("plugin")
     set_default("tpsystem")
     set_values("tpsystem", "fakeplayer")
 
@@ -52,16 +52,15 @@ target("LeviBoom") -- Change this to your plugin name.
         add_defines("DEBUG")
     end
 
-    if is_config("target", "tpsystem") then
-        set_basename("LeviBoom_TPSystem")
-        add_defines("LEVIBOOM_TARGET_TPSYSTEM")
+    if is_config("plugin", "tpsystem") then
+        set_basename("LeviBoom_TPSystem" .. (is_mode("debug") and "_Debug" or ""))
+        add_defines("LEVIBOOM_PLUGIN_TPSYSTEM")
         add_defines("PLUGIN_NAME=\"LeviBoom_TPSystem\"")
 
-    elseif is_config("target", "fakeplayer") then
-        set_basename("LeviBoom_FakePlayer")
-        add_defines("LEVIBOOM_TARGET_FAKEPLAYER")
+    elseif is_config("plugin", "fakeplayer") then
+        set_basename("LeviBoom_FakePlayer" .. (is_mode("debug") and "_Debug" or ""))
+        add_defines("LEVIBOOM_PLUGIN_FAKEPLAYER")
         add_defines("PLUGIN_NAME=\"LeviBoom_FakePlayer\"")
-
     end
 
     after_build(function (target)
