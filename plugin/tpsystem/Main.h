@@ -10,7 +10,7 @@
 #include "tpsystem/data/LevelDB.h"
 
 
-namespace lbm::tpsystem {
+namespace lbm::plugin::tpsystem {
 
 using string = std::string;
 
@@ -23,11 +23,11 @@ inline void onLoad() {
         if (!std::filesystem::exists(path)) std::filesystem::create_directory(path);
     }
     // load data...
-    lbm::tpsystem::config::loadConfig();
-    lbm::tpsystem::data::LevelDB::getInstance().loadDB();
+    lbm::plugin::tpsystem::config::loadConfig();
+    lbm::plugin::tpsystem::data::LevelDB::getInstance().loadDB();
 }
 
-inline void onEnable() { lbm::tpsystem::command::registerCommands(); }
+inline void onEnable() { lbm::plugin::tpsystem::command::registerCommands(); }
 
 
-} // namespace lbm::tpsystem
+} // namespace lbm::plugin::tpsystem

@@ -4,7 +4,7 @@
 #include "mc/server/commands/CommandOriginType.h"
 #include "mc/server/commands/CommandOutput.h"
 
-namespace lbm::tpsystem::command {
+namespace lbm::plugin::tpsystem::command {
 
 struct ParamKey {
     string key1;
@@ -86,4 +86,4 @@ void registerCommandWithLevelDB(const string& name) {
     });
 }
 
-} // namespace lbm::tpsystem::command
+} // namespace lbm::plugin::tpsystem::command

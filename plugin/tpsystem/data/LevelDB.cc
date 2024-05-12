@@ -8,7 +8,7 @@
 #include <vector>
 
 
-namespace lbm::tpsystem::data {
+namespace lbm::plugin::tpsystem::data {
 
 using ll::i18n_literals::operator""_tr;
 
@@ -176,4 +176,4 @@ bool LevelDB::exportData() {
 }
 
 
-} // namespace lbm::tpsystem::data
+} // namespace lbm::plugin::tpsystem::data

@@ -3,7 +3,7 @@
 #include "ll/api/Config.h"
 #include "ll/api/i18n/I18n.h"
 
-namespace lbm::tpsystem::config {
+namespace lbm::plugin::tpsystem::config {
 
 using ll::i18n_literals::operator""_tr;
 
@@ -22,4 +22,4 @@ bool loadConfig() {
 }
 
 
-} // namespace lbm::tpsystem::config
+} // namespace lbm::plugin::tpsystem::config

@@ -7,7 +7,7 @@
 #include <vector>
 
 
-namespace lbm::tpsystem::data {
+namespace lbm::plugin::tpsystem::data {
 
 using string = std::string;
 using json   = nlohmann::json;

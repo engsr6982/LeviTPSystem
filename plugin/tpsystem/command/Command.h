@@ -4,7 +4,7 @@
 #include "utils/Mc.h"
 #include "utils/Utils.h"
 
-namespace lbm::tpsystem::command {
+namespace lbm::plugin::tpsystem::command {
 
 using string = std::string;
 using ll::i18n_literals::operator""_tr;
@@ -20,4 +20,4 @@ void registerCommandWithTpa(const string& name);
 void registerCommandWithLevelDB(const string& name);
 void registerCommandWithOther(const string& name);
 
-} // namespace lbm::tpsystem::command
+} // namespace lbm::plugin::tpsystem::command

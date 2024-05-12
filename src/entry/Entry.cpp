@@ -22,7 +22,7 @@ bool entry::load() {
     ll::i18n::load(getSelf().getLangDir());
 
 #ifdef LEVIBOOM_PLUGIN_TPSYSTEM
-    lbm::tpsystem::onLoad();
+    lbm::plugin::tpsystem::onLoad();
 #endif
 
     return true;
@@ -32,7 +32,7 @@ bool entry::enable() {
     getSelf().getLogger().info("Enabling...");
 
 #ifdef LEVIBOOM_PLUGIN_TPSYSTEM
-    lbm::tpsystem::onEnable();
+    lbm::plugin::tpsystem::onEnable();
 #endif
 
     return true;

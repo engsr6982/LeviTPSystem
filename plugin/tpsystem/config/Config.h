@@ -5,7 +5,7 @@
 #include <vector>
 
 
-namespace lbm::tpsystem::config {
+namespace lbm::plugin::tpsystem::config {
 
 using string = std::string;
 
@@ -76,4 +76,4 @@ extern Config cfg;
 
 bool loadConfig();
 
-} // namespace lbm::tpsystem::config
+} // namespace lbm::plugin::tpsystem::config

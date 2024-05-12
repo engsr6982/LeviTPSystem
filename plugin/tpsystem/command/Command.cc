@@ -4,7 +4,7 @@
 #include "mc/server/commands/CommandOriginType.h"
 #include "mc/server/commands/CommandPermissionLevel.h"
 
-namespace lbm::tpsystem::command {
+namespace lbm::plugin::tpsystem::command {
 
 bool registerCommands() {
     auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand(
@@ -28,4 +28,4 @@ bool registerCommands() {
     return true;
 }
 
-} // namespace lbm::tpsystem::command
+} // namespace lbm::plugin::tpsystem::command

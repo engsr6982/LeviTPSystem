@@ -1,7 +1,7 @@
 #include "Command.h"
 
-namespace lbm::tpsystem::command {
+namespace lbm::plugin::tpsystem::command {
 
 void registerCommandWithOther(const string& name) {}
 
-} // namespace lbm::tpsystem::command
+} // namespace lbm::plugin::tpsystem::command
