@@ -20,30 +20,6 @@ private:
         return now;
     }
 
-    // 重载操作符
-    Date& operator=(const Date& other) {
-        if (this != &other) {
-            mTm = other.mTm;
-        }
-        return *this;
-    }
-    bool operator==(const Date& other) const {
-        return getYear() == other.getYear() && getMonth() == other.getMonth() && getDay() == other.getDay()
-            && getHour() == other.getHour() && getMinute() == other.getMinute() && getSecond() == other.getSecond();
-    }
-    bool operator<(const Date& other) const {
-        if (getYear() != other.getYear()) return getYear() < other.getYear();
-        if (getMonth() != other.getMonth()) return getMonth() < other.getMonth();
-        if (getDay() != other.getDay()) return getDay() < other.getDay();
-        if (getHour() != other.getHour()) return getHour() < other.getHour();
-        if (getMinute() != other.getMinute()) return getMinute() < other.getMinute();
-        return getSecond() < other.getSecond();
-    }
-    bool operator>(const Date& other) const { return other < *this; }
-    bool operator<=(const Date& other) const { return !(*this > other); }
-    bool operator>=(const Date& other) const { return !(*this < other); }
-    bool operator!=(const Date& other) const { return !(*this == other); }
-
 public:
     int  getYear(int year = 0) const { return mTm.tm_year + 1900 + year; }
     bool setYear(int year) { return mTm.tm_year = year - 1900; }
@@ -57,6 +33,11 @@ public:
     bool setMinute(int minute) { return mTm.tm_min = minute; }
     int  getSecond() const { return mTm.tm_sec; }
     bool setSecond(int second) { return mTm.tm_sec = second; }
+
+    std::time_t getTime() const {
+        std::tm tm = mTm;
+        return std::mktime(&tm);
+    }
 
     string toString() {
         return utils::format("{}-{}-{} {}:{}:{}", getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond());
@@ -105,6 +86,31 @@ public:
 
         return Date(tm);
     }
+
+    // 重载操作符
+    Date& operator=(const Date& other) {
+        if (this != &other) {
+            mTm = other.mTm;
+        }
+        return *this;
+    }
+    bool operator==(const Date& other) const {
+        return getYear() == other.getYear() && getMonth() == other.getMonth() && getDay() == other.getDay()
+            && getHour() == other.getHour() && getMinute() == other.getMinute() && getSecond() == other.getSecond();
+    }
+    bool operator<(const Date& other) const {
+        if (getYear() != other.getYear()) return getYear() < other.getYear();
+        if (getMonth() != other.getMonth()) return getMonth() < other.getMonth();
+        if (getDay() != other.getDay()) return getDay() < other.getDay();
+        if (getHour() != other.getHour()) return getHour() < other.getHour();
+        if (getMinute() != other.getMinute()) return getMinute() < other.getMinute();
+        return getSecond() < other.getSecond();
+    }
+    bool        operator>(const Date& other) const { return other < *this; }
+    bool        operator<=(const Date& other) const { return !(*this > other); }
+    bool        operator>=(const Date& other) const { return !(*this < other); }
+    bool        operator!=(const Date& other) const { return !(*this == other); }
+    std::time_t operator-(const Date& other) const { return (this->getTime() - other.getTime()); }
 };
 
 } // namespace lbm::utils
