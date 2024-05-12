@@ -2,7 +2,21 @@ add_rules("mode.debug", "mode.release")
 
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 
+
 add_requires("levilamina 0.12.1") -- LeviLamina version x.x.x
+
+-- Key: PluginName, Value: Deps
+local ProjectPlugins = {
+    ["TPSystem"] = {"PermissionCore"},
+    ["FakePlayer"] = {}
+}
+
+-- Auto require plugin dependencies.
+if get_config("plugin") ~= nil then
+    print("[Deps] Requiring plugin dependencies: ", unpack(ProjectPlugins[get_config("plugin")]))
+    add_requires(unpack(ProjectPlugins[get_config("plugin")]))
+end 
+
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
@@ -16,13 +30,6 @@ package("PermissionCore")
         os.cp("*", package:installdir())
     end)
 
--- Key: PluginName, Value: Deps
-local ProjectPlugins = {
-    ["TPSystem"] = {"PermissionCore"},
-    ["FakePlayer"] = {}
-}
-local mPluginDepsSocks = nil -- 因作用域问题，只能采用全局变量来传输插件依赖。
-
 -- Auto generate plugin option.
 option("plugin")
     local plugins = {}
@@ -30,28 +37,10 @@ option("plugin")
         table.insert(plugins, k)
     end
     set_default(plugins[1])
-    set_values(table.unpack(plugins))
-    after_check(function (option)
-        local mPlugin = get_config("plugin")
-        if mPlugin == nil then
-            return
-        end
-        local tryGetDeps = ProjectPlugins[mPlugin]
-        if tryGetDeps == nil then
-            printf("Failed to get plugin dependencies for: %s\n", mPlugin)
-            return
-        end
-        if tryGetDeps == {} then
-            return
-        end
-        mPluginDepsSocks = table.unpack(tryGetDeps)
-    end)
--- Auto require plugin dependencies.
-if mPluginDepsSocks ~= nil then
-    printf("[Deps] Install plugin dependencies: %s\n", mPluginDepsSocks)
-    add_requires(mPluginDepsSocks)
-end 
+    set_values(unpack(plugins))
 
+
+-- Build target.
 target("LeviBoom")
     add_cxflags(
         "/EHa",
@@ -79,15 +68,14 @@ target("LeviBoom")
     end
 
     -- Auto configure plugins.
-    for pluginName, deps in pairs(ProjectPlugins) do
-        if is_config("plugin", pluginName) then
-            add_includedirs("plugin") -- Global include directory for plugins.
-            add_files("plugin/" .. pluginName .. "/**.cc") -- Add build files for plugin.
-            add_defines("PLUGIN_NAME=\"" .. pluginName .. "\"") -- Add plugin name define.
-            add_defines("LEVIBOOM_PLUGIN_" .. string.upper(pluginName)) -- Add plugin define.
-            set_basename("LeviBoom_" .. pluginName .. (is_mode("debug") and "_Debug" or "")) -- Set output name.
-            add_packages(table.unpack(deps)) -- Add plugin dependencies.
-        end
+    if get_config("plugin") ~= nil then
+        print("[Deps] Configuring target for plugin: ", get_config("plugin"))
+        add_includedirs("plugin") -- Global include directory for plugins.
+        add_files("plugin/" .. get_config("plugin") .. "/**.cc") -- Add build files for plugin.
+        add_defines("PLUGIN_NAME=\"" .. get_config("plugin") .. "\"") -- Add plugin name define.
+        add_defines("LEVIBOOM_PLUGIN_" .. string.upper(get_config("plugin"))) -- Add plugin define.
+        set_basename("LeviBoom_" .. get_config("plugin") .. (is_mode("debug") and "_Debug" or "")) -- Set output name.
+        add_packages(unpack(ProjectPlugins[get_config("plugin")])) -- Add plugin dependencies.
     end
 
     after_build(function (target)
