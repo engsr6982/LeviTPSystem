@@ -39,7 +39,7 @@ target("LeviBoom") -- Change this to your plugin name.
         "/w45204"
     )
     add_defines("NOMINMAX", "UNICODE")
-    add_files("src/**.cpp", "src/**.cc")
+    add_files("src/**.cpp")
     add_includedirs("src")
     add_packages("levilamina", "PermissionCore")
     add_shflags("/DELAYLOAD:bedrock_server.dll") -- To use symbols provided by SymbolProvider.
@@ -52,15 +52,20 @@ target("LeviBoom") -- Change this to your plugin name.
         add_defines("DEBUG")
     end
 
-    if is_config("plugin", "tpsystem") then
-        set_basename("LeviBoom_TPSystem" .. (is_mode("debug") and "_Debug" or ""))
-        add_defines("LEVIBOOM_PLUGIN_TPSYSTEM")
-        add_defines("PLUGIN_NAME=\"LeviBoom_TPSystem\"")
+    local mapping = {
+        ["tpsystem"] = "TPSystem",
+        ["fakeplayer"] = "FakePlayer"
+    }
 
-    elseif is_config("plugin", "fakeplayer") then
-        set_basename("LeviBoom_FakePlayer" .. (is_mode("debug") and "_Debug" or ""))
-        add_defines("LEVIBOOM_PLUGIN_FAKEPLAYER")
-        add_defines("PLUGIN_NAME=\"LeviBoom_FakePlayer\"")
+    for k, v in pairs(mapping) do
+        if is_config("plugin", k) then
+            add_includedirs("plugin")
+            -- add_includedirs("plugin/" .. k)
+            add_files("plugin/" .. k .. "/**.cc")
+            add_defines("PLUGIN_NAME=\"" .. k .. "\"")
+            add_defines("LEVIBOOM_PLUGIN_" .. string.upper(v))
+            set_basename("LeviBoom_" .. k .. (is_mode("debug") and "_Debug" or ""))
+        end
     end
 
     after_build(function (target)
