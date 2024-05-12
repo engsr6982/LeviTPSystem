@@ -47,4 +47,30 @@ inline string format(const string& fmt, Args&&... args) {
         return fmt;
     }
 }
+
+inline string toJson(const std::unordered_map<string, double>& map) {
+    string json = "{";
+    for (const auto& pair : map) {
+        json += "\"" + pair.first + "\":" + std::to_string(pair.second) + ",";
+    }
+    json[json.size() - 1] = '}';
+    return json;
+}
+
+inline string toJson(const std::unordered_map<string, int>& map) {
+    string json = "{";
+    for (const auto& pair : map) {
+        json += "\"" + pair.first + "\":" + std::to_string(pair.second) + ",";
+    }
+    json[json.size() - 1] = '}';
+    return json;
+}
+
+inline bool some(const std::vector<string>& vec, const string& str) {
+    if (vec.empty()) {
+        return false;
+    }
+    return std::find(vec.begin(), vec.end(), str) != vec.end();
+}
+
 } // namespace lbm::utils

@@ -1,3 +1,4 @@
+#pragma once
 #include "Utils.h"
 #include "mc/world/actor/player/Player.h"
 #include <mc/server/commands/CommandOutput.h>
