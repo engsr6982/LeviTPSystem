@@ -2,21 +2,11 @@ add_rules("mode.debug", "mode.release")
 
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 
--- add_requires("levilamina x.x.x") for a specific version
--- add_requires("levilamina develop") to use develop version
--- please note that you should add bdslibrary yourself if using dev version
-add_requires(
-    "levilamina 0.12.1",
-    "PermissionCore"
-)
+add_requires("levilamina 0.12.1") -- LeviLamina version x.x.x
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
 end
-
-option("plugin")
-    set_default("tpsystem")
-    set_values("tpsystem", "fakeplayer")
 
 package("PermissionCore")
     set_urls("https://github.com/engsr6982/PermissionCore/releases/download/$(version)/SDK-PermissionCore.zip")
@@ -26,7 +16,43 @@ package("PermissionCore")
         os.cp("*", package:installdir())
     end)
 
-target("LeviBoom") -- Change this to your plugin name.
+-- Key: PluginName, Value: Deps
+local ProjectPlugins = {
+    ["TPSystem"] = {"PermissionCore"},
+    ["FakePlayer"] = {}
+}
+local mPluginDepsSocks = nil -- 因作用域问题，只能采用全局变量来传输插件依赖。
+
+-- Auto generate plugin option.
+option("plugin")
+    local plugins = {}
+    for k, _ in pairs(ProjectPlugins) do
+        table.insert(plugins, k)
+    end
+    set_default(plugins[1])
+    set_values(table.unpack(plugins))
+    after_check(function (option)
+        local mPlugin = get_config("plugin")
+        if mPlugin == nil then
+            return
+        end
+        local tryGetDeps = ProjectPlugins[mPlugin]
+        if tryGetDeps == nil then
+            printf("Failed to get plugin dependencies for: %s\n", mPlugin)
+            return
+        end
+        if tryGetDeps == {} then
+            return
+        end
+        mPluginDepsSocks = table.unpack(tryGetDeps)
+    end)
+-- Auto require plugin dependencies.
+if mPluginDepsSocks ~= nil then
+    printf("[Deps] Install plugin dependencies: %s\n", mPluginDepsSocks)
+    add_requires(mPluginDepsSocks)
+end 
+
+target("LeviBoom")
     add_cxflags(
         "/EHa",
         "/utf-8",
@@ -41,7 +67,7 @@ target("LeviBoom") -- Change this to your plugin name.
     add_defines("NOMINMAX", "UNICODE")
     add_files("src/**.cpp")
     add_includedirs("src")
-    add_packages("levilamina", "PermissionCore")
+    add_packages("levilamina")
     add_shflags("/DELAYLOAD:bedrock_server.dll") -- To use symbols provided by SymbolProvider.
     set_exceptions("none") -- To avoid conflicts with /EHa.
     set_kind("shared")
@@ -52,19 +78,15 @@ target("LeviBoom") -- Change this to your plugin name.
         add_defines("DEBUG")
     end
 
-    local mapping = {
-        ["tpsystem"] = "TPSystem",
-        ["fakeplayer"] = "FakePlayer"
-    }
-
-    for k, v in pairs(mapping) do
-        if is_config("plugin", k) then
-            add_includedirs("plugin")
-            -- add_includedirs("plugin/" .. k)
-            add_files("plugin/" .. k .. "/**.cc")
-            add_defines("PLUGIN_NAME=\"" .. v .. "\"")
-            add_defines("LEVIBOOM_PLUGIN_" .. string.upper(v))
-            set_basename("LeviBoom_" .. v .. (is_mode("debug") and "_Debug" or ""))
+    -- Auto configure plugins.
+    for pluginName, deps in pairs(ProjectPlugins) do
+        if is_config("plugin", pluginName) then
+            add_includedirs("plugin") -- Global include directory for plugins.
+            add_files("plugin/" .. pluginName .. "/**.cc") -- Add build files for plugin.
+            add_defines("PLUGIN_NAME=\"" .. pluginName .. "\"") -- Add plugin name define.
+            add_defines("LEVIBOOM_PLUGIN_" .. string.upper(pluginName)) -- Add plugin define.
+            set_basename("LeviBoom_" .. pluginName .. (is_mode("debug") and "_Debug" or "")) -- Set output name.
+            add_packages(table.unpack(deps)) -- Add plugin dependencies.
         end
     end
 
