@@ -62,9 +62,9 @@ target("LeviBoom") -- Change this to your plugin name.
             add_includedirs("plugin")
             -- add_includedirs("plugin/" .. k)
             add_files("plugin/" .. k .. "/**.cc")
-            add_defines("PLUGIN_NAME=\"" .. k .. "\"")
+            add_defines("PLUGIN_NAME=\"" .. v .. "\"")
             add_defines("LEVIBOOM_PLUGIN_" .. string.upper(v))
-            set_basename("LeviBoom_" .. k .. (is_mode("debug") and "_Debug" or ""))
+            set_basename("LeviBoom_" .. v .. (is_mode("debug") and "_Debug" or ""))
         end
     end
 
