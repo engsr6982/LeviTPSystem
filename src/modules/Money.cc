@@ -29,7 +29,8 @@ int ScoreBoardMoney::getScore(Player& player) {
     Objective*  obj        = scoreboard.getObjective(this->mScoreName);
     if (!obj) {
         sendText<MsgLevel::Error>(player, "[Moneys] 插件错误: 找不到指定的计分板: "_tr(this->mScoreName));
-        throw std::runtime_error("Fail in ScoreBoardMoney::getScore: Objective not found");
+        std::runtime_error("Fail in ScoreBoardMoney::getScore: Objective not found");
+        return 0;
     }
     const ScoreboardId& id = scoreboard.getScoreboardId(player);
     if (!id.isValid()) {
@@ -47,7 +48,8 @@ bool ScoreBoardMoney::setScore(Player& player, int score) {
     Objective*  obj        = scoreboard.getObjective(this->mScoreName);
     if (!obj) {
         sendText<MsgLevel::Error>(player, "[Moneys] 插件错误: 找不到指定的计分板: "_tr(this->mScoreName));
-        throw std::runtime_error("Fail in ScoreBoardMoney::setScore: Objective not found");
+        std::runtime_error("Fail in ScoreBoardMoney::setScore: Objective not found");
+        return false;
     }
     const ScoreboardId& id = scoreboard.getScoreboardId(player);
     if (!id.isValid()) {
@@ -71,7 +73,8 @@ bool ScoreBoardMoney::addScore(Player& player, int score) {
     Objective*  obj        = scoreboard.getObjective(this->mScoreName);
     if (!obj) {
         sendText<MsgLevel::Error>(player, "[Moneys] 插件错误: 找不到指定的计分板: "_tr(this->mScoreName));
-        throw std::runtime_error("Fail in ScoreBoardMoney::addScore: Objective not found");
+        std::runtime_error("Fail in ScoreBoardMoney::addScore: Objective not found");
+        return false;
     }
     const ScoreboardId& id = scoreboard.getScoreboardId(player);
     if (!id.isValid()) {
@@ -95,7 +98,8 @@ bool ScoreBoardMoney::reduceScore(Player& player, int score) {
     Objective*  obj        = scoreboard.getObjective(this->mScoreName);
     if (!obj) {
         sendText<MsgLevel::Error>(player, "[Moneys] 插件错误: 找不到指定的计分板: "_tr(this->mScoreName));
-        throw std::runtime_error("Fail in ScoreBoardMoney::reduceScore: Objective not found");
+        std::runtime_error("Fail in ScoreBoardMoney::reduceScore: Objective not found");
+        return false;
     }
     const ScoreboardId& id = scoreboard.getScoreboardId(player);
     if (!id.isValid()) {
@@ -124,7 +128,7 @@ void Moneys::throwUnknownType(Player* player) {
     if (player) {
         sendText<MsgLevel::Error>(player, "[Moneys] 插件错误: 未知的货币类型"_tr());
     }
-    throw std::runtime_error("Fail in Moneys::throwUnknownType: Unknown currency type");
+    std::runtime_error("Fail in Moneys::throwUnknownType: Unknown currency type");
 }
 
 bool Moneys::updateConfig(MoneysConfig config) {

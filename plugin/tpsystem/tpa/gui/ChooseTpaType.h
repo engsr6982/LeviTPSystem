@@ -19,11 +19,7 @@ using SimpleForm = ll::form::SimpleForm;
 
 class ChooseTpaType : public ll::form::SimpleForm {
 public:
-    Player* player;
-
-    ChooseTpaType(Player* player);
-
-    void sendTpaForm(const string& type);
+    ChooseTpaType();
 };
 
 

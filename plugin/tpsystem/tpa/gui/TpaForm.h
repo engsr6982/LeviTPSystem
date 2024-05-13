@@ -19,7 +19,7 @@ using SimpleForm = ll::form::SimpleForm;
 
 class TpaForm : public ll::form::SimpleForm {
 public:
-    TpaForm(Player* player, const string& type);
+    TpaForm(Player& player, const string type);
 };
 
 } // namespace lbm::plugin::tpsystem::tpa::gui

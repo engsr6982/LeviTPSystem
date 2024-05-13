@@ -63,28 +63,28 @@ void registerCommandWithTpa(const string& name) {
     );
 
     // tps tpa <here|to> <Player>
-    cmd.overload<ParamTp>().text("tpa").required("type").required("target").execute(
-        [](CommandOrigin const& origin, CommandOutput& output, const ParamTp& param) {
-            CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-            auto&        player = *static_cast<Player*>(origin.getEntity());
-            const string type   = (param.type == TpType::to) ? "to" : "here";
-            auto         li     = param.target.results(origin);
-            if (li.empty()) {
-                sendText<MsgLevel::Error>(output, "请至少选择一位玩家！"_tr());
-                return;
-            } else if (li.size() > 1) {
-                sendText<MsgLevel::Error>(output, "仅支持对一位玩家发起TPA！"_tr());
-                return;
-            }
-            auto request = tpa::core::TpaRequestPool::getInstance()
-                               .createRequest(player, *(*li.data)[0], type, config::cfg.Tpa.CacheExpirationTime);
-            tpa::core::Available avail = request->ask();
-            if (avail != tpa::core::Available::Available) {
-                sendText<MsgLevel::Error>(player, "{}"_tr(tpa::core::AvailDescription(avail)));
-            }
-            // TODO: 触发 Tpa请求发送事件
+    cmd.overload<ParamTp>().text("tpa").required("type").required("target").execute([](CommandOrigin const& origin,
+                                                                                       CommandOutput&       output,
+                                                                                       const ParamTp&       param) {
+        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+        auto&        player = *static_cast<Player*>(origin.getEntity());
+        const string type   = (param.type == TpType::to) ? "to" : "here";
+        auto         li     = param.target.results(origin);
+        if (li.empty()) {
+            sendText<MsgLevel::Error>(output, "请至少选择一位玩家！"_tr());
+            return;
+        } else if (li.size() > 1) {
+            sendText<MsgLevel::Error>(output, "仅支持对一位玩家发起TPA！"_tr());
+            return;
         }
-    );
+        auto request =
+            std::make_shared<tpa::core::TpaRequest>(player, *(*li.data)[0], type, config::cfg.Tpa.CacheExpirationTime);
+        tpa::core::Available avail = request->ask();
+        if (avail != tpa::core::Available::Available) {
+            sendText<MsgLevel::Error>(player, "{}"_tr(tpa::core::AvailDescription(avail)));
+        }
+        // TODO: 触发 Tpa请求发送事件
+    });
 }
 
 } // namespace lbm::plugin::tpsystem::command

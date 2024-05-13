@@ -44,11 +44,11 @@ string AvailDescription(Available avail) {
 }
 
 
-TpaRequest::TpaRequest(Player& sender, Player& receiver, const string& type, int lifespan) {
+TpaRequest::TpaRequest(Player& sender, Player& receiver, const string type, int lifespan) {
     this->sender   = sender.getRealName();
     this->receiver = receiver.getRealName();
-    this->type     = type;
-    this->time     = Date::now();
+    this->type     = string(type);
+    this->time     = std::make_unique<Date>();
     this->lifespan = lifespan;
 
     if (type.empty() || (type != "tpa" && type != "teleport")) {
@@ -65,7 +65,7 @@ void TpaRequest::destoryThisRequestFormPool() {
 }
 
 bool TpaRequest::isOutdated() {
-    if (Date{}.getTime() - this->time.getTime() >= this->lifespan) {
+    if (Date{}.getTime() - this->time->getTime() >= this->lifespan) {
         return true;
     }
     return false;
@@ -98,8 +98,7 @@ void TpaRequest::accept() {
 
 void TpaRequest::deny() {
     sendText<MsgLevel::Error>(sender, "'{0}' 拒绝了您的 '{0}' 请求。"_tr(receiver, type));
-    // 销毁请求
-    destoryThisRequestFormPool();
+    destoryThisRequestFormPool(); // 销毁请求
 }
 
 Available TpaRequest::ask() {
@@ -111,9 +110,10 @@ Available TpaRequest::ask() {
         return avail;
     }
     // 创建询问表单
-    gui::TpaAskForm(this).sendTo(*ll::service::getLevel()->getPlayer(sender));
+    auto fm = gui::TpaAskForm(std::shared_ptr<TpaRequest>(shared_from_this()));
+    fm.sendTo(*ll::service::getLevel()->getPlayer(sender));
     // TODO: 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
-    // ruleCore_Instance.getPlayerRule(this.reciever.realName).tpaPopup ? fm.send() : fm.cacheReq(this);
+    // fm.cacheRequest(std::shared_ptr<TpaRequest>(shared_from_this())); // 缓存到请求池
     return avail;
 }
 

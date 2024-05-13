@@ -1,6 +1,9 @@
 #include "TpaAskForm.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
+#include "ll/api/service/Bedrock.h"
+#include "mc/world/actor/player/Player.h"
+#include <memory>
 
 namespace lbm::plugin::tpsystem::tpa::gui {
 
@@ -9,7 +12,7 @@ using ll::i18n_literals::operator""_tr;
 using namespace lbm::utils::mc;
 using namespace lbm::utils;
 
-TpaAskForm::TpaAskForm(core::TpaRequest* request) {
+TpaAskForm::TpaAskForm(std::shared_ptr<core::TpaRequest> request) {
     string tpaDescription;
     if (request->type == "tpa") {
         tpaDescription = format("{0} 希望传送到您这里"_tr(request->sender));
@@ -26,9 +29,25 @@ TpaAskForm::TpaAskForm(core::TpaRequest* request) {
 
     appendButton("拒绝", "textures/ui/realms_red_x", "path", [request](Player&) { request->deny(); });
 
-    appendButton("缓存本次请求", [request](Player& p) {
-        sendText(p, "已缓存来自 {0} 的 {1} 请求"_tr(request->sender, request->type));
-    });
+    appendButton("缓存本次请求", [this, request](Player&) { cacheRequest(request); });
+}
+
+bool TpaAskForm::cacheRequest(std::shared_ptr<core::TpaRequest> request) {
+    auto&  pool     = core::TpaRequestPool::getInstance();
+    string sender   = request->sender;
+    string receiver = request->receiver;
+    string type     = request->type;
+    return pool.addRequest(std::move(request));
+}
+
+bool TpaAskForm::cacheRequest(std::shared_ptr<core::TpaRequest> request, Player& player) {
+    bool success = cacheRequest(request);
+    if (success) {
+        sendText(player, "已缓存来自 {0} 的 {1} 请求"_tr(request->sender, request->type));
+        return true;
+    }
+    sendText(player, "无法缓存来自 {0} 的 {1} 请求"_tr(request->sender, request->type));
+    return false;
 }
 
 

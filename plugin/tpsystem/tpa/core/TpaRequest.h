@@ -22,18 +22,17 @@ string AvailDescription(Available avail); // 获取可用状态描述
 
 using Date = utils::Date;
 
-// ! 您不应该手动创建或删除 TpaRequest 对象，而应该通过 TpaRequestPool 来管理
-// ! 请使用 TpaRequestPool::createRequest() 来创建请求，并使用 TpaRequestPool::deleteRequest() 来销毁请求
-class TpaRequest {
+// ! 请创建为 shared_ptr 以便管理生命周期
+class TpaRequest : std::enable_shared_from_this<TpaRequest> {
 
 public:
-    string sender;   // 请求者
-    string receiver; // 接收者
-    string type;     // 请求类型 tpa / tpahere
-    Date   time;     // 请求创建时间
-    int    lifespan; // 请求有效期
+    string                sender;   // 请求者
+    string                receiver; // 接收者
+    string                type;     // 请求类型 tpa / tpahere
+    std::unique_ptr<Date> time;     // 请求创建时间
+    int                   lifespan; // 请求有效期
 
-    TpaRequest(Player& sender, Player& receiver, const string& type, int lifespan);
+    TpaRequest(Player& sender, Player& receiver, const string type, int lifespan);
 
     bool isOutdated(); // 判断请求是否过期
 

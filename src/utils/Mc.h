@@ -42,7 +42,7 @@ inline void sendText(CommandOutput& output, const string& fmt, Args&&... args) {
 template <MsgLevel type = MsgLevel::Normal, typename... Args>
 inline void sendText(Player* player, const string& fmt, Args&&... args) {
     if (player) {
-        return sendText<type>(player, fmt, args...);
+        return sendText<type>(*player, fmt, args...);
     } else {
         std::runtime_error("Failed in sendText: player is nullptr");
     }

@@ -17,7 +17,10 @@ namespace lbm::plugin::tpsystem::tpa::gui {
 
 class TpaAskForm : public ll::form::SimpleForm {
 public:
-    TpaAskForm(core::TpaRequest* request = nullptr);
+    TpaAskForm(std::shared_ptr<core::TpaRequest> request);
+
+    bool cacheRequest(std::shared_ptr<core::TpaRequest> request, Player& player);
+    bool cacheRequest(std::shared_ptr<core::TpaRequest> request);
 };
 
 } // namespace lbm::plugin::tpsystem::tpa::gui

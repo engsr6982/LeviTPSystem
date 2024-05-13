@@ -15,16 +15,16 @@
 
 namespace lbm::plugin::tpsystem::tpa::gui {
 
-ChooseTpaType::ChooseTpaType(Player* player) {
-    this->player = player;
+ChooseTpaType::ChooseTpaType() {
     setTitle("你想如何传送？"_tr());
-    appendButton("传送到其他玩家"_tr(), [this](Player&) { sendTpaForm("tpa"); });
-    appendButton("让其他玩家传送过来"_tr(), [this](Player&) { sendTpaForm("tpahere"); });
-}
-
-void ChooseTpaType::sendTpaForm(const string& type) {
-    auto tf = std::make_unique<TpaForm>(this->player, string(type));
-    tf->sendTo(*this->player);
+    appendButton("传送到其他玩家"_tr(), [](Player& p) {
+        auto tf = std::make_unique<TpaForm>(p, string("tpa"));
+        tf->sendTo(p);
+    });
+    appendButton("让其他玩家传送过来"_tr(), [](Player& p) {
+        auto tf = std::make_unique<TpaForm>(p, string("tpahere"));
+        tf->sendTo(p);
+    });
 }
 
 } // namespace lbm::plugin::tpsystem::tpa::gui

@@ -4,7 +4,7 @@
 namespace lbm::plugin::tpsystem::tpa::gui {
 
 void tpaEntry(Player& player) {
-    ChooseTpaType cs(&player);
+    ChooseTpaType cs;
     cs.sendTo(player);
 }
 

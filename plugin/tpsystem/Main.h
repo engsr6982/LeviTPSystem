@@ -5,6 +5,7 @@
 #include "string"
 
 // plugin header file
+#include "modules/Moneys.h"
 #include "tpsystem/command/Command.h"
 #include "tpsystem/config/Config.h"
 #include "tpsystem/data/LevelDB.h"
@@ -27,7 +28,10 @@ inline void onLoad() {
     lbm::plugin::tpsystem::data::LevelDB::getInstance().loadDB();
 }
 
-inline void onEnable() { lbm::plugin::tpsystem::command::registerCommands(); }
+inline void onEnable() {
+    lbm::plugin::tpsystem::command::registerCommands();
+    lbm::modules::Moneys::getInstance().updateConfig(plugin::tpsystem::config::cfg.Money);
+}
 
 
 } // namespace lbm::plugin::tpsystem
