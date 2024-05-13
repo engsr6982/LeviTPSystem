@@ -71,18 +71,47 @@ bool TpaRequest::isOutdated() {
 using namespace ll::service;
 using namespace lbm::utils::mc;
 
-void TpaRequest::accept() {}
+void TpaRequest::accept() {
+    Available avail = getAvailable();
+    if (avail != Available::Available) {
+        if (avail != Available::SenderOffline) {
+            sendText<MsgLevel::Error>(sender, "{}", AvailDescription(avail));
+        }
+        return;
+    }
+    if (type == "tpa") {
 
-void TpaRequest::deny() {}
+    } else if (type == "tpahere") {
+    }
+    // TODO: 扣除经济
+    // money_Instance.deductPlayerMoney(this.sender, config.Tpa.Money);
+    sendText<MsgLevel::Success>(sender, "'{0}' 接受了您的 '{0}' 请求。"_tr(receiver, type));
+    // 销毁请求
+    destoryThisRequestFormPool();
+}
+
+void TpaRequest::deny() {
+    sendText<MsgLevel::Error>(sender, "'{0}' 拒绝了您的 '{0}' 请求。"_tr(receiver, type));
+    // 销毁请求
+    destoryThisRequestFormPool();
+}
 
 Available TpaRequest::ask() {
     Available avail = getAvailable();
     if (avail != Available::Available) {
         if (avail != Available::SenderOffline) {
-            sendText<MsgLevel::Error>(*getLevel()->getPlayer(sender), "{}", AvailDescription(avail));
+            sendText<MsgLevel::Error>(sender, "{}", AvailDescription(avail));
         }
         return avail;
     }
+    // TODO: 创建 TpaAskForm
+    // TODO: 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
+    // 创建询问表单
+    // const fm = new TPAAskForm(this);
+    // 检查是否需要弹窗
+    // ruleCore_Instance.getPlayerRule(this.reciever.realName).tpaPopup ? fm.send() : fm.cacheReq(this);
+
+    return avail;
 }
 
 
