@@ -92,12 +92,12 @@ void TpaRequest::accept() {
     }
     // 扣除经济
     lbm::modules::Moneys::getInstance().reduceMoney(sender, config::cfg.Tpa.Money);
-    sendText<MsgLevel::Success>(sender, "'{0}' 接受了您的 '{0}' 请求。"_tr(receiver, type));
+    sendText<MsgLevel::Success>(sender, "'{0}' 接受了您的 '{1}' 请求。"_tr(receiver, type));
     destoryThisRequestFormPool(); // 销毁请求
 }
 
 void TpaRequest::deny() {
-    sendText<MsgLevel::Error>(sender, "'{0}' 拒绝了您的 '{0}' 请求。"_tr(receiver, type));
+    sendText<MsgLevel::Error>(sender, "'{0}' 拒绝了您的 '{1}' 请求。"_tr(receiver, type));
     destoryThisRequestFormPool(); // 销毁请求
 }
 

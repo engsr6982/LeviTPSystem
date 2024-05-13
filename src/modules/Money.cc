@@ -219,14 +219,14 @@ bool Moneys::reduceMoney(const string& realName, long long money) {
 string Moneys::getMoneySpendTipStr(Player& player, long long money) {
     long long currentMoney = mIsEnable ? getMoney(player) : 0;
     return utils::format(
-        "[§l§uMoneys§r] 此操作将扣除[§6{0}§r]:§e{1}§r | 当前[§6{2}§r]:§d{3}§r | 剩余[§6{4}§r]:§s{5}§r | {6}"_tr(
+        "§l[§uTip§r§l] 此操作将扣除§6{0}§r§l:§e{1}§r§l | 当前§6{2}§r§l:§d{3}§r§l | 剩余§6{4}§r§l:§s{5}§r§l | {6}"_tr(
             mMoneyName,
             money,
             mMoneyName,
             currentMoney,
             mMoneyName,
             currentMoney - money,
-            currentMoney >= money ? "[§6{}§r]§a充足§r"_tr(mMoneyName) : "[§6{}§r]§c不足§r"_tr(mMoneyName)
+            currentMoney >= money ? "§6{}§r§l§a充足§r"_tr(mMoneyName) : "§6{}§r§l§c不足§r"_tr(mMoneyName)
         )
     );
 }

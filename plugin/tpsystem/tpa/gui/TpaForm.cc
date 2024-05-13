@@ -23,13 +23,16 @@ TpaForm::TpaForm(Player& player, const string type) {
     auto level = ll::service::getLevel();
     if (!level.has_value()) {
         utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "获取 Level 指针失败"_tr());
-        std::runtime_error("获取 Level 指针失败");
+        std::runtime_error("Fail in TpaForm::constructor::level.has_value = false");
         return;
     }
 
 #ifdef DEBUG
     std::cout << "TpaForm::constructor::type: " << type << std::endl;
 #endif
+
+    setTitle("Tpa 选择目标玩家"_tr());
+    setContent(modules::Moneys::getInstance().getMoneySpendTipStr(player, config::cfg.Tpa.Money));
 
     level->forEachPlayer([type, this](Player& target) {
         appendButton(target.getRealName(), [&target, type](Player& sender) {

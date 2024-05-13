@@ -25,11 +25,11 @@ TpaAskForm::TpaAskForm(std::shared_ptr<core::TpaRequest> request) {
     setTitle(request->receiver + " tpa");
     setContent(tpaDescription);
 
-    appendButton("接受", "textures/ui/realms_green_check", "path", [request](Player&) { request->accept(); });
+    appendButton("接受"_tr(), "textures/ui/realms_green_check", "path", [request](Player&) { request->accept(); });
 
-    appendButton("拒绝", "textures/ui/realms_red_x", "path", [request](Player&) { request->deny(); });
+    appendButton("拒绝"_tr(), "textures/ui/realms_red_x", "path", [request](Player&) { request->deny(); });
 
-    appendButton("缓存本次请求", [this, request](Player&) { cacheRequest(request); });
+    appendButton("缓存本次请求"_tr(), [this, request](Player& p) { cacheRequest(request, p); });
 }
 
 bool TpaAskForm::cacheRequest(std::shared_ptr<core::TpaRequest> request) {

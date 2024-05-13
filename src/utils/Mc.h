@@ -51,7 +51,7 @@ template <MsgLevel type = MsgLevel::Normal, typename... Args>
 inline void sendText(const string& realName, const string& fmt, Args&&... args) {
     auto level = ll::service::getLevel();
     if (level.has_value()) {
-        return sendText(level->getPlayer(realName), fmt, args...);
+        return sendText<type>(level->getPlayer(realName), fmt, args...);
     } else {
         std::runtime_error("Failed in sendText: level is nullptr");
     }

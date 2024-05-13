@@ -68,7 +68,7 @@ void registerCommandWithTpa(const string& name) {
                                                                                        const ParamTp&       param) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         auto&        player = *static_cast<Player*>(origin.getEntity());
-        const string type   = (param.type == TpType::to) ? "to" : "here";
+        const string type   = (param.type == TpType::to) ? "tpa" : "tpahere";
         auto         li     = param.target.results(origin);
         if (li.empty()) {
             sendText<MsgLevel::Error>(output, "请至少选择一位玩家！"_tr());
