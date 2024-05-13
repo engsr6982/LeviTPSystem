@@ -69,9 +69,9 @@ target("LeviBoom")
     if get_config("plugin") ~= nil then
         add_includedirs("plugin") -- Global include directory for plugins.
         add_files("plugin/" .. get_config("plugin") .. "/**.cc") -- Add build files for plugin.
-        add_defines("PLUGIN_NAME=\"" .. get_config("plugin") .. "\"") -- Add plugin name define.
+        add_defines("PLUGIN_NAME=\"Levi" .. get_config("plugin") .. "\"") -- Add plugin name define.
         add_defines("LEVIBOOM_PLUGIN_" .. string.upper(get_config("plugin"))) -- Add plugin define.
-        set_basename("LeviBoom_" .. get_config("plugin") .. (is_mode("debug") and "_Debug" or "")) -- Set output name.
+        set_basename("Levi" .. get_config("plugin") .. (is_mode("debug") and "_Debug" or "")) -- Set output name.
         add_defines(unpack(ProjectPlugins[get_config("plugin")][2])) -- Add plugin defines.
         -- Parse plugin dependencies and add them as packages.
         local packages = {}
