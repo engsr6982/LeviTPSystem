@@ -5,16 +5,16 @@ add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 
 add_requires("levilamina 0.12.1") -- LeviLamina version x.x.x
 
--- Key: PluginName, Value: Deps
+-- Key: PluginName, Value: [[Deps], [Define]]
 local ProjectPlugins = {
-    ["TPSystem"] = {"PermissionCore"},
-    ["FakePlayer"] = {}
+    ["TPSystem"] = {{"PermissionCore", "legacymoney 0.7.0"}, {"ENABLE_MONEY"}},
+    ["FakePlayer"] = {{}, {}}
 }
 
 -- Auto require plugin dependencies.
 if get_config("plugin") ~= nil then
-    print("[Deps] Requiring plugin dependencies: ", unpack(ProjectPlugins[get_config("plugin")]))
-    add_requires(unpack(ProjectPlugins[get_config("plugin")]))
+    printf("[Deps] Require dependencies for plugin: '%s', deps: \n\t%s\n\n", get_config("plugin"), table.concat(ProjectPlugins[get_config("plugin")][1], "\n\t"))
+    add_requires(unpack(ProjectPlugins[get_config("plugin")][1]))
 end 
 
 
@@ -69,13 +69,13 @@ target("LeviBoom")
 
     -- Auto configure plugins.
     if get_config("plugin") ~= nil then
-        print("[Deps] Configuring target for plugin: ", get_config("plugin"))
         add_includedirs("plugin") -- Global include directory for plugins.
         add_files("plugin/" .. get_config("plugin") .. "/**.cc") -- Add build files for plugin.
         add_defines("PLUGIN_NAME=\"" .. get_config("plugin") .. "\"") -- Add plugin name define.
         add_defines("LEVIBOOM_PLUGIN_" .. string.upper(get_config("plugin"))) -- Add plugin define.
         set_basename("LeviBoom_" .. get_config("plugin") .. (is_mode("debug") and "_Debug" or "")) -- Set output name.
-        add_packages(unpack(ProjectPlugins[get_config("plugin")])) -- Add plugin dependencies.
+        add_packages(unpack(ProjectPlugins[get_config("plugin")][1])) -- Add plugin dependencies.
+        add_defines(unpack(ProjectPlugins[get_config("plugin")][2])) -- Add plugin defines.
     end
 
     after_build(function (target)
