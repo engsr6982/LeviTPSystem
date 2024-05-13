@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace lbm::plugin::tpa::core {
+namespace lbm::plugin::tpsystem::tpa::core {
 
 TpaRequestPool& TpaRequestPool::getInstance() {
     static TpaRequestPool instance;

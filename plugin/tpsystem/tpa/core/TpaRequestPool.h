@@ -7,7 +7,7 @@
 
 #include "TpaRequest.h"
 
-namespace lbm::plugin::tpa::core {
+namespace lbm::plugin::tpsystem::tpa::core {
 
 using string = std::string;
 

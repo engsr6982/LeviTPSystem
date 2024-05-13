@@ -4,13 +4,16 @@
 #include "ll/api/service/Bedrock.h"
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
+#include "modules/Moneys.h"
+#include "tpsystem/config/Config.h"
+#include "tpsystem/tpa/gui/TpaAskForm.h"
 #include "utils/Date.h"
 #include "utils/Mc.h"
 #include <memory>
 #include <stdexcept>
 
 
-namespace lbm::plugin::tpa::core {
+namespace lbm::plugin::tpsystem::tpa::core {
 
 using ll::i18n_literals::operator""_tr;
 
@@ -79,15 +82,18 @@ void TpaRequest::accept() {
         }
         return;
     }
+    auto& level = *ll::service::getLevel();
     if (type == "tpa") {
-
+        auto rec = level.getPlayer(receiver);
+        level.getPlayer(sender)->teleport(rec->getPosition(), rec->getDimensionId());
     } else if (type == "tpahere") {
+        auto sen = level.getPlayer(sender);
+        level.getPlayer(receiver)->teleport(sen->getPosition(), sen->getDimensionId());
     }
-    // TODO: 扣除经济
-    // money_Instance.deductPlayerMoney(this.sender, config.Tpa.Money);
+    // 扣除经济
+    lbm::modules::Moneys::getInstance().reduceMoney(sender, config::cfg.Tpa.Money);
     sendText<MsgLevel::Success>(sender, "'{0}' 接受了您的 '{0}' 请求。"_tr(receiver, type));
-    // 销毁请求
-    destoryThisRequestFormPool();
+    destoryThisRequestFormPool(); // 销毁请求
 }
 
 void TpaRequest::deny() {
@@ -104,13 +110,10 @@ Available TpaRequest::ask() {
         }
         return avail;
     }
-    // TODO: 创建 TpaAskForm
-    // TODO: 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
     // 创建询问表单
-    // const fm = new TPAAskForm(this);
-    // 检查是否需要弹窗
+    gui::TpaAskForm(this).sendTo(*ll::service::getLevel()->getPlayer(sender));
+    // TODO: 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
     // ruleCore_Instance.getPlayerRule(this.reciever.realName).tpaPopup ? fm.send() : fm.cacheReq(this);
-
     return avail;
 }
 
@@ -125,10 +128,10 @@ Available TpaRequest::getAvailable() {
     if (getLevel()->getPlayer(receiver) == nullptr) {
         return Available::RecieverOffline;
     }
-    // TODO: 对接经济系统
-    // if (money_Instance::getPlayeyMoney(sender) < config::Tpa::Money && config::Tpa::Money != 0) {
-    //     return Available::Unaffordable;
-    // }
+    if (modules::Moneys::getInstance().getMoney(sender) < config::cfg.Tpa.Money && config::cfg.Tpa.Money != 0) {
+        return Available::Unaffordable;
+    }
+    // TODO: 检查对方是否禁止发送tpa请求
     // if (ruleCore_Instance::getPlayerRule(reciever::realName)::allowTpa == = false) {
     //     return Available::ProhibitTpaRequests;
     // }
@@ -136,4 +139,4 @@ Available TpaRequest::getAvailable() {
 }
 
 
-} // namespace lbm::plugin::tpa::core
+} // namespace lbm::plugin::tpsystem::tpa::core

@@ -1,6 +1,7 @@
 #pragma once
 #include "TPSystem/data/Structure.h"
 #include "ll/api/Config.h"
+#include "modules/Moneys.h"
 #include "string"
 #include <vector>
 
@@ -14,12 +15,7 @@ struct Config {
         string Command     = "tps";               // 命令名称
         string Description = "LeviBoom_TPSystem"; // 命令描述
     } Command;
-    struct mMoney {
-        bool   Enable    = false;     // 是否启用经济
-        string MoneyType = "llmoney"; // 经济类型 llmoney / score
-        string ScoreType = "";        // 计分板名
-        string MoneyName = "金币";    // 经济名称
-    } Money;
+    lbm::modules::MoneysConfig Money; // 经济系统配置
     struct mTpa {
         bool Enable              = true;  // 是否启用TPA
         int  Money               = 0;     // 收费金额

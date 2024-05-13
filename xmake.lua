@@ -2,12 +2,11 @@ add_rules("mode.debug", "mode.release")
 
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 
-
 add_requires("levilamina 0.12.1") -- LeviLamina version x.x.x
 
 -- Key: PluginName, Value: [[Deps], [Define]]
 local ProjectPlugins = {
-    ["TPSystem"] = {{"PermissionCore", "legacymoney 0.7.0"}, {"ENABLE_MONEY"}},
+    ["TPSystem"] = {{"PermissionCore", "legacymoney 0.7.0"}, {"ENABLE_MONEY", "ENABLE_PERMISSIONCORE"}},
     ["FakePlayer"] = {{}, {}}
 }
 
@@ -16,7 +15,6 @@ if get_config("plugin") ~= nil then
     printf("[Deps] Require dependencies for plugin: '%s', deps: \n\t%s\n\n", get_config("plugin"), table.concat(ProjectPlugins[get_config("plugin")][1], "\n\t"))
     add_requires(unpack(ProjectPlugins[get_config("plugin")][1]))
 end 
-
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
@@ -54,7 +52,7 @@ target("LeviBoom")
         "/w45204"
     )
     add_defines("NOMINMAX", "UNICODE")
-    add_files("src/**.cpp")
+    add_files("src/**.cpp", "src/**.cc")
     add_includedirs("src")
     add_packages("levilamina")
     add_shflags("/DELAYLOAD:bedrock_server.dll") -- To use symbols provided by SymbolProvider.
@@ -74,8 +72,18 @@ target("LeviBoom")
         add_defines("PLUGIN_NAME=\"" .. get_config("plugin") .. "\"") -- Add plugin name define.
         add_defines("LEVIBOOM_PLUGIN_" .. string.upper(get_config("plugin"))) -- Add plugin define.
         set_basename("LeviBoom_" .. get_config("plugin") .. (is_mode("debug") and "_Debug" or "")) -- Set output name.
-        add_packages(unpack(ProjectPlugins[get_config("plugin")][1])) -- Add plugin dependencies.
         add_defines(unpack(ProjectPlugins[get_config("plugin")][2])) -- Add plugin defines.
+        -- Parse plugin dependencies and add them as packages.
+        local packages = {}
+        for _, dep in ipairs(ProjectPlugins[get_config("plugin")][1]) do
+            local dep_name = dep:match("^([^%s]+)")
+            if not dep_name then
+                error("Invalid dependency name: " .. dep)
+            end
+            table.insert(packages, dep_name)
+        end
+        add_packages(unpack(packages))
+        -- printf("[Packages] Added packages for plugin: '%s', packages: \n\t%s\n\n", get_config("plugin"), table.concat(packages, "\n\t"))
     end
 
     after_build(function (target)

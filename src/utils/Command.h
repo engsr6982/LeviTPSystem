@@ -61,9 +61,11 @@
 #include <mc/world/actor/player/Player.h>
 
 // library
+#ifdef ENABLE_PERMISSIONCORE
 #include <PermissionCore/Group.h>
 #include <PermissionCore/PermissionCore.h>
 #include <PermissionCore/PermissionManager.h>
+#endif
 
 namespace lbm::utils::cmdtools {
 
@@ -74,6 +76,7 @@ using ll::command::CommandRegistrar;
 
 // ------------------------------ tools ----------------------------------
 
+#ifdef ENABLE_PERMISSIONCORE
 inline bool checkPlayerPermission(CommandOrigin const& origin, CommandOutput& output, int const& permission) {
     if (origin.getOriginType() == CommandOriginType::DedicatedServer) return true;
     Actor* entity = origin.getEntity();
@@ -87,6 +90,7 @@ inline bool checkPlayerPermission(CommandOrigin const& origin, CommandOutput& ou
         return false;
     };
 }
+#endif
 
 inline string CommandOriginTypeToString(CommandOriginType type) {
     switch (type) {

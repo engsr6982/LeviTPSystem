@@ -5,7 +5,7 @@
 #include <string>
 
 
-namespace lbm::plugin::tpa::core {
+namespace lbm::plugin::tpsystem::tpa::core {
 
 using string = std::string;
 
@@ -22,6 +22,8 @@ string AvailDescription(Available avail); // 获取可用状态描述
 
 using Date = utils::Date;
 
+// ! 您不应该手动创建或删除 TpaRequest 对象，而应该通过 TpaRequestPool 来管理
+// ! 请使用 TpaRequestPool::createRequest() 来创建请求，并使用 TpaRequestPool::deleteRequest() 来销毁请求
 class TpaRequest {
 
 public:
@@ -49,4 +51,4 @@ private:
 };
 
 
-} // namespace lbm::plugin::tpa::core
+} // namespace lbm::plugin::tpsystem::tpa::core
