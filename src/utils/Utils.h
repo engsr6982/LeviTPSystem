@@ -37,9 +37,9 @@ inline string join(const std::vector<int>& vec, const string splitter = ", ") {
 }
 
 template <typename... Args>
-inline string format(const string& fmt, Args&&... args) {
+inline string format(const string& fmt, Args... args) {
     try {
-        return fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...));
+        return fmt::vformat(fmt, fmt::make_format_args(args...));
     } catch (const std::exception& e) {
         std::cerr << "\033[31m"
                   << "[C++ Exception] Formatting string \"" << fmt << "\" failed: " << e.what() << "\033[0m"

@@ -1,11 +1,12 @@
 #include "LevelDB.h"
-#include "Utils/Time.h"
 #include "ll/api/data/KeyValueDB.h"
 #include "ll/api/i18n/I18n.h"
+#include "utils/Date.h"
 #include <algorithm>
 #include <memory>
 #include <string_view>
 #include <vector>
+
 
 
 namespace lbm::plugin::tpsystem::data {
@@ -163,7 +164,7 @@ bool LevelDB::exportData() {
         return true;
     });
     // prepare export directory
-    string fileName = lbm::utils::time::getCurrentTimeString();
+    string fileName = lbm::utils::Date{}.toString();
     std::replace(fileName.begin(), fileName.end(), ':', '-');
     fileName  += ".json";
     auto path  = lbm::entry::getInstance().getSelf().getPluginDir() / "export" / fileName;

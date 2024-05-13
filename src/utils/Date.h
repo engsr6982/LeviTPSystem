@@ -40,7 +40,15 @@ public:
     }
 
     string toString() {
-        return utils::format("{}-{}-{} {}:{}:{}", getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond());
+        return utils::format(
+            "{}-{}-{} {}:{}:{}",
+            std::to_string(getYear()),
+            std::to_string(getMonth()),
+            std::to_string(getDay()),
+            std::to_string(getHour()),
+            std::to_string(getMinute()),
+            std::to_string(getSecond())
+        );
     }
 
     // Date constructors
