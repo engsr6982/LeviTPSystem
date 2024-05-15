@@ -22,7 +22,7 @@ end
 
 package("PermissionCore")
     set_urls("https://github.com/engsr6982/PermissionCore/releases/download/$(version)/SDK-PermissionCore.zip")
-    add_versions("v0.8.0", "7bedb1668a9610ce6626432f73b91026209eb254cebec2615b62e7a47c663d69")
+    add_versions("v0.9.0", "451d378aa2b71f57079740e082a2e2ec38cdac5711acc0d475350299213d9f55")
     add_includedirs("include/")
     on_install(function (package)
         os.cp("*", package:installdir())

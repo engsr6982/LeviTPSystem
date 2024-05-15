@@ -67,6 +67,8 @@
 #include <PermissionCore/PermissionManager.h>
 #endif
 
+#include "Mc.h"
+
 namespace lbm::utils::cmdtools {
 
 using string = std::string;
@@ -77,16 +79,23 @@ using ll::command::CommandRegistrar;
 // ------------------------------ tools ----------------------------------
 
 #ifdef ENABLE_PERMISSIONCORE
+// ! 检查玩家权限（此API已封装提示）
 inline bool checkPlayerPermission(CommandOrigin const& origin, CommandOutput& output, int const& permission) {
     if (origin.getOriginType() == CommandOriginType::DedicatedServer) return true;
     Actor* entity = origin.getEntity();
     if (entity) {
-        auto& player = *static_cast<Player*>(entity);
-        return perm::PermissionManager::getInstance()
-            .getPermissionCore(string(PLUGIN_NAME))
-            ->checkUserPermission(player.getUuid().asString().c_str(), permission);
+        auto& player        = *static_cast<Player*>(entity);
+        bool  hasPermission = pmc::PermissionManager::getInstance()
+                                 .getPermissionCore(string(PLUGIN_NAME))
+                                 ->checkUserPermission(player.getUuid().asString().c_str(), permission);
+        if (!hasPermission)
+            utils::mc::sendText<utils::mc::MsgLevel::Error>(
+                output,
+                "你没有权限执行此命令，此命令需要权限 {0}！"_tr(permission)
+            );
+        return hasPermission;
     } else {
-        output.error("§c获取实体指针失败！"_tr());
+        utils::mc::sendText<utils::mc::MsgLevel::Error>(output, "获取实体指针失败！"_tr());
         return false;
     };
 }

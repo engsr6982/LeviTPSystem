@@ -1,5 +1,7 @@
 #include "Command.h"
+#include "permission/Permission.h"
 #include "warp/WarpManager.h"
+
 
 namespace lbm::plugin::tpsystem::command {
 
@@ -52,11 +54,13 @@ void registerCommandWithWarp(const string& name) {
                 else sendText<MsgLevel::Error>(player, "创建Warp {} 失败！"_tr(param.warpName));
             } break;
             case OperationType::del: {
+                if (!checkPlayerPermission(origin, output, permission::PermList::AllowPlayerDelWarp)) return;
                 bool isSuccess = warpMgr.deleteWarp(param.warpName);
                 if (isSuccess) sendText(player, "删除Warp {} 成功！"_tr(param.warpName));
                 else sendText<MsgLevel::Error>(player, "删除Warp {} 失败！"_tr(param.warpName));
             } break;
             case OperationType::go: {
+                if (!checkPlayerPermission(origin, output, permission::PermList::AllowPlayerAddWarp)) return;
                 bool isSuccess = warpMgr.teleportToWarp(player, param.warpName);
                 if (isSuccess) sendText(player, "传送到Warp {} 成功！"_tr(param.warpName));
                 else sendText<MsgLevel::Error>(player, "传送到Warp {} 失败！"_tr(param.warpName));

@@ -11,6 +11,8 @@
 #include "data/LevelDB.h"
 #include "home/HomeManager.h"
 #include "modules/Moneys.h"
+#include "permission/Permission.h"
+#include "warp/WarpManager.h"
 
 
 using string = std::string;
@@ -33,14 +35,20 @@ inline bool onLoad(ll::plugin::NativePlugin& mSelf) {
     return true;
 }
 
+
 inline bool onEnable(ll::plugin::NativePlugin& mSelf) {
     // 插件启用，开始初始化...
     mSelf.getLogger().info("开始初始化插件..."_tr());
-    lbm::plugin::tpsystem::command::registerCommands();                                    // 注册命令
-    lbm::modules::Moneys::getInstance().updateConfig(plugin::tpsystem::config::cfg.Money); // 更新经济系统配置
-    lbm::plugin::tpsystem::home::HomeManager::getInstance().syncFromLevelDB(); // 从leveldb同步家园信息
+    lbm::plugin::tpsystem::command::registerCommands();       // 注册命令
+    lbm::plugin::tpsystem::permission::registerPermissions(); // 注册权限
+
+    // 初始化各个模块数据
+    lbm::modules::Moneys::getInstance().updateConfig(plugin::tpsystem::config::cfg.Money);
+    lbm::plugin::tpsystem::home::HomeManager::getInstance().syncFromLevelDB();
+    lbm::plugin::tpsystem::warp::WarpManager::getInstance().syncFromLevelDB();
     return true;
 }
+
 
 inline bool onDisable(ll::plugin::NativePlugin& mSelf) {
     // TODO: 插件禁用，清理资源...
