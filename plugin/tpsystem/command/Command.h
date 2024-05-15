@@ -18,6 +18,5 @@ void registerCommandWithHome(const string& name);
 void registerCommandWithWarp(const string& name);
 void registerCommandWithTpa(const string& name);
 void registerCommandWithLevelDB(const string& name);
-void registerCommandWithOther(const string& name);
 
 } // namespace lbm::plugin::tpsystem::command

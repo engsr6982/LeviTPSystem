@@ -27,9 +27,9 @@ void registerCommandWithWarp(const string& name) {
             sendText<MsgLevel::Error>(player, "当前服务器还没有Warp传送点！"_tr());
             return;
         }
-        string warpList = "当前服务器的Warp传送点有：| "_tr();
+        string warpList = "当前服务器的Warp传送点有: "_tr();
         for (auto const& warp : warps) {
-            warpList += "'" + warp.name + "' | ";
+            warpList += warp.name + ", ";
         }
         sendText<MsgLevel::Info>(player, warpList);
     });

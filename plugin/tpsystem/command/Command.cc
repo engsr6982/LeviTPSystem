@@ -11,7 +11,8 @@ bool registerCommands() {
         tpsystem::config::cfg.Command.Command,
         tpsystem::config::cfg.Command.Description
     );
-    // Main Overload
+
+    // tps
     cmd.overload().execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         Player& player = *static_cast<Player*>(origin.getEntity());
@@ -19,13 +20,28 @@ bool registerCommands() {
         sendText(player, "Todo");
     });
 
+    // tps menu
+
+    // tps mgr
+
+    // tps back
+
+    // tps death
+
+    // tps pr
+
+    // tps rule
+
+    // tps tpr
+
+    // tps reload
+
     // Register All Commands
     string name = tpsystem::config::cfg.Command.Command;
     registerCommandWithLevelDB(name);
     registerCommandWithHome(name);
     registerCommandWithWarp(name);
     registerCommandWithTpa(name);
-    registerCommandWithOther(name);
     return true;
 }
 
