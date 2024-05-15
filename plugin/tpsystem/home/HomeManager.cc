@@ -48,8 +48,16 @@ bool HomeManager::hasPlayerHomeData(const string& realName, const string& homeNa
 }
 
 bool HomeManager::initPlayerHomeVector(const string& realName) {
+    if (hasPlayerVector(realName)) {
+        return true; // 已经有这个玩家
+    }
     mHomeData.get()->emplace(string(realName), std::vector<data::HomeItem>());
     syncToLevelDB(); // 同步到leveldb
+
+#ifdef DEBUG
+    std::cout << "HomeManager::initPlayerHomeVector.realName = " << realName << std::endl;
+#endif
+
     return true;
 }
 
@@ -123,6 +131,7 @@ bool HomeManager::updatePlayerHomeData(
 }
 
 bool HomeManager::createHome(const string& realName, const string& homeName, const data::Vec3 vec3) {
+    initPlayerHomeVector(realName);
     if (hasPlayerHomeData(realName, homeName)) {
         return false; // 已经有这个home
     }
@@ -130,7 +139,7 @@ bool HomeManager::createHome(const string& realName, const string& homeName, con
     if (pl != mHomeData->end()) {
         auto& pl_home_vec = pl->second;
         pl_home_vec.emplace_back(
-            data::HomeItem(vec3.x, vec3.y, vec3.z, vec3.dimid, utils::Date{}.toString(), "", homeName)
+            data::HomeItem(vec3.x, vec3.y, vec3.z, vec3.dimid, utils::Date{}.toString(), "", string(homeName))
         );
         syncToLevelDB(); // 同步到leveldb
         return true;

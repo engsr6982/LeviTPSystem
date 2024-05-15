@@ -30,9 +30,9 @@ void registerCommandWithHome(const string& name) {
             sendText<MsgLevel::Error>(player, "您还没有家园传送点！"_tr());
             return;
         }
-        string homeList = "您有以下家园传送点：\n";
+        string homeList = "您有以下家园传送点：| "_tr();
         for (auto const& home : homes) {
-            homeList += "- " + home.name + " | ";
+            homeList += "'" + home.name + "' | ";
         }
         sendText<MsgLevel::Info>(player, homeList);
     });
@@ -46,6 +46,8 @@ void registerCommandWithHome(const string& name) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
             auto& player  = *static_cast<Player*>(origin.getEntity());
             auto& homeMgr = home::HomeManager::getInstance();
+            if (param.homeName.empty() || param.homeName == "")
+                return sendText<MsgLevel::Error>(player, "请输入家园名称！"_tr());
             switch (param.operation) {
             case OperationType::add: {
                 auto       pos = player.getPosition();
