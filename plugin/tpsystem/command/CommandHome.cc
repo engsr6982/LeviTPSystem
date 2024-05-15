@@ -53,7 +53,7 @@ void registerCommandWithHome(const string& name) {
                 auto       pos = player.getPosition();
                 data::Vec3 vec3{pos.x, pos.y, pos.z, player.getDimensionId().id}; // McVec3 to MyVec3
                 bool       isSuccess = homeMgr.createHome(player, param.homeName, vec3);
-                if (isSuccess) sendText(player, "床架家园 {} 成功！"_tr(param.homeName));
+                if (isSuccess) sendText(player, "创建家园 {} 成功！"_tr(param.homeName));
                 else sendText<MsgLevel::Error>(player, "创建家园 {} 失败！"_tr(param.homeName));
             } break;
             case OperationType::del: {

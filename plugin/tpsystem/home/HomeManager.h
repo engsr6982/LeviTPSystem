@@ -13,15 +13,18 @@
 #include <stdexcept>
 #include <vector>
 
+using string = std::string;
 
 
 namespace lbm::plugin::tpsystem::home {
 
-using string = std::string;
-
 class HomeManager {
 private:
     std::unique_ptr<data::Home> mHomeData; // 缓存来自数据库的家数据
+
+    HomeManager()                              = default;
+    HomeManager(const HomeManager&)            = delete;
+    HomeManager& operator=(const HomeManager&) = delete;
 
 public:
     static HomeManager& getInstance();
