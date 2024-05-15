@@ -22,7 +22,7 @@ string AvailDescription(Available avail); // 获取可用状态描述
 
 using Date = utils::Date;
 
-// ! 请创建为 shared_ptr 以便管理生命周期
+// ! 注意：此类必须使用 shared_ptr 否则会导致崩溃
 class TpaRequest : public std::enable_shared_from_this<TpaRequest> {
 
 public:

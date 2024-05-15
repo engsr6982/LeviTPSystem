@@ -1,0 +1,66 @@
+#include "ll/api/form/SimpleForm.h"
+#include "ll/api/i18n/I18n.h"
+#include "ll/api/service/Bedrock.h"
+#include "mc/world/actor/player/Player.h"
+#include "mc/world/level/Level.h"
+#include "tpsystem/data/Structure.h"
+#include "tpsystem/tpa/core/TpaRequest.h"
+#include "tpsystem/tpa/core/TpaRequestPool.h"
+#include "utils/Date.h"
+#include "utils/Mc.h"
+#include <memory>
+#include <optional>
+#include <stdexcept>
+#include <vector>
+
+
+namespace lbm::plugin::tpsystem::home {
+
+using string = std::string;
+
+class HomeManager {
+private:
+    std::unique_ptr<data::Home> mHomeData; // 缓存来自数据库的家数据
+
+public:
+    static HomeManager& getInstance();
+
+    void syncToLevelDB();
+
+    void syncFromLevelDB();
+
+    bool hasPlayerVector(const string& realName);
+
+    bool hasPlayerHomeData(const string& realName, const string& homeName);
+
+    bool initPlayerHomeVector(const string& realName); // 初始化玩家的家列表
+
+    std::optional<data::HomeItem> getPlayerHomeData(const string& realName, const string& home);
+
+    // ! 此函数功能与 updatePlayerHomeData 重复，建议使用 updatePlayerHomeData
+    [[deprecated]] bool setPlayerHomeData(const string& realName, const string& homeName, const data::HomeItem newData);
+
+    bool createHome(const string& realName, const string& homeName, const data::Vec3 vec3);
+    bool createHome(Player& player, const string& homeName, const data::Vec3 vec3, bool ignoreMoneys = false);
+
+    bool teleportToHome(Player& player, const string& homeName, bool ignoreMoneys = false);
+
+    bool updatePlayerHomeData(const string& realName, const string& homeName, const data::HomeItem newData);
+    bool updatePlayerHomeData(
+        Player&              player,
+        const string&        homeName,
+        const data::HomeItem newData,
+        bool                 ignoreMoneys = false
+    );
+
+    bool deleteHome(const string& realName, const string& homeName);
+    bool deleteHome(Player& player, const string& homeName, bool ignoreMoneys = false);
+
+
+    std::vector<data::HomeItem> getPlayerHomes(const string& realName);
+
+    std::vector<string> getAllPlayerName();
+};
+
+
+} // namespace lbm::plugin::tpsystem::home

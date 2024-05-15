@@ -23,13 +23,14 @@ struct Config {
         int  CacehCheckFrequency = 5000;  // 缓存检查频率 unit: ms
     } Tpa;
     struct mHome {
-        bool Enable          = true; // 是否启用家
-        int  CreatHomeMoney  = 0;    // 创建家的费用
-        int  GoHomeMoney     = 0;    // 前往家的费用
-        int  EditNameMoney   = 0;    // 编辑家名的费用
-        int  EditPosMoney    = 0;    // 编辑家位置的费用
-        int  DeleteHomeMoney = 0;    // 删除家的费用
-        int  MaxHome         = 1;    // 最大家数量
+        bool Enable         = true; // 是否启用家
+        int  CreatHomeMoney = 0;    // 创建家的费用
+        int  GoHomeMoney    = 0;    // 前往家的费用
+        // int  EditNameMoney   = 0;    // 编辑家名的费用 (deprecated)
+        // int  EditPosMoney    = 0;    // 编辑家位置的费用 (deprecated)
+        int EditHomeMoney   = 0; // 编辑家的费用
+        int DeleteHomeMoney = 0; // 删除家的费用
+        int MaxHome         = 1; // 最大家数量
     } Home;
     struct mWarp {
         bool Enable      = true;

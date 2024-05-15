@@ -6,10 +6,12 @@
 #include "mc/world/actor/player/PlayerScoreSetFunction.h"
 #include "mc/world/scores/ScoreInfo.h"
 
+#include "utils/Mc.h"
 #include <mc/world/actor/player/Player.h>
 #include <mc/world/scores/Objective.h>
 #include <mc/world/scores/Scoreboard.h>
 #include <mc/world/scores/ScoreboardId.h>
+
 
 // disable warning C4244: conversion from 'double' to 'int', possible loss of data
 #pragma warning(disable : 4244)
@@ -177,6 +179,7 @@ bool Moneys::setMoney(const string& realName, long long money) {
 
 
 bool Moneys::addMoney(Player& player, long long money) {
+    if (!mIsEnable) return true; // 未启用则不限制
     switch (mType) {
     case MoneysType::ScoreBoard:
         return addScore(player, money);
@@ -197,15 +200,24 @@ bool Moneys::addMoney(const string& realName, long long money) {
 
 
 bool Moneys::reduceMoney(Player& player, long long money) {
-    switch (mType) {
-    case MoneysType::ScoreBoard:
-        return reduceScore(player, money);
-    case MoneysType::LLMoney:
-        return LLMoney_Reduce(player.getXuid(), money);
-    default:
-        throwUnknownType(&player);
-        return false;
+    if (!mIsEnable) return true;     // 未启用则不限制
+    if (getMoney(player) >= money) { // 防止玩家余额不足
+        switch (mType) {
+        case MoneysType::ScoreBoard:
+            return reduceScore(player, money);
+        case MoneysType::LLMoney:
+            return LLMoney_Reduce(player.getXuid(), money);
+        default:
+            throwUnknownType(&player);
+            return false;
+        }
     }
+    // 封装提示信息
+    utils::mc::sendText<utils::mc::MsgLevel::Error>(
+        player,
+        "[Moneys] 操作失败，此操作需要{0}:{1}，当前{2}:{3}"_tr(mMoneyName, money, mMoneyName, getMoney(player))
+    );
+    return false;
 }
 bool Moneys::reduceMoney(Player* player, long long money) { return this->reduceMoney(*player, money); }
 bool Moneys::reduceMoney(mce::UUID uuid, long long money) {

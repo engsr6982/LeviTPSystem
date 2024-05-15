@@ -18,30 +18,28 @@ entry& entry::getInstance() { return *instance; }
 
 bool entry::load() {
     getSelf().getLogger().info("Loading...");
-
+    // 全局初始化
     ll::i18n::load(getSelf().getLangDir());
 
 #ifdef LEVIBOOM_PLUGIN_TPSYSTEM
-    lbm::plugin::tpsystem::onLoad();
+    return lbm::plugin::tpsystem::onLoad(getSelf());
 #endif
-
-    return true;
 }
 
 bool entry::enable() {
     getSelf().getLogger().info("Enabling...");
 
 #ifdef LEVIBOOM_PLUGIN_TPSYSTEM
-    lbm::plugin::tpsystem::onEnable();
+    return lbm::plugin::tpsystem::onEnable(getSelf());
 #endif
-
-    return true;
 }
 
 bool entry::disable() {
     getSelf().getLogger().info("Disabling...");
-    // Code for disabling the plugin goes here.
-    return true;
+
+#ifdef LEVIBOOM_PLUGIN_TPSYSTEM
+    return lbm::plugin::tpsystem::onDisable(getSelf());
+#endif
 }
 
 } // namespace lbm

@@ -95,6 +95,7 @@ public:
     bool addMoney(mce::UUID uuid, long long money);
     bool addMoney(const string& realName, long long money);
 
+    // ! 此 API 已封装经济不足提示，无需手动发送
     bool reduceMoney(Player& player, long long money);
     bool reduceMoney(Player* player, long long money);
     bool reduceMoney(mce::UUID uuid, long long money);
