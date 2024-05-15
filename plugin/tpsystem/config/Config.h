@@ -1,5 +1,5 @@
 #pragma once
-#include "TPSystem/data/Structure.h"
+#include "data/Structure.h"
 #include "ll/api/Config.h"
 #include "modules/Moneys.h"
 #include "string"

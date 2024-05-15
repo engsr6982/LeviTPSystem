@@ -6,8 +6,6 @@
 #include "mc/deps/core/mce/UUID.h"
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
-#include "tpsystem/tpa/core/TpaRequest.h"
-#include "tpsystem/tpa/core/TpaRequestPool.h"
 #include "utils/Date.h"
 #include "utils/Mc.h"
 #include <memory>

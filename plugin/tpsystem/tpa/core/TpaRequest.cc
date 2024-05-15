@@ -1,16 +1,17 @@
 #include "TpaRequest.h"
 #include "TpaRequestPool.h"
+#include "config/Config.h"
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/service/Bedrock.h"
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
 #include "modules/Moneys.h"
-#include "tpsystem/config/Config.h"
-#include "tpsystem/tpa/gui/TpaAskForm.h"
+#include "tpa/gui/TpaAskForm.h"
 #include "utils/Date.h"
 #include "utils/Mc.h"
 #include <memory>
 #include <stdexcept>
+
 
 
 namespace lbm::plugin::tpsystem::tpa::core {

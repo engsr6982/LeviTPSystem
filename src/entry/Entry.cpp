@@ -7,7 +7,7 @@
 #include "ll/api/plugin/RegisterHelper.h"
 
 #ifdef LEVIBOOM_PLUGIN_TPSYSTEM
-#include "tpsystem/Main.h"
+#include "Main.h"
 #endif
 
 namespace lbm {

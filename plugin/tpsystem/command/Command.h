@@ -1,5 +1,5 @@
-#include "tpsystem/config/Config.h"
-#include "tpsystem/data/LevelDB.h"
+#include "config/Config.h"
+#include "data/LevelDB.h"
 #include "utils/Command.h"
 #include "utils/Mc.h"
 #include "utils/Utils.h"

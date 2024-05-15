@@ -10,7 +10,7 @@ local ProjectPlugins = {
     ["FakePlayer"] = {{}, {}}
 }
 
--- Auto require plugin dependencies.
+-- 自动导入插件依赖
 if get_config("plugin") ~= nil then
     printf("[Deps] Require dependencies for plugin: '%s', deps: \n\t%s\n\n", get_config("plugin"), table.concat(ProjectPlugins[get_config("plugin")][1], "\n\t"))
     add_requires(unpack(ProjectPlugins[get_config("plugin")][1]))
@@ -28,7 +28,7 @@ package("PermissionCore")
         os.cp("*", package:installdir())
     end)
 
--- Auto generate plugin option.
+-- 自动生成插件选项
 option("plugin")
     local plugins = {}
     for k, _ in pairs(ProjectPlugins) do
@@ -38,7 +38,7 @@ option("plugin")
     set_values(unpack(plugins))
 
 
--- Build target.
+-- B编译目标
 target("LeviBoom")
     add_cxflags(
         "/EHa",
@@ -65,15 +65,15 @@ target("LeviBoom")
         add_defines("DEBUG")
     end
 
-    -- Auto configure plugins.
+    -- 自动配置插件
     if get_config("plugin") ~= nil then
-        add_includedirs("plugin") -- Global include directory for plugins.
-        add_files("plugin/" .. get_config("plugin") .. "/**.cc") -- Add build files for plugin.
-        add_defines("PLUGIN_NAME=\"Levi" .. get_config("plugin") .. "\"") -- Add plugin name define.
-        add_defines("LEVIBOOM_PLUGIN_" .. string.upper(get_config("plugin"))) -- Add plugin define.
-        set_basename("Levi" .. get_config("plugin") .. (is_mode("debug") and "_Debug" or "")) -- Set output name.
-        add_defines(unpack(ProjectPlugins[get_config("plugin")][2])) -- Add plugin defines.
-        -- Parse plugin dependencies and add them as packages.
+        add_includedirs("plugin/" .. string.lower(get_config("plugin"))) -- 插件头文件目录
+        add_files("plugin/" .. string.lower(get_config("plugin")) .. "/**.cc") -- 插件源文件目录
+        add_defines("PLUGIN_NAME=\"Levi" .. get_config("plugin") .. "\"") -- 插件名称定义（传递给Tell和Logger）
+        add_defines("LEVIBOOM_PLUGIN_" .. string.upper(get_config("plugin"))) -- 插件开关定义
+        set_basename("Levi" .. get_config("plugin") .. (is_mode("debug") and "_Debug" or "")) -- 设置输出文件名
+        add_defines(unpack(ProjectPlugins[get_config("plugin")][2])) -- 添加插件自定义宏
+        -- 解析插件依赖
         local packages = {}
         for _, dep in ipairs(ProjectPlugins[get_config("plugin")][1]) do
             local dep_name = dep:match("^([^%s]+)")
@@ -82,7 +82,7 @@ target("LeviBoom")
             end
             table.insert(packages, dep_name)
         end
-        add_packages(unpack(packages))
+        add_packages(unpack(packages)) -- 添加插件依赖包
         -- printf("[Packages] Added packages for plugin: '%s', packages: \n\t%s\n\n", get_config("plugin"), table.concat(packages, "\n\t"))
     end
 

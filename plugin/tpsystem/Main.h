@@ -6,11 +6,12 @@
 #include "string"
 
 // plugin header file
+#include "command/Command.h"
+#include "config/Config.h"
+#include "data/LevelDB.h"
+#include "home/HomeManager.h"
 #include "modules/Moneys.h"
-#include "tpsystem/command/Command.h"
-#include "tpsystem/config/Config.h"
-#include "tpsystem/data/LevelDB.h"
-#include "tpsystem/home/HomeManager.h"
+
 
 using string = std::string;
 using ll::i18n_literals::operator""_tr;
