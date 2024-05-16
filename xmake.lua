@@ -1,3 +1,4 @@
+-- ! 佛祖保佑，永无BUG！
 add_rules("mode.debug", "mode.release")
 
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
@@ -6,28 +7,50 @@ add_requires("levilamina 0.12.1") -- LeviLamina version x.x.x
 
 -- Key: PluginName, Value: [[Deps], [Define]]
 local ProjectPlugins = {
-    ["TPSystem"] = {{"PermissionCore", "legacymoney 0.7.0"}, {"ENABLE_MONEY", "ENABLE_PERMISSIONCORE"}},
+    ["TPSystem"] = {{"PermissionCore 0.9.0", "LegacyMoney 0.7.0"}, {"ENABLE_MONEY", "ENABLE_PERMISSIONCORE"}},
     ["FakePlayer"] = {{}, {}}
 }
 
+--================================================================================================--
+local parsePluginDependencies = function (ignoreVersion, dontToLower) -- 解析插件依赖
+    local deps = {}
+    if get_config("plugin") ~= nil then
+        for _, dep in ipairs(ProjectPlugins[get_config("plugin")][1]) do
+            local dep_name
+            if ignoreVersion ~= nil and ignoreVersion == true then
+                dep_name = dep:match("^([^%s]+)")
+                if not dep_name then
+                    error("Invalid dependency name: " .. dep)
+                end
+            else 
+                dep_name = dep
+            end
+            -- LeviLamina的Dependencies要求插件原始名称，XMake的包管理器要求小写名称
+            dep_name = dontToLower == true and dep_name or string.lower(dep_name)
+            table.insert(deps, dep_name)
+        end
+    end
+    return deps
+end
 -- 自动导入插件依赖
 if get_config("plugin") ~= nil then
-    printf("[Deps] Require dependencies for plugin: '%s', deps: \n\t%s\n\n", get_config("plugin"), table.concat(ProjectPlugins[get_config("plugin")][1], "\n\t"))
-    add_requires(unpack(ProjectPlugins[get_config("plugin")][1]))
+    -- printf("[Deps] Require dependencies for plugin: '%s', deps: \n\t%s\n\n", get_config("plugin"), table.concat(ProjectPlugins[get_config("plugin")][1], "\n\t"))
+    -- add_requires(unpack(ProjectPlugins[get_config("plugin")][1]))
+    printf("[Deps] Require dependencies for plugin: '%s', deps: \n\t%s\n\n", get_config("plugin"), table.concat(parsePluginDependencies(), "\n\t"))
+    add_requires(unpack(parsePluginDependencies()))
 end 
-
+-- 设置编译器运行库
 if not has_config("vs_runtime") then
     set_runtimes("MD")
 end
-
-package("PermissionCore")
+-- 定义插件依赖包
+package("permissioncore")
     set_urls("https://github.com/engsr6982/PermissionCore/releases/download/$(version)/SDK-PermissionCore.zip")
     add_versions("v0.9.0", "451d378aa2b71f57079740e082a2e2ec38cdac5711acc0d475350299213d9f55")
     add_includedirs("include/")
     on_install(function (package)
         os.cp("*", package:installdir())
     end)
-
 -- 自动生成插件选项
 option("plugin")
     local plugins = {}
@@ -36,9 +59,7 @@ option("plugin")
     end
     set_default(plugins[1])
     set_values(unpack(plugins))
-
-
--- B编译目标
+--================================================================================================--
 target("LeviBoom")
     add_cxflags(
         "/EHa",
@@ -73,17 +94,7 @@ target("LeviBoom")
         add_defines("LEVIBOOM_PLUGIN_" .. string.upper(get_config("plugin"))) -- 插件开关定义
         set_basename("Levi" .. get_config("plugin") .. (is_mode("debug") and "_Debug" or "")) -- 设置输出文件名
         add_defines(unpack(ProjectPlugins[get_config("plugin")][2])) -- 添加插件自定义宏
-        -- 解析插件依赖
-        local packages = {}
-        for _, dep in ipairs(ProjectPlugins[get_config("plugin")][1]) do
-            local dep_name = dep:match("^([^%s]+)")
-            if not dep_name then
-                error("Invalid dependency name: " .. dep)
-            end
-            table.insert(packages, dep_name)
-        end
-        add_packages(unpack(packages)) -- 添加插件依赖包
-        -- printf("[Packages] Added packages for plugin: '%s', packages: \n\t%s\n\n", get_config("plugin"), table.concat(packages, "\n\t"))
+        add_packages(unpack(parsePluginDependencies(true))) -- 添加插件依赖包
     end
 
     after_build(function (target)
@@ -100,7 +111,7 @@ target("LeviBoom")
             pluginName = target:basename(),
             pluginFile = path.filename(target:targetfile()),
             pluginVersion = major .. "." .. minor .. "." .. patch,
+            dependencies = parsePluginDependencies(true, true) -- 解析插件依赖给插件打包工具
         }
-        
         plugin_packer.pack_plugin(target,plugin_define)
     end)

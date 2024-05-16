@@ -84,10 +84,25 @@ end
 
 function pack_plugin(target,plugin_define)
     import("lib.detect.find_file")
+    import("core.base.json")
 
     local manifest_path = find_file("manifest.json", os.projectdir())
     if manifest_path then
-        local manifest = io.readfile(manifest_path)
+        local manifest_re = io.readfile(manifest_path) -- 读取manifest.json文件内容
+        local manifest_parsed = json.decode(manifest_re) -- 解析manifest.json文件内容
+
+        manifest_parsed["dependencies"] = {} -- 添加依赖项
+        for _, dep in pairs(plugin_define.dependencies) do
+            table.insert(manifest_parsed["dependencies"], { name = dep }) -- 插入依赖项 格式: { name = "xxx" }
+        end
+
+        -- local manifest = json.encode(manifest_parsed, { indent = true }) -- 格式化manifest.json文件内容
+        local manifest = beautify_json(manifest_parsed, 4) -- 格式化manifest.json文件内容
+
+        -- print("manifest.json read: ", manifest_re)
+        -- print("manifest.json parsed: ", manifest_parsed)
+        -- print("manifest.json encoded: ", manifest)
+
         local bindir = path.join(os.projectdir(), "bin")
         local outputdir = path.join(bindir, plugin_define.pluginName)
         local targetfile = path.join(outputdir, plugin_define.pluginFile)
