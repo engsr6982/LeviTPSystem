@@ -30,8 +30,15 @@ inline bool onLoad(ll::plugin::NativePlugin& mSelf) {
         if (!std::filesystem::exists(path)) std::filesystem::create_directory(path);
     }
     mSelf.getLogger().info("加载配置文件、数据库..."_tr());
-    lbm::plugin::tpsystem::config::loadConfig();                  // 加载配置文件
-    lbm::plugin::tpsystem::data::LevelDB::getInstance().loadDB(); // 加载leveldb数据
+    lbm::plugin::tpsystem::config::loadConfig();                                  // 加载配置文件
+    mSelf.getLogger().consoleLevel = lbm::plugin::tpsystem::config::cfg.logLevel; // 设置日志等级
+    lbm::plugin::tpsystem::data::LevelDB::getInstance().loadDB();                 // 加载leveldb数据
+
+#ifdef DEBUG
+    mSelf.getLogger().consoleLevel = 5; // 调试模式，开启所有日志
+    mSelf.getLogger().playerLevel  = 5;
+#endif
+
     return true;
 }
 

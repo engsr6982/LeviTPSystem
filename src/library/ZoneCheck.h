@@ -19,6 +19,8 @@
 #include "entry/Entry.h"
 #include "utils/Utils.h"
 
+// disable C4244
+#pragma warning(disable : 4244)
 namespace lbm::library::zonecheck {
 
 /*
@@ -295,20 +297,31 @@ struct RandomResult {
 
 
 template <RegionType rType>
-inline RandomResult randomPoint(const Vec<rType, is2D>& reg);
+struct RVec;
+
 template <> // 2D Circle
-inline RandomResult randomPoint<RegionType::Circle>(const Vec<Circle, is2D>& reg) {
-    double minX = reg.pointX - reg.width;
-    double maxX = reg.pointX + reg.width;
-    double minZ = reg.pointZ - reg.width;
-    double maxZ = reg.pointZ + reg.width;
+struct RVec<RegionType::Circle> : Center<is2D>, Width {};
+template <> // 2D Square
+struct RVec<RegionType::Square> : AABB<is2D> {};
+template <> // 2D CenteredSquare
+struct RVec<RegionType::CenteredSquare> : Center<is2D>, Width {};
+
+
+template <RegionType rType>
+inline RandomResult randomPoint(const RVec<rType>& reg);
+template <> // 2D Circle
+inline RandomResult randomPoint<RegionType::Circle>(const RVec<Circle>& reg) {
+    double minX = reg.centerX - reg.width;
+    double maxX = reg.centerX + reg.width;
+    double minZ = reg.centerZ - reg.width;
+    double maxZ = reg.centerZ + reg.width;
     double newX = randomNumber(minX, maxX);
     double newZ = randomNumber(minZ, maxZ);
     return RandomResult(newX, newZ);
 }
 template <> // 2D Square
-inline RandomResult randomPoint<RegionType::Square>(const Vec<Square, is2D>& reg) {
-    Vec<Square, is2D> reg1 = reg;
+inline RandomResult randomPoint<RegionType::Square>(const RVec<Square>& reg) {
+    RVec<Square> reg1 = reg;
     if (reg1.leftTopX > reg1.rightBottomX) std::swap(reg1.leftTopX, reg1.rightBottomX);
     if (reg1.leftTopZ > reg1.rightBottomZ) std::swap(reg1.leftTopZ, reg1.rightBottomZ);
     double newX = randomNumber(reg1.leftTopX, reg1.rightBottomX);
@@ -316,7 +329,7 @@ inline RandomResult randomPoint<RegionType::Square>(const Vec<Square, is2D>& reg
     return RandomResult(newX, newZ);
 }
 template <> // 2D CenteredSquare
-inline RandomResult randomPoint<RegionType::CenteredSquare>(const Vec<CenteredSquare, is2D>& reg) {
+inline RandomResult randomPoint<RegionType::CenteredSquare>(const RVec<CenteredSquare>& reg) {
     double minX = reg.centerX - reg.width;
     double maxX = reg.centerX + reg.width;
     double minZ = reg.centerZ - reg.width;
@@ -332,8 +345,8 @@ inline RandomResult randomPoint<RegionType::CenteredSquare>(const Vec<CenteredSq
 
 namespace find {
 
-/* typescript 声明
-
+/*
+@code lang=typescript
 findPos(
     {
         x: 0,
@@ -360,13 +373,12 @@ findPos(
     z: int,
     dimid: int
 }
-
+@endcode
 */
 
 struct FindArgs {
-    int                 startingValue   = 320;                                          // 遍历开始值
-    int                 endValue        = -64;                                          // 结束值
-    int                 stopValue       = -62;                                          // 停止值
+    int                 forStart        = 320;                                          // 遍历开始值
+    int                 forStop         = -64;                                          // 结束值
     std::vector<string> dangerousBlocks = {"minecraft:lava", "minecraft:flowing_lava"}; // 危险方块
     int                 x;                                                              // 输入x
     int                 z;                                                              // 输入z
@@ -384,7 +396,7 @@ struct FindResult {
 };
 
 
-FindResult findSafePos(const FindArgs& arg) {
+inline FindResult findSafePos(const FindArgs& arg) {
     auto&      logger = lbm::entry::getInstance().getSelf().getLogger();
     FindResult result;
     try {
@@ -394,19 +406,19 @@ FindResult findSafePos(const FindArgs& arg) {
         result.y      = 0;
         result.status = false;
 
-        if (arg.startingValue < arg.endValue) {
+        if (arg.forStart <= arg.forStop) {
             return result;
         }
 
         BlockPos bp;
         bp.x = arg.x;
-        bp.y = arg.startingValue;
+        bp.y = arg.forStart;
         bp.z = arg.z;
 
         using namespace api::block;
 
-        int currentTraversalY = arg.startingValue;
-        while (currentTraversalY > arg.endValue) {
+        int currentTraversalY = arg.forStart;
+        while (currentTraversalY > arg.forStop) {
             try {
                 bp.y           = currentTraversalY; // 更新BlockPos对象的y值以匹配当前的currentTraversalY
                 auto const& bl = api::block::getBlock(bp, arg.dimid); // 获取方块对象引用
@@ -426,10 +438,9 @@ FindResult findSafePos(const FindArgs& arg) {
                     // 空气方块跳过
                     currentTraversalY--;
                     continue;
-                } else if (currentTraversalY <= arg.stopValue || utils::some(arg.dangerousBlocks, bl.getTypeName())) {
+                } else if (currentTraversalY <= arg.forStop || utils::some(arg.dangerousBlocks, bl.getTypeName())) {
                     logger.debug("[Stop] 到达结束位置 / 有危险方块");
-                    // 到达结束位置 / 脚下岩浆方块
-                    break;
+                    break; // 到达结束位置 / 脚下岩浆方块
                 } else if (
                     bl.getTypeName() != "minecraft:air" && // 落脚方块
                     getBlock(currentTraversalY + arg.offset1, bp, arg.dimid).getTypeName()
@@ -439,7 +450,7 @@ FindResult findSafePos(const FindArgs& arg) {
                 ) {
                     // 安全位置   落脚点安全、上两格是空气
                     result.y      = currentTraversalY;
-                    result.status = 1;
+                    result.status = true;
                     logger.debug("[Finded] 找到安全坐标");
                     break;
                 }

@@ -52,7 +52,7 @@ struct Config {
         std::vector<string> DangerousBlocks = {"minecraft:lava", "minecraft:flowing_lava"}; // 危险方块列表
         struct mRestrictedArea {
             bool   Enable       = false;
-            string Type         = "Circle"; // 限制类型 Circle / Square
+            string Type         = "Circle"; // 限制类型 Circle / CenteredSquare
             int    CenterX      = 0;        // 限制中心点 x
             int    CenterZ      = 0;        // 限制中心点 z
             int    Radius       = 100;      // 限制半径
