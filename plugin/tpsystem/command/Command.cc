@@ -16,6 +16,7 @@ namespace lbm::plugin::tpsystem::command {
 struct ParamTprDebug {
     int x;
     int z;
+    int dim = 0;
 };
 
 bool registerCommands() {
@@ -56,62 +57,34 @@ bool registerCommands() {
 
 #ifdef DEBUG
     // tps tpr debug <x> <z>
-    cmd.overload<ParamTprDebug>().text("tpr").text("debug").required("x").required("z").execute(
-        [](CommandOrigin const& origin, CommandOutput& output, const ParamTprDebug& param) {
-            CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-            Player& player      = *static_cast<Player*>(origin.getEntity());
-            auto&   blockSource = player.getDimension().getBlockSourceFromMainChunkSource();
-            auto&   chunkSource = blockSource.getChunkSource();
-            std::cout << utils::format("§eCurrent test input data => x: {}, z: {}", param.x, param.z) << std::endl;
-
-            // 命令参数ChunkPos
-            auto ch1 = blockSource.getChunk(param.x, param.z);
-            if (ch1 != nullptr) {
-                std::cout << utils::format(
-                    "ch1 => ChunkPos: {}, isFullyLoaded: {}",
-                    ch1->getPosition().toString(),
-                    ch1->isFullyLoaded()
-                ) << std::endl;
-            } else {
-                std::cout << "ch1 is nullptr" << std::endl;
-            }
-
-            // 玩家当前所在chunk
-            auto&          ch2_PlayerVec3 = player.getPosition();
-            const BlockPos ch2_bp{ch2_PlayerVec3.x, ch2_PlayerVec3.y, ch2_PlayerVec3.z};
-            auto           ch2 = blockSource.getChunkAt(ch2_bp);
-            if (ch2 != nullptr) {
-                std::cout << utils::format(
-                    "ch2 => ChunkPos: {}, isFullyLoaded: {}",
-                    ch2->getPosition().toString(),
-                    ch2->isFullyLoaded()
-                ) << std::endl;
-            } else {
-                std::cout << "ch2 is nullptr" << std::endl;
-            }
-
-            // 尝试手动搜索ChunkPos去获取Chunk
-            const BlockPos ch3_bp{param.x, 0, param.z};
-            auto           cps = FeatureTerrainAdjustmentsUtil::_findIntersectingChunks(ch3_bp, ch3_bp);
-            std::cout << utils::format("cps => Size: {}", cps.size()) << std::endl;
+    cmd.overload<ParamTprDebug>().text("tpr").text("debug").required("x").required("z").required("dim").execute(
+        [](CommandOrigin const&, CommandOutput& output, const ParamTprDebug& param) {
+            auto& blockSource = ll::service::getLevel()->getDimension(param.dim)->getBlockSourceFromMainChunkSource();
+            auto& chunkSource = blockSource.getChunkSource();
+            sendText<MsgLevel::Warn>(output, "Current test input data => x: {}, z: {}", param.x, param.z);
+            // 手动搜索ChunkPos去获取Chunk
+            const BlockPos blockPos{param.x, 0, param.z};
+            auto           chunkPosList = FeatureTerrainAdjustmentsUtil::_findIntersectingChunks(blockPos, blockPos);
+            sendText(output, "ChunkPosList => Size: {}", chunkPosList.size());
             int i = 0;
-            for (auto& cp : cps) {
-                auto ch3 = blockSource.getChunkSource().getOrLoadChunk(cp, ChunkSource::LoadMode::Deferred, false);
-                if (ch3 == nullptr) {
-                    std::cout << utils::format("ch3[{}] is nullptr", i++) << std::endl;
+            for (auto& cp : chunkPosList) {
+                auto chunk = blockSource.getChunkSource().getOrLoadChunk(cp, ChunkSource::LoadMode::Deferred, false);
+                if (chunk == nullptr) {
+                    std::cout << utils::format("Chunk[{}] is nullptr", i++) << std::endl;
                     continue;
                 }
-                std::cout << utils::format(
+                sendText(
+                    output,
                     // clang-format off
-                        "ch3[{}] => ChunkPos: {}\n\tisFullyLoaded: {}\n\tisChunkFullyLoaded: {}\n\tare: {}\n\tisBlockInChunk: {}",
+                    "Chunk[{}] => ChunkPos: {}\n\tisFullyLoaded: {}\n\tisChunkFullyLoaded: {}\n\tareChunksFullyLoaded: {}\n\tisBlockInChunk: {}",
                     // clang-format on
                     i++,
-                    ch3->getPosition().toString(),
-                    ch3->isFullyLoaded(),
+                    chunk->getPosition().toString(),
+                    chunk->isFullyLoaded(),
                     blockSource.isChunkFullyLoaded(cp, chunkSource),
-                    blockSource.areChunksFullyLoaded(ch3_bp, ch3_bp),
-                    ch3->isBlockInChunk(ch2_bp)
-                ) << std::endl;
+                    blockSource.areChunksFullyLoaded(blockPos, blockPos),
+                    chunk->isBlockInChunk(blockPos)
+                );
             }
         }
     );
