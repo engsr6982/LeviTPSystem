@@ -103,6 +103,8 @@ public:
     string getMoneySpendTipStr(Player* player, long long money);
     string getMoneySpendTipStr(mce::UUID uuid, long long money);
     string getMoneySpendTipStr(const string& realName, long long money);
+
+    void sendMoneySpendTip(Player& player, long long money); // 发送经济不足提示
 };
 
 } // namespace lbm::modules

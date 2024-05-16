@@ -213,10 +213,7 @@ bool Moneys::reduceMoney(Player& player, long long money) {
         }
     }
     // 封装提示信息
-    utils::mc::sendText<utils::mc::MsgLevel::Error>(
-        player,
-        "[Moneys] 操作失败，此操作需要{0}:{1}，当前{2}:{3}"_tr(mMoneyName, money, mMoneyName, getMoney(player))
-    );
+    sendMoneySpendTip(player, money);
     return false;
 }
 bool Moneys::reduceMoney(Player* player, long long money) { return this->reduceMoney(*player, money); }
@@ -250,6 +247,12 @@ string Moneys::getMoneySpendTipStr(const string& realName, long long money) {
     return getMoneySpendTipStr(ll::service::getLevel()->getPlayer(realName), money);
 }
 
+void Moneys::sendMoneySpendTip(Player& player, long long money) {
+    utils::mc::sendText<utils::mc::MsgLevel::Error>(
+        player,
+        "[Moneys] 操作失败，此操作需要{0}:{1}，当前{2}:{3}"_tr(mMoneyName, money, mMoneyName, getMoney(player))
+    );
+}
 
 } // namespace lbm::modules
 #endif // ENABLE_MONEY
