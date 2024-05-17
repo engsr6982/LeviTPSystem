@@ -9,6 +9,7 @@
 #include "command/Command.h"
 #include "config/Config.h"
 #include "data/LevelDB.h"
+#include "event/EventManager.h"
 #include "home/HomeManager.h"
 #include "modules/Moneys.h"
 #include "permission/Permission.h"
@@ -48,6 +49,9 @@ inline bool onEnable(ll::plugin::NativePlugin& mSelf) {
     mSelf.getLogger().info("开始初始化插件..."_tr());
     lbm::plugin::tpsystem::command::registerCommands();       // 注册命令
     lbm::plugin::tpsystem::permission::registerPermissions(); // 注册权限
+
+    // 注册事件监听
+    lbm::plugin::tpsystem::event::registerEvent();
 
     // 初始化各个模块数据
     lbm::modules::Moneys::getInstance().updateConfig(plugin::tpsystem::config::cfg.Money);

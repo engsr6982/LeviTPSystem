@@ -1,6 +1,9 @@
 #include "Command.h"
+#include "config/Config.h"
 #include "ll/api/command/CommandRegistrar.h"
+#include "modules/Moneys.h"
 #include "tpr/TprManager.h"
+
 
 namespace lbm::plugin::tpsystem::command {
 
@@ -32,6 +35,12 @@ bool registerCommands() {
     // tps rule
 
     // tps reload
+    cmd.overload().text("reload").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::DedicatedServer);
+        config::loadConfig();
+        modules::Moneys::getInstance().updateConfig(config::cfg.Money);
+        sendText(output, "Config Reloaded!"_tr());
+    });
 
     // tps tpr
     cmd.overload().text("tpr").execute([](CommandOrigin const& origin, CommandOutput& output) {

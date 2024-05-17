@@ -1,5 +1,8 @@
 #include "Command.h"
+#include "event/LevelDBIllegalOperationEvent.h"
 #include "ll/api/command/CommandRegistrar.h"
+#include "ll/api/event/Event.h"
+#include "ll/api/event/EventBus.h"
 #include "mc/server/commands/CommandOrigin.h"
 #include "mc/server/commands/CommandOriginType.h"
 #include "mc/server/commands/CommandOutput.h"
@@ -46,7 +49,6 @@ void registerCommandWithLevelDB(const string& name) {
         [](CommandOrigin const& origin, CommandOutput& output, const ParamKey& param) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::DedicatedServer);
             auto& db = tpsystem::data::LevelDB::getInstance();
-            // TODO: 保证数据同步
             if (param.key2.empty()) {
                 db.getDB().del(param.key1);
                 sendText(output, "键 {0} 已删除"_tr(param.key1));
@@ -61,6 +63,7 @@ void registerCommandWithLevelDB(const string& name) {
                 }
             }
             db.initKey();
+            ll::event::EventBus::getInstance().publish(event::LevelDBIllegalOperationEvent()); // 触发事件
         }
     );
 
@@ -75,7 +78,7 @@ void registerCommandWithLevelDB(const string& name) {
             bool isSuccess = tpsystem::data::LevelDB::getInstance().importData(param.fileName);
             if (isSuccess) sendText<MsgLevel::Success>(output, "导入成功!"_tr());
             else sendText<MsgLevel::Error>(output, "导入失败!"_tr());
-            // TODO: 保证数据同步
+            ll::event::EventBus::getInstance().publish(event::LevelDBIllegalOperationEvent()); // 触发事件
         });
 
     // tps leveldb export
