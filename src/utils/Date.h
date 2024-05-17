@@ -94,6 +94,7 @@ public:
 
         return Date(tm);
     }
+    static Date clone(Date& d) { return Date(d.mTm); }
 
     // 重载操作符
     Date& operator=(const Date& other) {

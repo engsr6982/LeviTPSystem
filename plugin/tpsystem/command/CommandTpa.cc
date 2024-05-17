@@ -8,6 +8,8 @@
 #include "mc/server/commands/CommandOutput.h"
 #include "mc/server/commands/CommandSelector.h"
 
+#include "event/TpaRequestSendEvent.h"
+#include "ll/api/event/EventBus.h"
 
 namespace lbm::plugin::tpsystem::command {
 
@@ -83,7 +85,14 @@ void registerCommandWithTpa(const string& name) {
         if (avail != tpa::core::Available::Available) {
             sendText<MsgLevel::Error>(player, "{}"_tr(tpa::core::AvailDescription(avail)));
         }
-        // TODO: 触发 Tpa请求发送事件
+        // Tpa 请求发送事件
+        ll::event::EventBus::getInstance().publish(event::TpaRequestSendEvent(
+            request->sender,
+            request->receiver,
+            utils::Date::clone(*request->time),
+            request->type,
+            request->lifespan
+        ));
     });
 }
 

@@ -63,7 +63,8 @@ inline bool onEnable(ll::plugin::NativePlugin& mSelf) {
 
 inline bool onDisable(ll::plugin::NativePlugin& mSelf) {
     // TODO: 插件禁用，清理资源...
-    mSelf.getLogger().warn("插件目前不支持热卸载、重载，如需重载请重启服务端。"_tr());
+    mSelf.getLogger().info("销毁事件监听器..."_tr());
+    lbm::plugin::tpsystem::event::unRegisterEvent();
     return true;
 }
 

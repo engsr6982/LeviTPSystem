@@ -12,6 +12,8 @@
 #include <memory>
 #include <stdexcept>
 
+#include "event/TpaRequestSendEvent.h"
+#include "ll/api/event/EventBus.h"
 
 
 namespace lbm::plugin::tpsystem::tpa::gui {
@@ -49,7 +51,14 @@ TpaForm::TpaForm(Player& player, const string type) {
                 if (avail != tpa::core::Available::Available) {
                     lbm::utils::mc::sendText(sender, "{}", tpa::core::AvailDescription(avail));
                 }
-                // TODO: Tpa请求发送事件
+                // Tpa 请求发送事件
+                ll::event::EventBus::getInstance().publish(event::TpaRequestSendEvent(
+                    req->sender,
+                    req->receiver,
+                    utils::Date::clone(*req->time),
+                    req->type,
+                    req->lifespan
+                ));
             } catch (...) {
                 std::runtime_error("Fail in TpaForm::constructor::forEachPlayer::lambda::appendButton::lambda");
             }
