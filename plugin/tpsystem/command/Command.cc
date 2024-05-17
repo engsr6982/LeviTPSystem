@@ -38,7 +38,7 @@ bool registerCommands() {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         Player& player = *static_cast<Player*>(origin.getEntity());
         auto&   tprMgr = tpr::TprManager::getInstance();
-        tprMgr.teleport(player);
+        tprMgr.showTprMenu(player);
     });
 
 

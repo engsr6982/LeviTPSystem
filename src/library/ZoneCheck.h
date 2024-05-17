@@ -1,4 +1,5 @@
 // library
+#pragma once
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -242,12 +243,12 @@ inline int randomNumber(int min, int max) {
     return dist(mt);
 }
 
-struct RCenter : root_struct::Center2, root_struct::Width {};
+struct RCircle : root_struct::Center2, root_struct::Width {};
 struct RSquare : root_struct::AABB2 {};
 struct RCenteredSquare : root_struct::Center2, root_struct::Width {};
 
 // 2D Circle      x    z
-inline std::pair<int, int> randomPoint(const RCenter& reg) {
+inline std::pair<int, int> randomPoint(const RCircle& reg) {
     double minX = reg.centerX - reg.width;
     double maxX = reg.centerX + reg.width;
     double minZ = reg.centerZ - reg.width;

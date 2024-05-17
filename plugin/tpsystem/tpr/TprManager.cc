@@ -2,6 +2,7 @@
 #include "config/Config.h"
 #include "library/ZoneCheck.h"
 #include "ll/api/chrono/GameChrono.h"
+#include "ll/api/form/ModalForm.h"
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/schedule/Scheduler.h"
 #include "ll/api/schedule/Task.h"
@@ -12,11 +13,14 @@
 #include "mc/world/level/ChunkBlockPos.h"
 #include "mc/world/level/ChunkPos.h"
 #include "mc/world/level/chunk/ChunkSource.h"
+#include "mc/world/level/chunk/LevelChunk.h"
 #include "modules/Moneys.h"
 #include "string"
 #include "utils/Mc.h"
+#include <algorithm>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 
 using string = std::string;
@@ -26,185 +30,234 @@ using ll::i18n_literals::operator""_tr;
 
 namespace lbm::plugin::tpsystem::tpr {
 
-ll::schedule::GameTickScheduler repeatTask;
+ll::schedule::GameTickScheduler repeatScheduler;
 
+
+// 获取实例
 TprManager& TprManager::getInstance() {
     static TprManager instance;
-    instance.initRepeatTask(); // 初始化重复任务ID
+    if (!instance.mTasks) {
+        instance.mTasks = std::make_unique<std::vector<std::shared_ptr<TaskItem>>>(); // 初始化请求池
+    }
     return instance;
 }
 
-bool TprManager::checkDimension(Player& player) {
-    auto& ls = config::cfg.Tpr.Dimensions;
-    return std::find(ls.begin(), ls.end(), player.getDimensionId().id) != ls.end();
+bool TprManager::hasTask(const string& realName) {
+    return std::find_if(mTasks->begin(), mTasks->end(), [realName](auto& t) { return t->realName == realName; })
+        != mTasks->end();
 }
 
 
-void TprManager::initRepeatTask() {
-    if (mRepeatTaskID == nullptr) {
-        mRepeatTaskID = std::make_unique<std::unordered_map<string, uint64>>();
+bool TprManager::addTask(std::shared_ptr<TaskItem> task) {
+    if (hasTask(task->realName)) {
+        return false;
     }
+    mTasks->push_back(task);
+    return true;
+}
+
+bool TprManager::deleteTask(const string& realName) {
+    auto id = std::find_if(mTasks->begin(), mTasks->end(), [realName](auto& t) { return t->realName == realName; });
+    if (id != mTasks->end()) {
+        auto taskID = getTask(realName)->taskID;
+        repeatScheduler.remove(taskID); // 移除任务, 避免重复执行
+        mTasks->erase(id);
+        return true;
+    }
+    return false;
+}
+
+std::shared_ptr<TaskItem> TprManager::getTask(const string& realName) {
+    auto id = std::find_if(mTasks->begin(), mTasks->end(), [realName](auto& t) { return t->realName == realName; });
+    if (id != mTasks->end()) {
+        return *id;
+    }
+    return nullptr;
 }
 
 
-TprRandomValue TprManager::randomTargetPos(Player& player) {
-    using namespace library::zonecheck;
+void TprManager::runTask(std::shared_ptr<TaskItem> task) {
+    using ll::chrono_literals::operator""_tick;
+    auto id =
+        repeatScheduler
+            .add<ll::schedule::RepeatTask>(
+                2 * 20_tick,
+                [task, this]() {
+                    auto& logger = lbm::entry::getInstance().getSelf().getLogger();
+                    auto  player = ll::service::getLevel()->getPlayer(task->realName);
+                    if (player == nullptr) {
+                        deleteTask(task->realName); // 玩家不在线，删除任务
+                        logger.warn("玩家 {} 在随机传送期间离开服务器，将撤销该任务。"_tr(task->realName));
+                        return;
+                    }
+                    // 检查目标区块状态
+                    try {
+                        auto& bs = player->getDimension().getBlockSourceFromMainChunkSource();
+                        auto& cs = bs.getChunkSource();
+                        cs.getOrLoadChunk(task->chunkPos, ::ChunkSource::LoadMode::Deferred, false); // 预加载chunk
+                        if (!bs.isChunkFullyLoaded(task->chunkPos, cs)) {
+                            return;
+                        }
+                        sendText(player, "区块地形生成完成，开始查找安全位置..."_tr());
+                        findSafePosition(task);     // 开始查找安全位置
+                        deleteTask(task->realName); // 任务完成，删除任务
+                    } catch (...) {
+                        player->teleport(task->backup, player->getDimensionId()); // 回退到备份位置
+                        deleteTask(task->realName);                               // 任务失败，删除任务
+                        logger.error("Fail in TprManager::runTask");
+                    }
+                }
+            )
+            ->getId();
+    task->taskID = id;
+}
+
+
+// 检查维度是否允许传送
+bool TprManager::isDimensionAllowed(int dimension) const {
+    auto& ls = config::cfg.Tpr.Dimensions;
+    return std::find(ls.begin(), ls.end(), dimension) != ls.end();
+}
+// 随机位置
+std::pair<int, int> TprManager::randomPosition(Player& player) {
+    using namespace library::zonecheck::random;
     auto& tpr = config::cfg.Tpr;
 
     if (tpr.RestrictedArea.Enable) {
-
+        auto pvec = player.getPosition();
         if (tpr.RestrictedArea.Type == "Circle") { // 圆形限制区域
-            RVec<RegionType::Circle> vec;
+            RCircle vec;
             vec.width   = tpr.RestrictedArea.Radius;
-            vec.centerX = tpr.RestrictedArea.UsePlayerPos ? player.getPosition().x : tpr.RestrictedArea.CenterX;
-            vec.centerZ = tpr.RestrictedArea.UsePlayerPos ? player.getPosition().z : tpr.RestrictedArea.CenterZ;
-
-            auto rval = randomPoint<RegionType::Circle>(vec);
-            return TprRandomValue{rval.x, rval.z};
-
+            vec.centerX = tpr.RestrictedArea.UsePlayerPos ? pvec.x : tpr.RestrictedArea.CenterX;
+            vec.centerZ = tpr.RestrictedArea.UsePlayerPos ? pvec.z : tpr.RestrictedArea.CenterZ;
+            return randomPoint(vec);
         } else if (tpr.RestrictedArea.Type == "CenteredSquare") { // 矩形限制区域
-            RVec<RegionType::CenteredSquare> vec;
+            RCenteredSquare vec;
             vec.width   = tpr.RestrictedArea.Radius;
-            vec.centerX = tpr.RestrictedArea.UsePlayerPos ? player.getPosition().x : tpr.RestrictedArea.CenterX;
-            vec.centerZ = tpr.RestrictedArea.UsePlayerPos ? player.getPosition().z : tpr.RestrictedArea.CenterZ;
-
-            auto rval = randomPoint<RegionType::CenteredSquare>(vec);
-            return TprRandomValue{rval.x, rval.z};
-
+            vec.centerX = tpr.RestrictedArea.UsePlayerPos ? pvec.x : tpr.RestrictedArea.CenterX;
+            vec.centerZ = tpr.RestrictedArea.UsePlayerPos ? pvec.z : tpr.RestrictedArea.CenterZ;
+            return randomPoint(vec);
         } else { // 未知限制区域类型
-            std::runtime_error("Fail in TprManager::randomTargetPos: unknown RestrictedArea.Type");
+            std::runtime_error("Fail in TprManager::randomPosition: unknown RestrictedArea.Type");
         }
     }
     // 未启用限制区域
-    return TprRandomValue{
-        randomNumber(tpr.RandomRangeMin, tpr.RandomRangeMax),
-        randomNumber(tpr.RandomRangeMin, tpr.RandomRangeMax)
-    };
+    return {randomNumber(tpr.RandomRangeMin, tpr.RandomRangeMax), randomNumber(tpr.RandomRangeMin, tpr.RandomRangeMax)};
+}
+
+std::shared_ptr<TaskItem> TprManager::prepareData(Player& player) {
+    auto args = std::make_shared<TaskItem>();
+    auto rVec = randomPosition(player);
+
+    args->findArgs.x     = rVec.first;                 // x
+    args->findArgs.z     = rVec.second;                // z
+    args->findArgs.dimid = player.getDimensionId().id; // 玩家当前维度
+    if (config::cfg.Tpr.DangerousBlocks.size() > 0) args->findArgs.dangerousBlocks = config::cfg.Tpr.DangerousBlocks;
+
+    if (args->findArgs.dimid == 1) {
+        // Mc原版地狱高度限制
+        args->findArgs.forStart = 120;
+        args->findArgs.forStop  = 0;
+    }
+
+    return args;
 }
 
 
-void TprManager::teleport(Player& player) {
-    auto&  logger          = lbm::entry::getInstance().getSelf().getLogger();
-    string BackUP_RealName = string(player.getRealName()); // 备份玩家名
-
-#ifdef DEBUG
-    std::cout << "TprManager::teleport.BackUP_RealName = " << BackUP_RealName << std::endl;
-#endif
-
+// 查找安全位置
+void TprManager::findSafePosition(std::shared_ptr<TaskItem> task) {
     try {
-        auto& tpr = config::cfg.Tpr;
-
-        if (!tpr.Enable) {
-            sendText<MsgLevel::Error>(player, "传送失败，此功能未启用。"_tr());
+        auto player  = ll::service::getLevel()->getPlayer(task->realName);
+        auto safePos = findSafePos(task->findArgs);
+        if (!safePos.status) {
+            sendText<MsgLevel::Error>(player, "传送失败，找不到安全位置。"_tr());
+            player->teleport(task->backup, player->getDimensionId()); // 回退到备份位置
             return;
         }
 
-        if (!checkDimension(player)) {
-            sendText<MsgLevel::Error>(player, "传送失败，此功能未在此维度启用。"_tr());
-            return;
-        }
-
-        auto& moneyInstance = modules::Moneys::getInstance();
-        if (moneyInstance.getMoney(player) < tpr.Money) {
-            moneyInstance.sendMoneySpendTip(player, tpr.Money);
-            return;
-        }
-
-        sendText(player, "开始准备传送所需数据..."_tr());
-
-        auto targetPos = randomTargetPos(player);
-
-        using namespace library::zonecheck::find;
-        FindArgs args;
-        args.x               = targetPos.x;
-        args.z               = targetPos.z;
-        args.dimid           = player.getDimensionId().id;
-        args.dangerousBlocks = tpr.DangerousBlocks; // 用户自定义危险方块
-
-        if (args.dimid == 1) {
-            // Mc原版地狱高度限制
-            args.forStart = 120;
-            args.forStop  = 0;
-        }
-
-        sendText<MsgLevel::Success>(player, "数据准备完成，尝试加载目标位置区块..."_tr());
-
-        BlockPos bps{args.x, 0, args.z};
-        ChunkPos cps(bps);
-
-        auto& bs = player.getDimension().getBlockSourceFromMainChunkSource();
-        auto& cs = bs.getChunkSource();
-        auto  ch = cs.getOrLoadChunk(cps, ::ChunkSource::LoadMode::Deferred, false);
-
-        if (ch == nullptr) {
-            sendText<MsgLevel::Error>(player, "传送失败，加载目标区块失败。"_tr());
-            return;
-        }
-        if (ch->isFullyLoaded()) {
-            sendText(player, "区块加载成功，开始查找安全位置..."_tr());
-        }
-
-        // 备份玩家位置
-        std::unique_ptr<Vec3> backup = nullptr;
-        if (!bs.isChunkFullyLoaded(ch->getPosition(), cs)) {
-            sendText<MsgLevel::Warn>(player, "检测到目标区块未生成地形，将传送到目标区块等待地形生成...");
-            backup = std::make_unique<Vec3>(player.getPosition());
-            player.teleport(Vec3{targetPos.x, 666, targetPos.z}, player.getDimensionId()); // 先传送到目标区块
-        }
-
-        // 查找安全位置Lambda
-        auto findLambda = [&]() {
-            try {
-                auto safePos = findSafePos(args);
-                if (!safePos.status) {
-                    sendText<MsgLevel::Error>(player, "传送失败，找不到安全位置。"_tr());
-                    if (backup) {
-                        player.teleport(*backup, player.getDimensionId()); // 回退到备份位置
-                        mRepeatTaskID->erase(BackUP_RealName);             // 销毁重复任务ID
-                    }
-                    return;
-                }
-
-                Vec3 v3{safePos.x, safePos.y, safePos.z};
-                if (moneyInstance.reduceMoney(player, tpr.Money)) {
-                    player.teleport(v3, player.getDimensionId());
-                    sendText<MsgLevel::Success>(player, "传送成功！"_tr());
-                }
-                if (backup) mRepeatTaskID->erase(BackUP_RealName); // 销毁重复任务ID
-            } catch (...) {
-                logger.error("Fail in TprManager::teleport::findLambda");
-                if (backup) mRepeatTaskID->erase(BackUP_RealName); // 销毁重复任务ID
-            }
-        };
-
-        if (backup) { // 延迟传送，等待区块生成地形
-            using ll::chrono_literals::operator""_tick;
-            auto id = repeatTask
-                          .add<ll::schedule::RepeatTask>(
-                              2 * 20_tick,
-                              [&]() {
-                                  try {
-                                      if (bs.isChunkFullyLoaded(ch->getPosition(), cs)) {
-                                          sendText(player, "区块地形生成完成，开始查找安全位置..."_tr());
-                                          findLambda();
-                                      }
-                                  } catch (...) {
-                                      logger.error("Fail in TprManager::teleport::repeatTask::lambda");
-                                      if (backup) mRepeatTaskID->erase(BackUP_RealName); // 销毁重复任务ID
-                                  }
-                              }
-                          )
-                          ->getId();
-            // (*mRepeatTaskID)[BackUP_RealName] = id; // 保存重复任务ID
-            mRepeatTaskID->insert({BackUP_RealName, id}); // 保存重复任务ID
-        } else {
-            findLambda(); // 立即查找安全位置
+        Vec3 v3{safePos.x, safePos.y, safePos.z};
+        if (modules::Moneys::getInstance().reduceMoney(player, config::cfg.Tpr.Money)) {
+            player->teleport(v3, player->getDimensionId());
+            sendText<MsgLevel::Success>(player, "传送成功！"_tr());
         }
     } catch (...) {
-        logger.error("Fail in TprManager::teleport");
-        mRepeatTaskID->erase(BackUP_RealName); // 销毁重复任务ID
+        lbm::entry::getInstance().getSelf().getLogger().error("Fail in TprManager::findSafePosition");
     }
 }
 
+
+// 处理传送
+void TprManager::teleport(Player& player) {
+    if (!config::cfg.Tpr.Enable) {
+        sendText<MsgLevel::Error>(player, "传送失败，此功能未启用。"_tr());
+        return;
+    }
+    if (!isDimensionAllowed(player.getDimensionId().id)) {
+        sendText<MsgLevel::Error>(player, "传送失败，此维度未开启传送。"_tr());
+        return;
+    }
+
+    auto& moneyInstance = modules::Moneys::getInstance();
+    if (moneyInstance.getMoney(player) < config::cfg.Tpr.Money) {
+        moneyInstance.sendMoneySpendTip(player, config::cfg.Tpr.Money);
+        return;
+    }
+
+    sendText(player, "准备传送所需数据..."_tr());
+
+    auto task      = prepareData(player);
+    task->realName = player.getRealName();
+    task->blockPos = BlockPos{task->findArgs.x, 0, task->findArgs.z};
+    task->chunkPos = ChunkPos{task->blockPos};
+    task->backup   = player.getPosition();
+
+    sendText<MsgLevel::Success>(player, "数据准备完毕，加载目标区块..."_tr());
+
+
+    auto& bs = player.getDimension().getBlockSourceFromMainChunkSource();
+    auto& cs = bs.getChunkSource();
+    auto  ch = cs.getOrLoadChunk(task->chunkPos, ::ChunkSource::LoadMode::Deferred, false);
+    if (ch == nullptr) {
+        sendText<MsgLevel::Error>(player, "传送失败，加载目标区块失败。"_tr());
+        return;
+    }
+    if (!ch->isFullyLoaded()) {
+        sendText<MsgLevel::Error>(player, "传送失败，目标区块未加载。"_tr());
+        return;
+    }
+    if (!bs.isChunkFullyLoaded(task->chunkPos, cs)) {
+        sendText<MsgLevel::Warn>(player, "检测到目标区块未生成地形，将传送至目标区块..."_tr());
+        player.teleport(Vec3{task->blockPos.x, 666, task->blockPos.z}, player.getDimensionId());
+        addTask(task);
+        runTask(task);
+        return;
+    }
+
+    sendText(player, "查找安全坐标..."_tr());
+    findSafePosition(task);
+}
+
+
+void TprManager::showTprMenu(Player& player) {
+    if (!config::cfg.Tpr.Enable) return sendText<MsgLevel::Error>(player, "此功能未启用。"_tr());
+    using namespace ll::form;
+    ModalForm fm;
+    fm.setTitle(PLUGIN_NAME);
+    fm.setContent(modules::Moneys::getInstance().getMoneySpendTipStr(player, config::cfg.Tpr.Money));
+    fm.setUpperButton("确认传送"_tr());
+    fm.setLowerButton("取消"_tr());
+    fm.sendTo(player, [](Player& p, ModalFormResult const& dt, FormCancelReason) {
+        if (!dt) {
+            sendText(p, "表单已放弃"_tr());
+            return;
+        }
+        auto val = dt.value();
+        if ((bool)val) {
+            TprManager::getInstance().teleport(p); // 重新获取实例
+        } else {
+            sendText(p, "已取消传送"_tr());
+        }
+    });
+}
 
 } // namespace lbm::plugin::tpsystem::tpr
