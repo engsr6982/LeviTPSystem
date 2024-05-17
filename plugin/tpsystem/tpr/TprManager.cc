@@ -175,11 +175,13 @@ void TprManager::findSafePosition(std::shared_ptr<TaskItem> task) {
             return;
         }
 
-        Vec3 v3{safePos.x, safePos.y, safePos.z};
         if (modules::Moneys::getInstance().reduceMoney(player, config::cfg.Tpr.Money)) {
+            Vec3 v3{safePos.x, safePos.y, safePos.z};
             player->teleport(v3, player->getDimensionId());
             sendText<MsgLevel::Success>(player, "传送成功！"_tr());
+            return;
         }
+        sendText<MsgLevel::Error>(player, "传送失败，经济不足。"_tr());
     } catch (...) {
         lbm::entry::getInstance().getSelf().getLogger().error("Fail in TprManager::findSafePosition");
     }
