@@ -116,6 +116,16 @@ function pack_plugin(target,plugin_define)
         if os.isfile(oripdbfile) then
             os.cp(oripdbfile, pdbfile)
         end
+        -- 检查当前仓库下 assets 文件夹下，是否有对应插件名的资源文件夹，有则遍历复制到输出目录
+        -- assets/{plugin_name}/{floder}/{file}
+        local assets_dir = path.join(os.projectdir(), "assets")
+        local plugin_assets_dir = path.join(assets_dir, plugin_define.buildTargetName)
+        local plugin_assets_dir_serach = path.join(plugin_assets_dir, "*")
+        if os.isdir(plugin_assets_dir) then
+            for _, fileDir in ipairs(os.filedirs(plugin_assets_dir_serach)) do
+                os.cp(fileDir, outputdir)
+            end
+        end
 
         formattedmanifest = string_formatter(manifest, plugin_define)
         io.writefile(manifestfile,formattedmanifest)

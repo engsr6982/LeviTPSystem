@@ -1,6 +1,7 @@
 #include "Command.h"
 #include "config/Config.h"
 #include "ll/api/command/CommandRegistrar.h"
+#include "modules/Menu.h"
 #include "modules/Moneys.h"
 #include "tpr/TprManager.h"
 
@@ -18,8 +19,7 @@ bool registerCommands() {
     cmd.overload().execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         Player& player = *static_cast<Player*>(origin.getEntity());
-        // TODO: 实现主页
-        sendText(player, "Todo");
+        modules::Menu::fromJsonFile(player);
     });
 
     // tps menu

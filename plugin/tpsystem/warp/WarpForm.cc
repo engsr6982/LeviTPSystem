@@ -7,6 +7,7 @@
 #include "ll/api/form/ModalForm.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
+#include "modules/Menu.h"
 #include "utils/Mc.h"
 #include "utils/Utils.h"
 #include <string>
@@ -31,9 +32,7 @@ void index(Player& player) {
 
     fm.appendButton("删除传送点"_tr(), "textures/ui/trash_default", "path", [](Player& p) { _deleteWarp(p); });
 
-    fm.appendButton("返回上一页", "textures/ui/icon_import", "path", [](Player& p) {
-        // TODO: 实现返回上一页功能
-    });
+    fm.appendButton("返回上一页", "textures/ui/icon_import", "path", [](Player& p) { modules::Menu::fromJsonFile(p); });
 
     fm.sendTo(player);
 }

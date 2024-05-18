@@ -11,8 +11,10 @@
 #include "data/LevelDB.h"
 #include "event/EventManager.h"
 #include "home/HomeManager.h"
+#include "modules/Menu.h"
 #include "modules/Moneys.h"
 #include "permission/Permission.h"
+#include "warp/WarpForm.h"
 #include "warp/WarpManager.h"
 
 
@@ -49,6 +51,12 @@ inline bool onEnable(ll::plugin::NativePlugin& mSelf) {
     mSelf.getLogger().info("开始初始化插件..."_tr());
     lbm::plugin::tpsystem::command::registerCommands();       // 注册命令
     lbm::plugin::tpsystem::permission::registerPermissions(); // 注册权限
+
+    // 注册菜单
+    lbm::modules::Menu::rootDir   = mSelf.getDataDir();
+    lbm::modules::Menu::functions = {
+        {"warp", warp::form::index}
+    };
 
     // 注册事件监听
     lbm::plugin::tpsystem::event::registerEvent();

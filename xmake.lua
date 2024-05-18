@@ -111,7 +111,8 @@ target("LeviBoom")
             pluginName = target:basename(),
             pluginFile = path.filename(target:targetfile()),
             pluginVersion = major .. "." .. minor .. "." .. patch,
-            dependencies = parsePluginDependencies(true, true) -- 解析插件依赖给插件打包工具
+            dependencies = parsePluginDependencies(true, true), -- 解析插件依赖给插件打包工具
+            buildTargetName = string.lower(get_config("plugin")) -- 传递插件名称给插件打包工具
         }
         plugin_packer.pack_plugin(target,plugin_define)
     end)
