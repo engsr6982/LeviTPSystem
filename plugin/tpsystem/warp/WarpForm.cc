@@ -59,7 +59,7 @@ void _createWarp(Player& player) {
     });
 }
 
-void _selectWarp(Player& player, const CallBack& call) {
+void _selectWarp(Player& player, CallBack call) {
     auto       warps = WarpManager::getInstance().getWarps();
     SimpleForm fm;
     fm.setTitle(PLUGIN_NAME);
@@ -68,20 +68,20 @@ void _selectWarp(Player& player, const CallBack& call) {
 
     for (auto const& w : warps) {
         string name = w.name;
-        fm.appendButton(name + "\n" + w.toVec4String(), [&call, name](Player& p) { call(p, name); });
+        fm.appendButton(name + "\n" + w.toVec4String(), [call, name](Player& p) { call(p, name); });
     }
 
     fm.sendTo(player);
 }
 
 void _deleteWarp(Player& player) {
-    _selectWarp(player, [&](Player& p, const string& name) {
+    _selectWarp(player, [](Player& p, const string& name) {
         api::executeCommand(utils::format("{} warp del \"{}\"", config::cfg.Command.Command, name), &p);
     });
 }
 
 void _goWarp(Player& player) {
-    _selectWarp(player, [&](Player& p, const string& name) {
+    _selectWarp(player, [](Player& p, const string& name) {
         api::executeCommand(utils::format("{} warp go \"{}\"", config::cfg.Command.Command, name), &p);
     });
 }

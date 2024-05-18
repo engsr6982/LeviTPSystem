@@ -55,6 +55,7 @@ void registerCommandWithWarp(const string& name) {
                 return sendText<MsgLevel::Error>(player, "请输入正确的Warp名称！"_tr());
             switch (param.operation) {
             case OperationType::add: {
+                if (!checkPlayerPermission(origin, output, permission::PermList::AllowPlayerAddWarp)) return;
                 auto       pos = player.getPosition();
                 data::Vec4 vec3{pos.x, pos.y, pos.z, player.getDimensionId().id}; // McVec3 to MyVec3
                 bool       isSuccess = warpMgr.createWarp(param.warpName, vec3);
@@ -68,7 +69,6 @@ void registerCommandWithWarp(const string& name) {
                 else sendText<MsgLevel::Error>(player, "删除Warp {} 失败！"_tr(param.warpName));
             } break;
             case OperationType::go: {
-                if (!checkPlayerPermission(origin, output, permission::PermList::AllowPlayerAddWarp)) return;
                 bool isSuccess = warpMgr.teleportToWarp(player, param.warpName);
                 if (isSuccess) sendText(player, "传送到Warp {} 成功！"_tr(param.warpName));
                 else sendText<MsgLevel::Error>(player, "传送到Warp {} 失败！"_tr(param.warpName));

@@ -12,7 +12,7 @@ void index(Player& player);
 void _createWarp(Player& player);
 
 using CallBack = std::function<void(Player& player, string const& name)>;
-void _selectWarp(Player& player, const CallBack& callback);
+void _selectWarp(Player& player, CallBack callback);
 
 void _deleteWarp(Player& player);
 
