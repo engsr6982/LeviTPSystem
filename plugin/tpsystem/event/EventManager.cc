@@ -3,7 +3,14 @@
 #include "event/LevelDBIllegalOperationEvent.h"
 #include "ll/api/event/Listener.h"
 #include "ll/api/event/ListenerBase.h"
+#include "ll/api/i18n/I18n.h"
+#include "ll/api/service/Bedrock.h"
+#include "mc/world/actor/player/Player.h"
+#include "utils/Mc.h"
 #include <iostream>
+
+
+using ll::i18n_literals::operator""_tr;
 
 
 ll::event::ListenerPtr leveldbIllegalOperationListener;
@@ -22,8 +29,14 @@ void registerEvent() {
             // TODO: 实现逻辑
         });
     tpaRequestSendListener = eventBus.emplaceListener<TpaRequestSendEvent>([](TpaRequestSendEvent& ev) {
-        // TODO: 实现逻辑
-        std::cout << "Tpa Request Send Event" << std::endl;
+        auto player = ll::service::getLevel()->getPlayer(ev.getReciever());
+        if (player) {
+            utils::mc::sendText(player, "收到来自 {0} 的 {1} 请求"_tr(ev.getSender(), ev.getType()));
+        } else {
+            lbm::entry::getInstance().getSelf().getLogger().debug(
+                "Fail in registerEvent.tpaRequestSendListener, player is nullptr"
+            );
+        }
     });
 }
 

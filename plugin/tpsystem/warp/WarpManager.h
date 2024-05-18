@@ -33,7 +33,7 @@ public:
 
     bool hasWarp(const string& warpName);
 
-    bool createWarp(const string& warpName, const data::Vec3 vec3);
+    bool createWarp(const string& warpName, const data::Vec4 vec4);
 
     bool deleteWarp(const string& warpName);
 

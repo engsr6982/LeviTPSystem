@@ -38,12 +38,12 @@ bool WarpManager::hasWarp(const string& warpName) {
         != mWarpData->end();
 }
 
-bool WarpManager::createWarp(const string& warpName, const data::Vec3 vec3) {
+bool WarpManager::createWarp(const string& warpName, const data::Vec4 vec4) {
     if (hasWarp(warpName)) {
         return false;
     }
     mWarpData->emplace_back(
-        data::WarpItem{vec3.x, vec3.y, vec3.z, vec3.dimid, utils::Date{}.toString(), "", string(warpName)}
+        data::WarpItem{vec4.x, vec4.y, vec4.z, vec4.dimid, utils::Date{}.toString(), "", string(warpName)}
     );
     syncToLevelDB(); // 同步到leveldb
     return true;

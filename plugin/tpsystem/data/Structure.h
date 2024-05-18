@@ -6,6 +6,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include "ll/api/service/Bedrock.h"
+#include "mc/math/Vec3.h"
+#include "mc/world/level/Level.h"
+#include "mc/world/level/dimension/Dimension.h"
+#include "utils/Utils.h"
 
 namespace lbm::plugin::tpsystem::data {
 
@@ -20,11 +25,20 @@ struct Axis {
     Axis(float x, float y, float z) : x(x), y(y), z(z) {}
 };
 
-struct Vec3 : Axis {
+struct Vec4 : Axis {
     int dimid; // 维度ID
 
-    Vec3() : Axis(), dimid(0) {}
-    Vec3(float x, float y, float z, int dimid) : Axis(x, y, z), dimid(dimid) {}
+    string toVec4String() const {
+        try {
+            return utils::format("{0} ({1}, {2}, {3})", ll::service::getLevel()->getDimension(dimid)->mName, x, y, z);
+        } catch (...) {
+            return "format vec4 failed";
+        }
+    }
+
+    Vec4() : Axis(), dimid(0) {}
+    Vec4(float x, float y, float z, int dimid) : Axis(x, y, z), dimid(dimid) {}
+    Vec4(Vec3& v3, int dimid) : Axis(v3.x, v3.y, v3.z), dimid(dimid) {} // Minecraft Vec3 to Vec4
 };
 
 struct Date {
@@ -35,38 +49,38 @@ struct Date {
     Date(string createdTime, string modifiedTime) : createdTime(createdTime), modifiedTime(modifiedTime) {}
 };
 
-struct HomeItem : Vec3, Date {
+struct HomeItem : Vec4, Date {
     string name;
 
-    HomeItem() : Vec3(), Date(), name("") {}
+    HomeItem() : Vec4(), Date(), name("") {}
     HomeItem(float x, float y, float z, int dimid, string createdTime, string modifiedTime, string name)
-    : Vec3(x, y, z, dimid),
+    : Vec4(x, y, z, dimid),
       Date(createdTime, modifiedTime),
       name(name) {}
 };
 
-struct WarpItem : Vec3, Date {
+struct WarpItem : Vec4, Date {
     string name;
 
-    WarpItem() : Vec3(), Date(), name("") {}
+    WarpItem() : Vec4(), Date(), name("") {}
     WarpItem(float x, float y, float z, int dimid, string createdTime, string modifiedTime, string name)
-    : Vec3(x, y, z, dimid),
+    : Vec4(x, y, z, dimid),
       Date(createdTime, modifiedTime),
       name(name) {}
 };
 
-struct DeathItem : Vec3 {
+struct DeathItem : Vec4 {
     string time; // 死亡时间
 
-    DeathItem() : Vec3(), time("") {}
-    DeathItem(float x, float y, float z, int dimid, string time) : Vec3(x, y, z, dimid), time(time) {}
+    DeathItem() : Vec4(), time("") {}
+    DeathItem(float x, float y, float z, int dimid, string time) : Vec4(x, y, z, dimid), time(time) {}
 };
 
-struct PrItemData : Vec3 {
+struct PrItemData : Vec4 {
     string name;
 
-    PrItemData() : Vec3(), name("") {}
-    PrItemData(float x, float y, float z, int dimid, string name) : Vec3(x, y, z, dimid), name(name) {}
+    PrItemData() : Vec4(), name("") {}
+    PrItemData(float x, float y, float z, int dimid, string name) : Vec4(x, y, z, dimid), name(name) {}
 };
 
 struct PrItem {
@@ -149,13 +163,13 @@ inline json toJson(const Axis& dt) {
     j["z"] = dt.z;
     return j;
 }
-inline json toJson(const Vec3& dt) {
+inline json toJson(const Vec4& dt) {
     json j     = toJson(static_cast<const Axis&>(dt));
     j["dimid"] = dt.dimid;
     return j;
 }
 inline json toJson(const DeathItem& dt) {
-    json j    = toJson(static_cast<const Vec3&>(dt));
+    json j    = toJson(static_cast<const Vec4&>(dt));
     j["time"] = dt.time;
     return j;
 }
@@ -166,13 +180,13 @@ inline json toJson(const Date& dt) {
     return j;
 }
 inline json toJson(const WarpItem& dt) {
-    json j = toJson(static_cast<const Vec3&>(dt));
+    json j = toJson(static_cast<const Vec4&>(dt));
     j.update(toJson(static_cast<const Date&>(dt)));
     j["name"] = dt.name;
     return j;
 }
 inline json toJson(const HomeItem& dt) {
-    json j = toJson(static_cast<const Vec3&>(dt));
+    json j = toJson(static_cast<const Vec4&>(dt));
     j.update(toJson(static_cast<const Date&>(dt)));
     j["name"] = dt.name;
     return j;
@@ -296,8 +310,8 @@ inline Axis fromJson<Axis>(const json& json) {
     return a;
 }
 template <>
-inline Vec3 fromJson<Vec3>(const json& json) {
-    Vec3 v;
+inline Vec4 fromJson<Vec4>(const json& json) {
+    Vec4 v;
     v.x     = json.at("x").get<float>();
     v.y     = json.at("y").get<float>();
     v.z     = json.at("z").get<float>();
@@ -395,4 +409,4 @@ inline Rule fromJson<Rule>(const json& json) {
 }
 
 
-} // namespace lbm::tpsystem::data
+} // namespace lbm::plugin::tpsystem::data

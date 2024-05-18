@@ -16,7 +16,7 @@
 #include <vector>
 
 // my
-#include "api/Block.h"
+#include "api/McAPI.h"
 #include "entry/Entry.h"
 #include "mc/world/level/BlockPos.h"
 #include "utils/Utils.h"
@@ -345,14 +345,14 @@ inline FindResult findSafePos(const FindArgs& args) {
             return result;
         }
 
-        using namespace api::block;
+        using namespace api;
         BlockPos bp(args.x, args.forStart, args.z);
 
         int currentTraversalY = args.forStart; // 当前遍历的y值
         while (currentTraversalY > args.forStop) {
             try {
                 bp.y           = currentTraversalY; // 更新BlockPos对象的y值以匹配当前的currentTraversalY
-                auto const& bl = api::block::getBlock(bp, args.dimid); // 获取方块对象引用
+                auto const& bl = api::getBlock(bp, args.dimid); // 获取方块对象引用
 
                 logger.debug(
                     "[Finding] Y: {}  |  BlockType: {}  |  Vec4: {}, {}, {}, {}",

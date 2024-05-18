@@ -1,5 +1,6 @@
 #include "Command.h"
 #include "permission/Permission.h"
+#include "warp/WarpForm.h"
 #include "warp/WarpManager.h"
 
 
@@ -16,6 +17,13 @@ struct ParamWarp {
 
 void registerCommandWithWarp(const string& name) {
     auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand(name);
+
+    // tps warp
+    cmd.overload().text("warp").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+        auto& player = *static_cast<Player*>(origin.getEntity());
+        warp::form::index(player);
+    });
 
     // tps warp list
     cmd.overload().text("warp").text("list").execute([](CommandOrigin const& origin, CommandOutput& output) {
@@ -48,7 +56,7 @@ void registerCommandWithWarp(const string& name) {
             switch (param.operation) {
             case OperationType::add: {
                 auto       pos = player.getPosition();
-                data::Vec3 vec3{pos.x, pos.y, pos.z, player.getDimensionId().id}; // McVec3 to MyVec3
+                data::Vec4 vec3{pos.x, pos.y, pos.z, player.getDimensionId().id}; // McVec3 to MyVec3
                 bool       isSuccess = warpMgr.createWarp(param.warpName, vec3);
                 if (isSuccess) sendText(player, "创建Warp {} 成功！"_tr(param.warpName));
                 else sendText<MsgLevel::Error>(player, "创建Warp {} 失败！"_tr(param.warpName));

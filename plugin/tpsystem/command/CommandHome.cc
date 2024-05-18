@@ -20,6 +20,13 @@ struct ParamHome {
 void registerCommandWithHome(const string& name) {
     auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand(name);
 
+    // tps home
+    cmd.overload().text("home").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+        auto& player = *static_cast<Player*>(origin.getEntity());
+        // TODO: Home GUI
+    });
+
     // tps home list
     cmd.overload().text("home").text("list").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
@@ -51,7 +58,7 @@ void registerCommandWithHome(const string& name) {
             switch (param.operation) {
             case OperationType::add: {
                 auto       pos = player.getPosition();
-                data::Vec3 vec3{pos.x, pos.y, pos.z, player.getDimensionId().id}; // McVec3 to MyVec3
+                data::Vec4 vec3{pos.x, pos.y, pos.z, player.getDimensionId().id}; // McVec3 to MyVec3
                 bool       isSuccess = homeMgr.createHome(player, param.homeName, vec3);
                 if (isSuccess) sendText(player, "创建家园 {} 成功！"_tr(param.homeName));
                 else sendText<MsgLevel::Error>(player, "创建家园 {} 失败！"_tr(param.homeName));

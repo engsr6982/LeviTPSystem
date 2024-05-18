@@ -130,7 +130,7 @@ bool HomeManager::updatePlayerHomeData(
     return false; // 钱不够
 }
 
-bool HomeManager::createHome(const string& realName, const string& homeName, const data::Vec3 vec3) {
+bool HomeManager::createHome(const string& realName, const string& homeName, const data::Vec4 vec4) {
     initPlayerHomeVector(realName);
     if (hasPlayerHomeData(realName, homeName)) {
         return false; // 已经有这个home
@@ -139,7 +139,7 @@ bool HomeManager::createHome(const string& realName, const string& homeName, con
     if (pl != mHomeData->end()) {
         auto& pl_home_vec = pl->second;
         pl_home_vec.emplace_back(
-            data::HomeItem(vec3.x, vec3.y, vec3.z, vec3.dimid, utils::Date{}.toString(), "", string(homeName))
+            data::HomeItem(vec4.x, vec4.y, vec4.z, vec4.dimid, utils::Date{}.toString(), "", string(homeName))
         );
         syncToLevelDB(); // 同步到leveldb
         return true;
@@ -147,12 +147,12 @@ bool HomeManager::createHome(const string& realName, const string& homeName, con
     return false; // 没有这个玩家
 }
 
-bool HomeManager::createHome(Player& player, const string& homeName, const data::Vec3 vec3, bool ignoreMoneys) {
+bool HomeManager::createHome(Player& player, const string& homeName, const data::Vec4 vec4, bool ignoreMoneys) {
     auto& mon = modules::Moneys::getInstance();
     if (ignoreMoneys) {
-        return createHome(player.getRealName(), string(homeName), vec3);
+        return createHome(player.getRealName(), string(homeName), vec4);
     } else if (mon.reduceMoney(player, config::cfg.Home.CreatHomeMoney)) {
-        return createHome(player.getRealName(), string(homeName), vec3);
+        return createHome(player.getRealName(), string(homeName), vec4);
     }
 
 #ifdef DEBUG

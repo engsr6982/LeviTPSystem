@@ -44,8 +44,8 @@ public:
     // ! 此函数功能与 updatePlayerHomeData 重复，建议使用 updatePlayerHomeData
     [[deprecated]] bool setPlayerHomeData(const string& realName, const string& homeName, const data::HomeItem newData);
 
-    bool createHome(const string& realName, const string& homeName, const data::Vec3 vec3);
-    bool createHome(Player& player, const string& homeName, const data::Vec3 vec3, bool ignoreMoneys = false);
+    bool createHome(const string& realName, const string& homeName, const data::Vec4 vec4);
+    bool createHome(Player& player, const string& homeName, const data::Vec4 vec4, bool ignoreMoneys = false);
 
     bool teleportToHome(Player& player, const string& homeName, bool ignoreMoneys = false);
 
