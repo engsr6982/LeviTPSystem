@@ -1,12 +1,21 @@
 #include "TpaRequestPool.h"
+#include "config/Config.h"
+#include "ll/api/chrono/GameChrono.h"
+#include "ll/api/schedule/Scheduler.h"
+#include "ll/api/schedule/Task.h"
+#include "ll/api/service/Bedrock.h"
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
+
+ll::schedule::GameTickScheduler scheduler;
 
 namespace lbm::plugin::tpsystem::tpa::core {
 
 TpaRequestPool& TpaRequestPool::getInstance() {
     static TpaRequestPool instance;
+    instance.checkAndRunCleanUpTask();
     return instance;
 }
 
@@ -69,8 +78,26 @@ bool TpaRequestPool::deleteRequest(const string& receiver, const string& sender)
     return true;
 }
 
-void TpaRequestPool::newCleanUp() {
-    // Todo: 清理过期请求
+void TpaRequestPool::checkAndRunCleanUpTask() {
+    if (cleanUpIsRunning) return;
+    cleanUpIsRunning = true;
+    using ll::chrono_literals::operator""_tick;
+    scheduler.add<ll::schedule::RepeatTask>(config::cfg.Tpa.CacehCheckFrequency * 20_tick, []() {
+        auto  level    = ll::service::getLevel();
+        auto& instance = TpaRequestPool::getInstance();
+        for (auto& [receiver, senderPool] : instance.mPool) { // 遍历接收者池
+            for (auto& [sender, request] : *senderPool) {     // 遍历发送者池
+                auto avail = request->getAvailable();         // 获取请求可用性
+                if (avail != Available::Available) {
+                    auto ptr = level->getPlayer(request->sender); // 获取发送者指针
+                    if (ptr) {
+                        utils::mc::sendText<utils::mc::MsgLevel::Error>(ptr, "", AvailDescription(avail));
+                    }
+                    instance.deleteRequest(receiver, sender); // 删除请求
+                }
+            }
+        }
+    });
 }
 
 std::shared_ptr<TpaRequest> TpaRequestPool::getRequest(const string& receiver, const string& sender) {

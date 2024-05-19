@@ -33,7 +33,7 @@ public:
 
     bool deleteRequest(const string& receiver, const string& sender);
 
-    void newCleanUp();
+    void checkAndRunCleanUpTask();
 
     std::vector<string> getReceiverList();
     std::vector<string> getSenderList(const string& receiver);
