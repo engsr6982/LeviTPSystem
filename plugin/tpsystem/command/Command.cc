@@ -23,6 +23,11 @@ bool registerCommands() {
     });
 
     // tps menu
+    cmd.overload().text("menu").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+        Player& player = *static_cast<Player*>(origin.getEntity());
+        modules::Menu::fromJsonFile(player);
+    });
 
     // tps mgr
 
