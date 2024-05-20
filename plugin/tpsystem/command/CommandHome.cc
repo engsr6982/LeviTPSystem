@@ -5,6 +5,8 @@
 #include "mc/server/commands/CommandOriginType.h"
 #include "mc/server/commands/CommandOutput.h"
 
+#include "home/HomeForm.h"
+
 namespace lbm::plugin::tpsystem::command {
 
 
@@ -24,7 +26,7 @@ void registerCommandWithHome(const string& name) {
     cmd.overload().text("home").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         auto& player = *static_cast<Player*>(origin.getEntity());
-        // TODO: Home GUI
+        home::form::index(player);
     });
 
     // tps home list

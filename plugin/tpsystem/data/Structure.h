@@ -12,11 +12,11 @@
 #include "mc/world/level/dimension/Dimension.h"
 #include "utils/Utils.h"
 
-namespace lbm::plugin::tpsystem::data {
-
 using string = std::string;
 using json   = nlohmann::json;
 using ll::i18n_literals::operator""_tr;
+
+namespace lbm::plugin::tpsystem::data {
 
 struct Axis {
     float x, y, z;

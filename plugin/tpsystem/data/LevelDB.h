@@ -6,12 +6,12 @@
 #include <memory>
 #include <vector>
 
-
-namespace lbm::plugin::tpsystem::data {
-
 using string = std::string;
 using json   = nlohmann::json;
 using path   = std::filesystem::path;
+
+
+namespace lbm::plugin::tpsystem::data {
 
 class LevelDB {
 
