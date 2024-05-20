@@ -6,12 +6,12 @@
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
 #include "modules/Moneys.h"
+#include "rule/RuleManager.h"
 #include "tpa/gui/TpaAskForm.h"
 #include "utils/Date.h"
 #include "utils/Mc.h"
 #include <memory>
 #include <stdexcept>
-
 
 
 namespace lbm::plugin::tpsystem::tpa::core {
@@ -112,9 +112,12 @@ Available TpaRequest::ask() {
     }
     // 创建询问表单
     auto fm = gui::TpaAskForm(std::shared_ptr<TpaRequest>(shared_from_this()));
-    fm.sendTo(*ll::service::getLevel()->getPlayer(sender));
-    // TODO: 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
-    // fm.cacheRequest(std::shared_ptr<TpaRequest>(shared_from_this())); // 缓存到请求池
+    // 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
+    if (rule::RuleManager::getInstance().getPlayerRule(receiver).tpaPopup) {
+        fm.sendTo(*ll::service::getLevel()->getPlayer(receiver)); // 发送弹窗给接收者
+    } else {
+        fm.cacheRequest(std::shared_ptr<TpaRequest>(shared_from_this())); // 缓存到请求池
+    }
     return avail;
 }
 
@@ -132,10 +135,10 @@ Available TpaRequest::getAvailable() {
     if (modules::Moneys::getInstance().getMoney(sender) < config::cfg.Tpa.Money && config::cfg.Tpa.Money != 0) {
         return Available::Unaffordable;
     }
-    // TODO: 检查对方是否禁止发送tpa请求
-    // if (ruleCore_Instance::getPlayerRule(reciever::realName)::allowTpa == = false) {
-    //     return Available::ProhibitTpaRequests;
-    // }
+    // 检查对方是否禁止发送tpa请求
+    if (rule::RuleManager::getInstance().getPlayerRule(receiver).allowTpa == false) {
+        return Available::ProhibitTpaRequest;
+    }
     return Available::Available;
 }
 
