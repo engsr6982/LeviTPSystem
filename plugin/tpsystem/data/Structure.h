@@ -99,13 +99,14 @@ struct PrItem {
 
 // 此结构体供 Config 反射使用
 struct RuleItemRoot {
-    bool deathPopup; // 死亡后立即发送返回弹窗
-    bool allowTpa;   // 允许对xx发送tpa请求
-    bool tpaPopup;   // tpa弹窗
+    bool deathPopup = true; // 死亡后立即发送返回弹窗
+    bool allowTpa   = true; // 允许对xx发送tpa请求
+    bool tpaPopup   = true; // tpa弹窗
 };
 struct RuleItem : RuleItemRoot {
-    RuleItem() : RuleItemRoot{false, false, false} {}
+    RuleItem() : RuleItemRoot{true, true, true} {}
     RuleItem(bool deathPopup, bool allowTpa, bool tpaPopup) : RuleItemRoot{deathPopup, allowTpa, tpaPopup} {}
+    RuleItem(const RuleItemRoot& root) : RuleItemRoot{root.deathPopup, root.allowTpa, root.tpaPopup} {}
 };
 
 // ========================================= class =========================================

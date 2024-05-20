@@ -14,6 +14,7 @@
 #include "modules/Menu.h"
 #include "modules/Moneys.h"
 #include "permission/Permission.h"
+#include "rule/RuleManager.h"
 #include "warp/WarpForm.h"
 #include "warp/WarpManager.h"
 
@@ -65,13 +66,14 @@ inline bool onEnable(ll::plugin::NativePlugin& mSelf) {
     lbm::modules::Moneys::getInstance().updateConfig(plugin::tpsystem::config::cfg.Money);
     lbm::plugin::tpsystem::home::HomeManager::getInstance().syncFromLevelDB();
     lbm::plugin::tpsystem::warp::WarpManager::getInstance().syncFromLevelDB();
+    lbm::plugin::tpsystem::rule::RuleManager::getInstance().syncFromLevelDB();
     return true;
 }
 
 
 inline bool onDisable(ll::plugin::NativePlugin& mSelf) {
     // TODO: 插件禁用，清理资源...
-    mSelf.getLogger().info("销毁事件监听器..."_tr());
+    mSelf.getLogger().info("正在禁用插件..."_tr());
     lbm::plugin::tpsystem::event::unRegisterEvent();
     return true;
 }
