@@ -9,6 +9,7 @@
 #include "command/Command.h"
 #include "config/Config.h"
 #include "data/LevelDB.h"
+#include "death/DeathManager.h"
 #include "event/EventManager.h"
 #include "home/HomeManager.h"
 #include "modules/Menu.h"
@@ -67,6 +68,7 @@ inline bool onEnable(ll::plugin::NativePlugin& mSelf) {
     lbm::plugin::tpsystem::home::HomeManager::getInstance().syncFromLevelDB();
     lbm::plugin::tpsystem::warp::WarpManager::getInstance().syncFromLevelDB();
     lbm::plugin::tpsystem::rule::RuleManager::getInstance().syncFromLevelDB();
+    lbm::plugin::tpsystem::death::DeathManager::getInstance().syncFromLevelDB();
     return true;
 }
 
