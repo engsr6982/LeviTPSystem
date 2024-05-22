@@ -76,21 +76,21 @@ struct DeathItem : Vec4 {
     DeathItem(float x, float y, float z, int dimid, string time) : Vec4(x, y, z, dimid), time(time) {}
 };
 
-struct PrItemData : Vec4 {
+struct PrItemSubData : Vec4 {
     string name;
 
-    PrItemData() : Vec4(), name("") {}
-    PrItemData(float x, float y, float z, int dimid, string name) : Vec4(x, y, z, dimid), name(name) {}
+    PrItemSubData() : Vec4(), name("") {}
+    PrItemSubData(float x, float y, float z, int dimid, string name) : Vec4(x, y, z, dimid), name(name) {}
 };
 
 struct PrItem {
-    string     guid;
-    string     playerRealName;
-    string     time;
-    PrItemData data;
+    string        guid;
+    string        playerRealName;
+    string        time;
+    PrItemSubData data;
 
     PrItem() : guid(""), playerRealName(""), time(""), data() {}
-    PrItem(string guid, string playerRealName, string time, PrItemData data)
+    PrItem(string guid, string playerRealName, string time, PrItemSubData data)
     : guid(guid),
       playerRealName(playerRealName),
       time(time),
@@ -140,7 +140,7 @@ inline bool hasKey(const string& key, const Home& home) { return home.find(key) 
 inline bool hasKey(const string& key, const Death& death) { return death.find(key) != death.end(); }
 inline bool hasKey(const string& key, const Rule& rule) { return rule.find(key) != rule.end(); }
 
-inline json toJson(const PrItemData& dt) {
+inline json toJson(const PrItemSubData& dt) {
     json j;
     j["x"]     = dt.x;
     j["y"]     = dt.y;
@@ -274,8 +274,8 @@ inline RuleItem fromJson<RuleItem>(const json& json) {
     return ri;
 }
 template <>
-inline PrItemData fromJson<PrItemData>(const json& json) {
-    PrItemData pid;
+inline PrItemSubData fromJson<PrItemSubData>(const json& json) {
+    PrItemSubData pid;
     pid.x     = json.at("x").get<float>();
     pid.y     = json.at("y").get<float>();
     pid.z     = json.at("z").get<float>();
@@ -289,7 +289,7 @@ inline PrItem fromJson<PrItem>(const json& json) {
     pi.guid           = json.at("guid").get<string>();
     pi.playerRealName = json.at("playerRealName").get<string>();
     pi.time           = json.at("time").get<string>();
-    pi.data           = fromJson<PrItemData>(json.at("data"));
+    pi.data           = fromJson<PrItemSubData>(json.at("data"));
     return pi;
 }
 template <>

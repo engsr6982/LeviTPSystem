@@ -15,6 +15,7 @@
 #include "modules/Menu.h"
 #include "modules/Moneys.h"
 #include "permission/Permission.h"
+#include "pr/PrManager.h"
 #include "rule/RuleManager.h"
 #include "warp/WarpForm.h"
 #include "warp/WarpManager.h"
@@ -69,6 +70,7 @@ inline bool onEnable(ll::plugin::NativePlugin& mSelf) {
     lbm::plugin::tpsystem::warp::WarpManager::getInstance().syncFromLevelDB();
     lbm::plugin::tpsystem::rule::RuleManager::getInstance().syncFromLevelDB();
     lbm::plugin::tpsystem::death::DeathManager::getInstance().syncFromLevelDB();
+    lbm::plugin::tpsystem::pr::PrManager::getInstance().syncFromLevelDB();
     return true;
 }
 
