@@ -138,6 +138,17 @@ bool HomeManager::createHome(const string& realName, const string& homeName, con
     auto pl = mHomeData->find(realName);
     if (pl != mHomeData->end()) {
         auto& pl_home_vec = pl->second;
+
+        // 限制最大家园数量
+        if (static_cast<int>(pl_home_vec.size()) >= config::cfg.Home.MaxHome) {
+            utils::mc::sendText<utils::mc::MsgLevel::Error>(
+                realName,
+                "创建家园传送点\"{}\"失败！\n最大家园数量：{}"_tr(homeName, config::cfg.Home.MaxHome)
+            );
+            return false; // 超过最大数量
+        }
+
+        // 添加家园传送点
         pl_home_vec.emplace_back(
             data::HomeItem(vec4.x, vec4.y, vec4.z, vec4.dimid, utils::Date{}.toString(), "", string(homeName))
         );

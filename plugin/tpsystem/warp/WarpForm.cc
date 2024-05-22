@@ -23,6 +23,11 @@ namespace lbm::plugin::tpsystem::warp::form {
 
 
 void index(Player& player) {
+    if (!config::cfg.Warp.Enable) {
+        sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
+        return;
+    }
+
     SimpleForm fm;
     fm.setTitle(PLUGIN_NAME);
 

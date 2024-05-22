@@ -29,6 +29,11 @@ namespace lbm::plugin::tpsystem::pr::form {
 
 
 void index(Player& player) {
+    if (!config::cfg.Pr.Enable) {
+        sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
+        return;
+    }
+
     SimpleForm fm;
     fm.setTitle(PLUGIN_NAME);
     fm.setContent("选择一个操作"_tr());
