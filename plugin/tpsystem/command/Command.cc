@@ -4,6 +4,7 @@
 #include "ll/api/command/CommandRegistrar.h"
 #include "modules/Menu.h"
 #include "modules/Moneys.h"
+#include "pr/PrForm.h"
 #include "rule/RuleForm.h"
 #include "tpr/TprManager.h"
 
@@ -48,6 +49,11 @@ bool registerCommands() {
     });
 
     // tps pr
+    cmd.overload().text("pr").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+        Player& player = *static_cast<Player*>(origin.getEntity());
+        pr::form::index(player);
+    });
 
     // tps rule
     cmd.overload().text("rule").execute([](CommandOrigin const& origin, CommandOutput& output) {

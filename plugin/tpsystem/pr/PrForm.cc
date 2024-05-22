@@ -121,6 +121,8 @@ void _deletePr(Player& player) {
             });
         });
     }
+
+    fm.sendTo(player);
 }
 
 
