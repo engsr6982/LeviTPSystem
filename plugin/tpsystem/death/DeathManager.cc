@@ -33,12 +33,13 @@ bool DeathManager::addDeathInfo(const string& realName, data::DeathItem deathInf
     auto fin = mDeath->find(realName);
     if (fin == mDeath->end()) {
         mDeath->emplace(string(realName), std::vector<data::DeathItem>()); // init
+        fin = mDeath->find(realName);                                      // 重新获取迭代器
     };
     // 从头插入数据
     auto& vec = fin->second;
     vec.insert(vec.begin(), deathInfo);
     // 检查数据长度
-    if (vec.size() > config::cfg.Death.MaxDeath) {
+    if (static_cast<int>(vec.size()) > config::cfg.Death.MaxDeath) {
         vec.pop_back();
     }
     syncToLevelDB();

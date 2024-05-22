@@ -37,10 +37,10 @@ struct Config {
         int  GoWarpMoney = 0; //  前往公共传送点费用
     } Warp;
     struct mDeath {
-        bool Enable         = true;
-        bool sendGoDeathGUI = true; // 死亡后立即发送返回死亡点GUI
-        int  GoDeathMoney   = 0;    // 死亡后前往死亡点的费用
-        int  MaxDeath       = 5;    // 最大存储死亡记录数量
+        bool Enable = true;
+        // bool sendGoDeathGUI = true; // 死亡后立即发送返回死亡点GUI(deprecated)
+        int GoDeathMoney = 0; // 死亡后前往死亡点的费用
+        int MaxDeath     = 5; // 最大存储死亡记录数量
         // int  InvincibleTime = 10000; // TODO 无敌时间 unit: ms
     } Death;
     struct mTpr {

@@ -1,5 +1,6 @@
 #include "Command.h"
 #include "config/Config.h"
+#include "death/DeathForm.h"
 #include "ll/api/command/CommandRegistrar.h"
 #include "modules/Menu.h"
 #include "modules/Moneys.h"
@@ -33,8 +34,18 @@ bool registerCommands() {
     // tps mgr
 
     // tps back
+    cmd.overload().text("back").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+        Player& player = *static_cast<Player*>(origin.getEntity());
+        death::form::sendGoDeathGUI(player);
+    });
 
     // tps death
+    cmd.overload().text("death").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+        Player& player = *static_cast<Player*>(origin.getEntity());
+        death::form::sendQueryGUI(player);
+    });
 
     // tps pr
 
