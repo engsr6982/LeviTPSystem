@@ -54,7 +54,7 @@ struct Config {
             int    CenterZ      = 0;        // 限制中心点 z
             int    Radius       = 100;      // 限制半径
             bool   UsePlayerPos = false;    // 是否使用玩家位置
-        } Enable;                   // 限制区域
+        } RestrictedArea;                   // 限制区域
     } Tpr;
     struct mPr {
         bool Enable             = true; // 是否启用PR
