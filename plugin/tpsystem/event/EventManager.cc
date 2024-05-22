@@ -3,6 +3,7 @@
 #include "death/DeathForm.h"
 #include "death/DeathManager.h"
 #include "event/LevelDBIllegalOperationEvent.h"
+#include "home/HomeManager.h"
 #include "ll/api/event/Listener.h"
 #include "ll/api/event/ListenerBase.h"
 #include "ll/api/event/player/PlayerDieEvent.h"
@@ -11,8 +12,10 @@
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/service/Bedrock.h"
 #include "mc/world/actor/player/Player.h"
+#include "pr/PrManager.h"
 #include "rule/RuleManager.h"
 #include "utils/Mc.h"
+#include "warp/WarpManager.h"
 #include <iostream>
 
 
@@ -34,8 +37,12 @@ void registerEvent() {
     // 数据库操作非法事件
     mLeveldbIllegalOperationListener =
         eventBus.emplaceListener<LevelDBIllegalOperationEvent>([](LevelDBIllegalOperationEvent) {
-            std::cout << "LevelDB Illegal Operation Event" << std::endl;
-            // TODO: 实现逻辑
+            lbm::plugin::tpsystem::home::HomeManager::getInstance().syncFromLevelDB();
+            lbm::plugin::tpsystem::warp::WarpManager::getInstance().syncFromLevelDB();
+            lbm::plugin::tpsystem::rule::RuleManager::getInstance().syncFromLevelDB();
+            lbm::plugin::tpsystem::death::DeathManager::getInstance().syncFromLevelDB();
+            lbm::plugin::tpsystem::pr::PrManager::getInstance().syncFromLevelDB();
+            lbm::entry::getInstance().getSelf().getLogger().warn("检测到非法的数据库操作，已主动同步数据。"_tr());
         });
     // 发送tpa请求事件
     mTpaRequestSendListener = eventBus.emplaceListener<TpaRequestSendEvent>([](TpaRequestSendEvent& ev) {
