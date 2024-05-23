@@ -78,7 +78,7 @@ void _operationPanel(Player& player, const string& targetPlayerName, const strin
     auto       home        = *homeManager.getPlayerHomeData(targetPlayerName, targetHomeName);
     SimpleForm fm;
     fm.setTitle(PLUGIN_NAME);
-    fm.setContent("当前正在编辑玩家 \"{0}\" 的家: {1}\n坐标: {2}\n创建时间: {3}\n最后修改时间: {4}"_tr(
+    fm.setContent("当前正在编辑玩家 \"{0}\"\n名称: {1}\n坐标: {2}\n创建时间: {3}\n最后修改时间: {4}"_tr(
         targetPlayerName,
         targetHomeName,
         home.toVec4String(),

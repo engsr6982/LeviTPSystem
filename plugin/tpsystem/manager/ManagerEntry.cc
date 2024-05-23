@@ -38,14 +38,10 @@ void index(Player& player) {
         manager::home::index(p);
     });
     fm.appendButton("公共传送点管理"_tr(), "textures/ui/icon_best3", "path", [](Player& p) {
-
+        manager::warp::index(p);
     });
     fm.appendButton("合并请求管理"_tr(), "textures/ui/book_shiftleft_default", "path", [](Player& p) {
-
-    });
-    fm.appendButton("权限组管理"_tr(), "textures/ui/icon_setting", "path", [](Player& p) {
-        // TODO: 权限组管理，需要前置组件支持
-        sendText<MsgLevel::Error>(p, "此功能未实现"_tr());
+        manager::pr::index(p);
     });
     fm.appendButton("重载配置文件"_tr(), "textures/ui/refresh_light", "path", [](Player& p) {
         config::loadConfig();

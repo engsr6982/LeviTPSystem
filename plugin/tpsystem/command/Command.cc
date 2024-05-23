@@ -5,6 +5,7 @@
 #include "manager/ManagerEntry.h"
 #include "modules/Menu.h"
 #include "modules/Moneys.h"
+#include "permission/Permission.h"
 #include "pr/PrForm.h"
 #include "rule/RuleForm.h"
 #include "tpr/TprManager.h"
@@ -37,7 +38,7 @@ bool registerCommands() {
     cmd.overload().text("mgr").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         Player& player = *static_cast<Player*>(origin.getEntity());
-        // TODO: 检查权限
+        if (!checkPlayerPermission(origin, output, tpsystem::permission::PermList::ManagerPanel)) return;
         manager::index(player);
     });
 
