@@ -126,11 +126,11 @@ void _createHome(Player& player, const string& targetPlayerName) {
     fm.appendLabel("请确保输入内容正确，否则解析错误可能导致崩溃"_tr());
 
     fm.sendTo(player, [targetPlayerName, dimNames](Player& p, CustomFormResult const& dt, FormCancelReason) {
-        utils::DebugFormPrint(dt);
         if (!dt) {
             sendText(p, "表单已放弃"_tr());
             return;
         }
+        utils::DebugFormPrint(dt);
         try {
             string name   = std::get<string>(dt->at("name"));
             string posStr = std::get<string>(dt->at("pos"));
@@ -186,11 +186,11 @@ void _editHome(Player& player, const string& targetPlayerName, const string& tar
     fm.sendTo(
         player,
         [targetPlayerName, targetHomeName, dimNames, h](Player& p, CustomFormResult const& dt, FormCancelReason) {
-            utils::DebugFormPrint(dt);
             if (!dt) {
                 sendText(p, "表单已放弃"_tr());
                 return;
             }
+            utils::DebugFormPrint(dt);
             // 使用 Try Catch 防止输入错误导致崩溃
             try {
                 string name   = std::get<string>(dt->at("name"));
@@ -202,15 +202,18 @@ void _editHome(Player& player, const string& targetPlayerName, const string& tar
                     return;
                 }
 
-                data::HomeItem v4 = h;    // 复制原数据
-                v4.name           = name; // 修改名称
+                data::HomeItem v4;
+                v4.name         = name;           // 修改名称
+                v4.createdTime  = h.createdTime;  // 拷贝创建时间
+                v4.modifiedTime = h.modifiedTime; // 拷贝修改时间
+                // 解析坐标
                 std::istringstream iss(posStr);
                 char               delim;
                 if (!(iss >> v4.x >> delim >> v4.y >> delim >> v4.z) || delim != ',') {
                     sendText<MsgLevel::Error>(p, "输入的坐标格式错误"_tr());
                     return;
                 }
-
+                // 解析维度
                 int i = 0;
                 for (string const& _dim : dimNames) {
                     if (dimStr == _dim) {
