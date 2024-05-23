@@ -2,6 +2,7 @@
 #include "config/Config.h"
 #include "death/DeathForm.h"
 #include "ll/api/command/CommandRegistrar.h"
+#include "manager/ManagerEntry.h"
 #include "modules/Menu.h"
 #include "modules/Moneys.h"
 #include "pr/PrForm.h"
@@ -33,6 +34,11 @@ bool registerCommands() {
     });
 
     // tps mgr
+    cmd.overload().text("mgr").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+        Player& player = *static_cast<Player*>(origin.getEntity());
+        manager::index(player);
+    });
 
     // tps back
     cmd.overload().text("back").execute([](CommandOrigin const& origin, CommandOutput& output) {
