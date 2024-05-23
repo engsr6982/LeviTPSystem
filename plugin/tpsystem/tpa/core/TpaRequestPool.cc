@@ -91,7 +91,7 @@ void TpaRequestPool::checkAndRunCleanUpTask() {
                 if (avail != Available::Available) {
                     auto ptr = level->getPlayer(request->sender); // 获取发送者指针
                     if (ptr) {
-                        utils::mc::sendText<utils::mc::MsgLevel::Error>(ptr, "", AvailDescription(avail));
+                        utils::mc::sendText<utils::mc::MsgLevel::Error>(ptr, "{0}", AvailDescription(avail));
                     }
                     instance.deleteRequest(receiver, sender); // 删除请求
                 }
