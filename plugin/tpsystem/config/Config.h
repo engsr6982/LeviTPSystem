@@ -28,7 +28,7 @@ struct Config {
         int  GoHomeMoney     = 0;    // 前往家的费用
         int  EditHomeMoney   = 0;    // 编辑家的费用
         int  DeleteHomeMoney = 0;    // 删除家的费用
-        int  MaxHome         = 1;    // 最大家数量
+        int  MaxHome         = 20;   // 最大家数量
     } Home;
     struct mWarp {
         bool Enable      = true;

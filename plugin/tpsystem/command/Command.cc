@@ -37,6 +37,7 @@ bool registerCommands() {
     cmd.overload().text("mgr").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         Player& player = *static_cast<Player*>(origin.getEntity());
+        // TODO: 检查权限
         manager::index(player);
     });
 

@@ -52,6 +52,8 @@ void index(Player& player) {
         modules::Moneys::getInstance().updateConfig(config::cfg.Money);
         sendText(p, "Config Reloaded!"_tr());
     });
+
+    fm.sendTo(player);
 }
 
 
