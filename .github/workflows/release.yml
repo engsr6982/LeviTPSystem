@@ -40,32 +40,36 @@ jobs:
           path: |
             bin/
 
-  prepare-assets:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+prepare-assets:
+  needs: build
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
 
-      - name: Convert plugin name to lowercase
-        id: plugin-name-lower
-        run: echo "::set-output name=plugin_name_lower::$(echo ${{ steps.plugin-name.outputs.plugin_name }} | tr '[:upper:]' '[:lower:]')"
+    - name: Convert plugin name to lowercase
+      id: plugin-name-lower
+      run: echo "::set-output name=plugin_name_lower::$(echo ${{ steps.plugin-name.outputs.plugin_name }} | tr '[:upper:]' '[:lower:]')"
 
-      - run: |
-          mkdir coder
-          cp -r plugin/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/* coder/
-          cp -r assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/* coder/
+    - name: Setup SSH Keys
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # 推送文件到对应的仓库
-      - name: Push files to corresponding repository
-        run: |
-          cd coder
-          git config --global user.name 'Actions'
-          git config --global user.email '${{ secrets.EMAIL }}'
-          git init
-          git remote add origin https://github.com/engsr6982/Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}.git
-          git add .
-          git commit -m "Sync ${{ github.ref }}"
-          git push origin main
+    - run: |
+        mkdir coder
+        cp -r plugin/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/* coder/
+        cp -r assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/* coder/
+
+    - name: Push files to corresponding repository
+      run: |
+        cd coder
+        git config --global user.name "Actions"
+        git config --global user.email "pwxg286704@163.com"
+        git init
+        git remote add origin git@github.com:engsr6982/Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}.git
+        git add .
+        git commit -m "Sync ${{ github.ref }}"
+        git push origin main
 
   package-and-release:
     needs: prepare-assets
