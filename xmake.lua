@@ -60,7 +60,7 @@ option("plugin")
     set_default(plugins[1])
     set_values(unpack(plugins))
 --================================================================================================--
-target("LeviBoom")
+target("workspace-cpp")
     add_cxflags(
         "/EHa",
         "/utf-8",
@@ -91,7 +91,7 @@ target("LeviBoom")
         add_includedirs("plugin/" .. string.lower(get_config("plugin"))) -- 插件头文件目录
         add_files("plugin/" .. string.lower(get_config("plugin")) .. "/**.cc") -- 插件源文件目录
         add_defines("PLUGIN_NAME=\"Levi" .. get_config("plugin") .. "\"") -- 插件名称定义（传递给Tell和Logger）
-        add_defines("LEVIBOOM_PLUGIN_" .. string.upper(get_config("plugin"))) -- 插件开关定义
+        add_defines("PLUGIN_" .. string.upper(get_config("plugin"))) -- 插件开关定义
         set_basename("Levi" .. get_config("plugin") .. (is_mode("debug") and "_Debug" or "")) -- 设置输出文件名
         add_defines(unpack(ProjectPlugins[get_config("plugin")][2])) -- 添加插件自定义宏
         add_packages(unpack(parsePluginDependencies(true))) -- 添加插件依赖包

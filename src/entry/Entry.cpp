@@ -6,9 +6,8 @@
 #include "ll/api/plugin/NativePlugin.h"
 #include "ll/api/plugin/RegisterHelper.h"
 
-#ifdef LEVIBOOM_PLUGIN_TPSYSTEM
+// 通用人口头
 #include "Main.h"
-#endif
 
 namespace lbm {
 
@@ -21,24 +20,33 @@ bool entry::load() {
     // 全局初始化
     ll::i18n::load(getSelf().getLangDir());
 
-#ifdef LEVIBOOM_PLUGIN_TPSYSTEM
+#ifdef PLUGIN_TPSYSTEM
     return lbm::plugin::tpsystem::onLoad(getSelf());
+#endif
+#ifdef PLUGIN_FAKEPLAYER
+    return lbm::plugin::fakeplayer::onLoad(getSelf());
 #endif
 }
 
 bool entry::enable() {
     getSelf().getLogger().info("Enabling...");
 
-#ifdef LEVIBOOM_PLUGIN_TPSYSTEM
+#ifdef PLUGIN_TPSYSTEM
     return lbm::plugin::tpsystem::onEnable(getSelf());
+#endif
+#ifdef PLUGIN_FAKEPLAYER
+    return lbm::plugin::fakeplayer::onEnable(getSelf());
 #endif
 }
 
 bool entry::disable() {
     getSelf().getLogger().info("Disabling...");
 
-#ifdef LEVIBOOM_PLUGIN_TPSYSTEM
+#ifdef PLUGIN_TPSYSTEM
     return lbm::plugin::tpsystem::onDisable(getSelf());
+#endif
+#ifdef PLUGIN_FAKEPLAYER
+    return lbm::plugin::fakeplayer::onDisable(getSelf());
 #endif
 }
 
