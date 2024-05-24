@@ -1,13 +1,19 @@
+# 触发条件定义
 on:
   release:
-    types:
-      - published
-  
+    tags:
+      - "v*.*.*-*" # 匹配形如 v1.0.0-PluginName 的tag格式
+
+# 定义工作流中的任务
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Extract release plugin name
+        id: plugin-name
+        run: echo "::set-output name=plugin_name::$(echo ${{ github.ref }} | sed -n 's/.*v[0-9]*\.[0-9]*\.[0-9]*-\(.*\)/\1/p')"
 
       - uses: xmake-io/github-action-setup-xmake@v1
 
@@ -23,7 +29,7 @@ jobs:
           xmake repo -u
 
       - run: |
-          xmake f -a x64 -m release -p windows -y
+          xmake f -a x64 -m release -p windows -y --plugin=${{ steps.plugin-name.outputs.plugin_name }}
 
       - run: |
           xmake -w -y
@@ -34,27 +40,35 @@ jobs:
           path: |
             bin/
 
-  update-release-notes:
-    permissions:
-      contents: write
+  prepare-assets:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - id: extract-release-notes
-        uses: ffurrer2/extract-release-notes@v2
+      - name: Convert plugin name to lowercase
+        id: plugin-name-lower
+        run: echo "::set-output name=plugin_name_lower::$(echo ${{ steps.plugin-name.outputs.plugin_name }} | tr '[:upper:]' '[:lower:]')"
 
-      - uses: softprops/action-gh-release@v1
-        with:
-          body: |
-            ${{ steps.extract-release-notes.outputs.release_notes }}
+      - run: |
+          mkdir coder
+          cp -r plugin/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/* coder/
+          cp -r assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/* coder/
 
-  upload-to-release:
-    needs:
-      - build
-      - update-release-notes
-    permissions:
-      contents: write
+      # 推送文件到对应的仓库
+      - name: Push files to corresponding repository
+        run: |
+          cd coder
+          git config --global user.name 'Actions'
+          git config --global user.email '${{ secrets.EMAIL }}'
+          git init
+          git remote add origin https://github.com/engsr6982/Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}.git
+          git add .
+          git commit -m "Sync ${{ github.ref }}"
+          git push origin main
+
+  package-and-release:
+    needs: prepare-assets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,13 +79,22 @@ jobs:
           path: artifact
 
       - run: |
-          cp CHANGELOG.md LICENSE README.md artifact/
-
-      - run: |
-          zip -r ../${{ github.event.repository.name }}-windows-x64.zip *
+          cp assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/CHANGELOG.md assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/README.md artifact/
+          zip -r ../Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}-windows-x64.zip *
         working-directory: artifact
 
+      # 解析CHANGELOG
+      - uses: ffurrer2/extract-release-notes@v2
+        id: release-notes
+        with:
+          version: ${{ github.ref }}
+          changelog_file: assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/CHANGELOG.md
+
+      # 创建目标仓库的Release
       - uses: softprops/action-gh-release@v1
         with:
+          repository: engsr6982/Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}
+          body: ${{ steps.release-notes.outputs.release_notes }}
+          tag_name: ${{ github.ref }}
           files: |
-            ${{ github.event.repository.name }}-windows-x64.zip
+            Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}-windows-x64.zip
