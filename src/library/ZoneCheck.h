@@ -370,12 +370,11 @@ inline FindResult findSafePos(const FindArgs& args) {
                 } else if (currentTraversalY <= args.forStop || utils::some(args.dangerousBlocks, bl.getTypeName())) {
                     logger.debug("[Stop] 到达结束位置 / 有危险方块");
                     break;
-                } else if (
-                    bl.getTypeName() != "minecraft:air" && // 落脚方块
-                    getBlock(currentTraversalY + args.offset1, bp, args.dimid).getTypeName()
-                        == "minecraft:air" // 玩家身体 下半
-                    && getBlock(currentTraversalY + args.offset2, bp, args.dimid).getTypeName()
-                           == "minecraft:air" // 玩家身体 上半
+                } else if (bl.getTypeName() != "minecraft:air" && // 落脚方块
+                           getBlock(currentTraversalY + args.offset1, bp, args.dimid).getTypeName()
+                               == "minecraft:air" // 玩家身体 下半
+                           && getBlock(currentTraversalY + args.offset2, bp, args.dimid).getTypeName()
+                                  == "minecraft:air" // 玩家身体 上半
                 ) {
                     // 安全位置   落脚点安全、上两格是空气
                     result.y      = currentTraversalY + 1; // 往上跳一格

@@ -8,7 +8,6 @@
 #include <vector>
 
 
-
 namespace lbm::plugin::tpsystem::data {
 
 using ll::i18n_literals::operator""_tr;

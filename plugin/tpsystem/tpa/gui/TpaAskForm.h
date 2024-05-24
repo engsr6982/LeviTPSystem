@@ -13,7 +13,6 @@
 #include <stdexcept>
 
 
-
 namespace lbm::plugin::tpsystem::tpa::gui {
 
 class TpaAskForm : public ll::form::SimpleForm {
