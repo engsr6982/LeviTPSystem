@@ -1,22 +1,26 @@
-# 触发条件定义
 on:
   release:
-    tags:
-      - "v*.*.*-*" # 匹配形如 v1.0.0-PluginName 的tag格式
+    types:
+      - published
 
-# 定义工作流中的任务
 jobs:
   build:
+    outputs:
+      plugin_name: ${{ steps.plugin_name.outputs.plugin_name}}
     runs-on: windows-latest
     steps:
+      # 检出代码
       - uses: actions/checkout@v4
 
+      # 解析插件名称
       - name: Extract release plugin name
-        id: plugin-name
+        id: plugin_name
         run: echo "::set-output name=plugin_name::$(echo ${{ github.ref }} | sed -n 's/.*v[0-9]*\.[0-9]*\.[0-9]*-\(.*\)/\1/p')"
 
+      # 安装xmake
       - uses: xmake-io/github-action-setup-xmake@v1
 
+      # 缓存xmake
       - uses: actions/cache@v4
         with:
           path: |
@@ -25,54 +29,61 @@ jobs:
           restore-keys: |
             xmake-
 
+      # 更新仓库
       - run: |
           xmake repo -u
 
+      # 配置编译目标
       - run: |
-          xmake f -a x64 -m release -p windows -y --plugin=${{ steps.plugin-name.outputs.plugin_name }}
+          xmake f -a x64 -m release -p windows -y --plugin=${{ steps.plugin_name.outputs.plugin_name }}
 
+      # 编译插件
       - run: |
           xmake -w -y
 
+      # 上传编译产物
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-windows-x64-${{ github.sha }}
           path: |
             bin/
 
-prepare-assets:
-  needs: build
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
+  # 准备发布资产
+  prepare_assets:
+    needs: build
+    outputs:
+      plugin_name_lower: ${{ steps.plugin_name_lower.outputs.plugin_name_lower}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-    - name: Convert plugin name to lowercase
-      id: plugin-name-lower
-      run: echo "::set-output name=plugin_name_lower::$(echo ${{ steps.plugin-name.outputs.plugin_name }} | tr '[:upper:]' '[:lower:]')"
+      - name: Convert plugin name to lowercase
+        id: plugin_name_lower
+        run: echo "::set-output name=plugin_name_lower::$(echo ${{ needs.build.outputs.plugin_name }} | tr '[:upper:]' '[:lower:]')"
 
-    - name: Setup SSH Keys
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Setup SSH Keys
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - run: |
-        mkdir coder
-        cp -r plugin/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/* coder/
-        cp -r assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/* coder/
+      - run: |
+          mkdir coder
+          cp -r plugin/${{ steps.plugin_name_lower.outputs.plugin_name_lower }}/* coder/
+          cp -r assets/${{ steps.plugin_name_lower.outputs.plugin_name_lower }}/* coder/
 
-    - name: Push files to corresponding repository
-      run: |
-        cd coder
-        git config --global user.name "Actions"
-        git config --global user.email "pwxg286704@163.com"
-        git init
-        git remote add origin git@github.com:engsr6982/Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}.git
-        git add .
-        git commit -m "Sync ${{ github.ref }}"
-        git push origin main
+      - name: Push files to corresponding repository
+        run: |
+          cd coder
+          git config --global user.name "Actions"
+          git config --global user.email "pwxg286704@163.com"
+          git init
+          git remote add origin git@github.com:engsr6982/Levi${{ steps.plugin_name_lower.outputs.plugin_name_lower }}.git
+          git add .
+          git commit -m "Sync ${{ github.ref }}"
+          git push origin main
 
   package-and-release:
-    needs: prepare-assets
+    needs: prepare_assets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -83,8 +94,8 @@ prepare-assets:
           path: artifact
 
       - run: |
-          cp assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/CHANGELOG.md assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/README.md artifact/
-          zip -r ../Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}-windows-x64.zip *
+          cp assets/${{ needs.prepare_assets.outputs.plugin_name_lower}}/CHANGELOG.md assets/${{ needs.prepare_assets.outputs.plugin_name_lower }}/README.md artifact/
+          zip -r ../Levi${{ needs.prepare_assets.outputs.plugin_name_lower }}-windows-x64.zip *
         working-directory: artifact
 
       # 解析CHANGELOG
@@ -92,13 +103,13 @@ prepare-assets:
         id: release-notes
         with:
           version: ${{ github.ref }}
-          changelog_file: assets/${{ steps.plugin-name-lower.outputs.plugin_name_lower }}/CHANGELOG.md
+          changelog_file: assets/${{ needs.prepare_assets.outputs.plugin_name_lower }}/CHANGELOG.md
 
       # 创建目标仓库的Release
       - uses: softprops/action-gh-release@v1
         with:
-          repository: engsr6982/Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}
+          repository: engsr6982/Levi${{ needs.prepare_assets.outputs.plugin_name_lower }}
           body: ${{ steps.release-notes.outputs.release_notes }}
           tag_name: ${{ github.ref }}
           files: |
-            Levi${{ steps.plugin-name-lower.outputs.plugin_name_lower }}-windows-x64.zip
+            Levi${{ needs.prepare_assets.outputs.plugin_name_lower }}-windows-x64.zip
