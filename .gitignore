@@ -29,6 +29,7 @@
 
 # Executables
 *.exe
+!tools/jse.exe
 *.out
 *.app
 

@@ -6,20 +6,37 @@ on:
 jobs:
   build:
     outputs:
-      plugin_name: ${{ steps.plugin_name.outputs.plugin_name}}
+      plugin_name: ${{ steps.plugin_name.outputs.plugin_name }}
+      plugin_name_lower: ${{ steps.plugin_name_lower.outputs.plugin_name_lower }}
+      plugin_version: ${{ steps.plugin_version.outputs.plugin_version }}
     runs-on: windows-latest
     steps:
       # 检出代码
       - uses: actions/checkout@v4
 
       # 解析插件名称
-      - name: Extract release plugin name
+      - name: extract plugin name
         id: plugin_name
         run: |
-          echo "github.ref: ${{ github.ref }}"
-          PLUGIN_NAME=$(echo ${{ github.ref }} | sed -n 's/.*v[0-9]*\.[0-9]*\.[0-9]*-\(.*\)/\1/p')
-          echo "Extracted plugin name: $PLUGIN_NAME"
-          echo "::set-output name=plugin_name::$PLUGIN_NAME"
+          tools/jse.exe -e "'refs/tags/v0.1.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[1]" > plugin_name.txt
+          echo "::set-output name=plugin_name::$(cat plugin_name.txt)"
+
+      - name: extract plugin name lower
+        id: plugin_name_lower
+        run: |
+          tools/jse.exe -e "'refs/tags/v0.1.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[1].toLowerCase()" > plugin_name_lower.txt
+          echo "::set-output name=plugin_name_lower::$(cat plugin_name_lower.txt)"
+
+      - name: extract plugin version
+        id: plugin_version
+        run: |
+          tools/jse.exe -e "'refs/tags/v0.1.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[0]" > plugin_version.txt
+          echo "::set-output name=plugin_version::$(cat plugin_version.txt)"
+
+      - run: |
+          echo "Plugin name: ${{ steps.plugin_name.outputs.plugin_name }}"
+          echo "Plugin name lower: ${{ steps.plugin_name_lower.outputs.plugin_name_lower }}"
+          echo "Plugin version: ${{ steps.plugin_version.outputs.plugin_version }}"
 
       # 安装xmake
       - uses: xmake-io/github-action-setup-xmake@v1
