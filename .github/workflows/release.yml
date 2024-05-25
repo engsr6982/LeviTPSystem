@@ -15,7 +15,11 @@ jobs:
       # 解析插件名称
       - name: Extract release plugin name
         id: plugin_name
-        run: echo "::set-output name=plugin_name::$(echo ${{ github.ref }} | sed -n 's/.*v[0-9]*\.[0-9]*\.[0-9]*-\(.*\)/\1/p')"
+        run: |
+          echo "github.ref: ${{ github.ref }}"
+          PLUGIN_NAME=$(echo ${{ github.ref }} | sed -n 's/.*v[0-9]*\.[0-9]*\.[0-9]*-\(.*\)/\1/p')
+          echo "Extracted plugin name: $PLUGIN_NAME"
+          echo "::set-output name=plugin_name::$PLUGIN_NAME"
 
       # 安装xmake
       - uses: xmake-io/github-action-setup-xmake@v1
