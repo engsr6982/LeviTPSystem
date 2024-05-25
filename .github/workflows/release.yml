@@ -90,11 +90,12 @@ jobs:
           git clone --depth=1 https://${{ secrets.SSH_PRIVATE_KEY }}@github.com/engsr6982/Levi${{ needs.build.outputs.plugin_name }}.git
           cd Levi${{ needs.build.outputs.plugin_name }}
           cp -r ../coder/* .
-          add add -A
+          git add -A
           git commit -m "Release ${{ needs.build.outputs.plugin_version }}"
           git tag -a ${{ needs.build.outputs.plugin_version }} -m "Release ${{ needs.build.outputs.plugin_version }}"
           git push
           git push --tags
+          cd ../../
 
   package-and-release:
     needs: build
@@ -108,9 +109,14 @@ jobs:
           path: artifact
 
       - run: |
-          cp assets/${{ needs.build.outputs.plugin_name_lower}}/CHANGELOG.md assets/${{ needs.build.outputs.plugin_name_lower }}/README.md artifact/
-          zip -r ../Levi${{ needs.build.outputs.plugin_name_lower }}-windows-x64.zip *
-        working-directory: artifact
+          cp -r assets/${{ needs.build.outputs.plugin_name_lower}}/CHANGELOG.md artifact/
+          cp -r assets/${{ needs.build.outputs.plugin_name_lower }}/README.md artifact/
+
+      - name: Archive release
+        run: |
+          cd artifact
+          zip -r ../Levi${{ needs.build.outputs.plugin_name }}-windows-x64.zip *
+          cd ..
 
       # 解析CHANGELOG
       - uses: ffurrer2/extract-release-notes@v2
