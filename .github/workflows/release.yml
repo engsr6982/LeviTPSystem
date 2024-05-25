@@ -8,7 +8,7 @@ jobs:
     outputs:
       plugin_name: ${{ steps.plugin_name.outputs.plugin_name }}
       plugin_name_lower: ${{ steps.plugin_name_lower.outputs.plugin_name_lower }}
-      plugin_version: ${{ steps.plugin_version.outputs.plugin_version }}
+      plugin_version: ${{ steps.plugin_version.outputs.plugin_version }} # format: v1.2.3
     runs-on: windows-latest
     steps:
       # 检出代码
@@ -72,39 +72,32 @@ jobs:
   # 准备发布资产
   prepare_assets:
     needs: build
-    outputs:
-      plugin_name_lower: ${{ steps.plugin_name_lower.outputs.plugin_name_lower}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Convert plugin name to lowercase
-        id: plugin_name_lower
-        run: echo "::set-output name=plugin_name_lower::$(echo ${{ needs.build.outputs.plugin_name }} | tr '[:upper:]' '[:lower:]')"
-
-      - name: Setup SSH Keys
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - run: |
-          mkdir coder
-          cp -r plugin/${{ steps.plugin_name_lower.outputs.plugin_name_lower }}/* coder/
-          cp -r assets/${{ steps.plugin_name_lower.outputs.plugin_name_lower }}/* coder/
+          mkdir origin_repo
+          mkdir origin_repo/coder
+          cp -r plugin/${{ needs.build.outputs.plugin_name_lower }}/* origin_repo/coder/
+          cp -r assets/${{ needs.build.outputs.plugin_name_lower }}/* origin_repo/coder/
 
       - name: Push files to corresponding repository
         run: |
-          cd coder
+          cd origin_repo
           git config --global user.name "Actions"
           git config --global user.email "pwxg286704@163.com"
-          git init
-          git remote add origin git@github.com:engsr6982/Levi${{ steps.plugin_name_lower.outputs.plugin_name_lower }}.git
-          git add .
-          git commit -m "Sync ${{ github.ref }}"
-          git push origin main
+          git clone --depth=1 https://${{ secrets.SSH_PRIVATE_KEY }}@github.com/engsr6982/Levi${{ needs.build.outputs.plugin_name }}.git
+          cd Levi${{ needs.build.outputs.plugin_name }}
+          cp -r ../coder/* .
+          add add -A
+          git commit -m "Release ${{ needs.build.outputs.plugin_version }}"
+          git tag -a ${{ needs.build.outputs.plugin_version }} -m "Release ${{ needs.build.outputs.plugin_version }}"
+          git push
+          git push --tags
 
   package-and-release:
-    needs: prepare_assets
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -115,22 +108,23 @@ jobs:
           path: artifact
 
       - run: |
-          cp assets/${{ needs.prepare_assets.outputs.plugin_name_lower}}/CHANGELOG.md assets/${{ needs.prepare_assets.outputs.plugin_name_lower }}/README.md artifact/
-          zip -r ../Levi${{ needs.prepare_assets.outputs.plugin_name_lower }}-windows-x64.zip *
+          cp assets/${{ needs.build.outputs.plugin_name_lower}}/CHANGELOG.md assets/${{ needs.build.outputs.plugin_name_lower }}/README.md artifact/
+          zip -r ../Levi${{ needs.build.outputs.plugin_name_lower }}-windows-x64.zip *
         working-directory: artifact
 
       # 解析CHANGELOG
       - uses: ffurrer2/extract-release-notes@v2
         id: release-notes
         with:
-          version: ${{ github.ref }}
-          changelog_file: assets/${{ needs.prepare_assets.outputs.plugin_name_lower }}/CHANGELOG.md
+          version: ${{ needs.build.outputs.plugin_version }}
+          changelog_file: assets/${{ needs.build.outputs.plugin_name_lower }}/CHANGELOG.md
 
       # 创建目标仓库的Release
       - uses: softprops/action-gh-release@v1
         with:
-          repository: engsr6982/Levi${{ needs.prepare_assets.outputs.plugin_name_lower }}
+          repository: engsr6982/Levi${{ needs.build.outputs.plugin_name }}
           body: ${{ steps.release-notes.outputs.release_notes }}
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ needs.build.outputs.plugin_version }}
+          token: ${{ secrets.SSH_PRIVATE_KEY }}
           files: |
-            Levi${{ needs.prepare_assets.outputs.plugin_name_lower }}-windows-x64.zip
+            Levi${{ needs.build.outputs.plugin_name }}-windows-x64.zip
