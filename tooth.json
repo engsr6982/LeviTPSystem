@@ -1,0 +1,30 @@
+{
+    "format_version": 2,
+    "tooth": "githbu.com/engsr6982/LeviTPSystem",
+    "version": "0.1.0",
+    "info": {
+        "name": "LeviTPSystem",
+        "description": "| 家园传送 | 公共传送 | 玩家传送 | 随机传送 | 精美UI | 死亡传送 | 死亡查询 | 玩家自定义规则 |",
+        "author": "engsr6982",
+        "tags": [
+            "levilamina",
+            "plugin",
+            "levitpsystem",
+            "tp"
+        ]
+    },
+    "asset_url": "https://github.com/engsr6982/LeviTPSystem/releases/download/v0.1.0/LeviTPSystem-windows-x64.zip",
+    "prerequisites": {
+        "github.com/LiteLDev/LeviLamina": "0.12.x",
+        "github.com/LiteLDev/LegacyMoney": "0.7.x",
+        "github.com/engsr6982/PermissionCore": "0.8.x"
+    },
+    "files": {
+        "place": [
+            {
+                "src": "LeviTPSystem/*",
+                "dest": "plugins/LeviTPSystem/"
+            }
+        ]
+    }
+}
