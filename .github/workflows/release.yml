@@ -18,19 +18,19 @@ jobs:
       - name: extract plugin name
         id: plugin_name
         run: |
-          tools/jse.exe -e "'refs/tags/v0.1.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[1]" > plugin_name.txt
+          tools/jse.exe -e "'refs/tags/v0.2.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[1]" > plugin_name.txt
           echo "::set-output name=plugin_name::$(cat plugin_name.txt)"
 
       - name: extract plugin name lower
         id: plugin_name_lower
         run: |
-          tools/jse.exe -e "'refs/tags/v0.1.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[1].toLowerCase()" > plugin_name_lower.txt
+          tools/jse.exe -e "'refs/tags/v0.2.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[1].toLowerCase()" > plugin_name_lower.txt
           echo "::set-output name=plugin_name_lower::$(cat plugin_name_lower.txt)"
 
       - name: extract plugin version
         id: plugin_version
         run: |
-          tools/jse.exe -e "'refs/tags/v0.1.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[0]" > plugin_version.txt
+          tools/jse.exe -e "'refs/tags/v0.2.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[0]" > plugin_version.txt
           echo "::set-output name=plugin_version::$(cat plugin_version.txt)"
 
       - run: |
