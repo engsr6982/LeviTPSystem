@@ -3,11 +3,11 @@ add_rules("mode.debug", "mode.release")
 
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 
-add_requires("levilamina 0.12.1") -- LeviLamina version x.x.x
+add_requires("levilamina 0.13.3") -- LeviLamina version x.x.x
 
 -- Key: PluginName, Value: [[Deps], [Define]]
 local ProjectPlugins = {
-    ["TPSystem"] = {{"PermissionCore 0.9.0", "LegacyMoney 0.7.0"}, {"ENABLE_MONEY", "ENABLE_PERMISSIONCORE"}},
+    ["TPSystem"] = {{"PermissionCore 0.10.0", "LegacyMoney 0.8.1"}, {"ENABLE_MONEY", "ENABLE_PERMISSIONCORE"}},
     ["FakePlayer"] = {{}, {}}
 }
 
@@ -46,7 +46,7 @@ end
 -- 定义插件依赖包
 package("permissioncore")
     set_urls("https://github.com/engsr6982/PermissionCore/releases/download/$(version)/SDK-PermissionCore.zip")
-    add_versions("v0.9.0", "451d378aa2b71f57079740e082a2e2ec38cdac5711acc0d475350299213d9f55")
+    add_versions("v0.10.0", "5628f9cde26e509bc97789c60284f03e3069afbf830bcdc5f5e24710be9384ca")
     add_includedirs("include/")
     on_install(function (package)
         os.cp("*", package:installdir())
@@ -79,7 +79,7 @@ target("workspace-cpp")
     add_shflags("/DELAYLOAD:bedrock_server.dll") -- To use symbols provided by SymbolProvider.
     set_exceptions("none") -- To avoid conflicts with /EHa.
     set_kind("shared")
-    set_languages("c++20")
+    set_languages("c++23")
     set_symbols("debug")
 
     if is_mode("debug") then
