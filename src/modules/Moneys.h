@@ -1,4 +1,3 @@
-#ifdef ENABLE_MONEY
 #pragma once
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
@@ -12,7 +11,7 @@
 #include <stdexcept>
 
 
-namespace lbm::modules {
+namespace tps::modules {
 
 using string = std::string;
 using ll::i18n_literals::operator""_tr;
@@ -107,5 +106,4 @@ public:
     void sendMoneySpendTip(Player& player, long long money); // 发送经济不足提示
 };
 
-} // namespace lbm::modules
-#endif // ENABLE_MONEY
+} // namespace tps::modules

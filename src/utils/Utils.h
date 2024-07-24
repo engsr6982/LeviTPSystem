@@ -9,7 +9,7 @@
 #include <vector>
 
 
-namespace lbm::utils {
+namespace tps::utils {
 
 using string = std::string;
 
@@ -106,4 +106,4 @@ inline void DebugFormPrint(const ll::form::CustomFormResult& dt) {
 #endif
 }
 
-} // namespace lbm::utils
+} // namespace tps::utils

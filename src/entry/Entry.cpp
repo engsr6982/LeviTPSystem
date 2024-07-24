@@ -1,15 +1,27 @@
 #include "Entry.h"
-
+#include "command/Command.h"
+#include "config/Config.h"
+#include "data/LevelDB.h"
+#include "death/DeathManager.h"
+#include "event/EventManager.h"
+#include "home/HomeManager.h"
+#include "ll/api/i18n/I18n.h"
+#include "ll/api/mod/NativeMod.h"
+#include "ll/api/mod/RegisterHelper.h"
+#include "modules/Menu.h"
+#include "modules/Moneys.h"
+#include "permission/Permission.h"
+#include "pr/PrManager.h"
+#include "rule/RuleManager.h"
+#include "string"
+#include "warp/WarpForm.h"
+#include "warp/WarpManager.h"
 #include <memory>
 
-#include "ll/api/i18n/I18n.h"
-#include "ll/api/plugin/NativePlugin.h"
-#include "ll/api/plugin/RegisterHelper.h"
 
-// 通用人口头
-#include "Main.h"
-
-namespace lbm {
+using string = std::string;
+using ll::i18n_literals::operator""_tr;
+namespace tps {
 
 static std::unique_ptr<entry> instance;
 
@@ -20,36 +32,59 @@ bool entry::load() {
     // 全局初始化
     ll::i18n::load(getSelf().getLangDir());
 
-#ifdef PLUGIN_TPSYSTEM
-    return lbm::plugin::tpsystem::onLoad(getSelf());
+    mSelf.getLogger().info("初始化必要的文件夹..."_tr());
+    const string dirList[] = {"leveldb", "export", "import", "lang", "data"};
+    auto         rootDir   = mSelf.getModDir();
+    for (const auto& dir : dirList) {
+        auto path = rootDir / dir;
+        if (!std::filesystem::exists(path)) std::filesystem::create_directory(path);
+    }
+    mSelf.getLogger().info("加载配置文件、数据库..."_tr());
+    tps::config::loadConfig();                                  // 加载配置文件
+    mSelf.getLogger().consoleLevel = tps::config::cfg.logLevel; // 设置日志等级
+    tps::data::LevelDB::getInstance().loadDB();                 // 加载leveldb数据
+
+#ifdef DEBUG
+    mSelf.getLogger().consoleLevel = 5; // 调试模式，开启所有日志
+    mSelf.getLogger().playerLevel  = 5;
 #endif
-#ifdef PLUGIN_FAKEPLAYER
-    return lbm::plugin::fakeplayer::onLoad(getSelf());
-#endif
+
+    return true;
 }
 
 bool entry::enable() {
     getSelf().getLogger().info("Enabling...");
+    // 插件启用，开始初始化...
+    getSelf().getLogger().info("开始初始化插件..."_tr());
+    tps::command::registerCommands();       // 注册命令
+    tps::permission::registerPermissions(); // 注册权限
 
-#ifdef PLUGIN_TPSYSTEM
-    return lbm::plugin::tpsystem::onEnable(getSelf());
-#endif
-#ifdef PLUGIN_FAKEPLAYER
-    return lbm::plugin::fakeplayer::onEnable(getSelf());
-#endif
+    // 注册菜单
+    tps::modules::Menu::rootDir   = mSelf.getDataDir();
+    tps::modules::Menu::functions = {
+        {"warp", warp::form::index}
+    };
+
+    // 注册事件监听
+    tps::event::registerEvent();
+
+    // 初始化各个模块数据
+    tps::modules::Moneys::getInstance().updateConfig(config::cfg.Money);
+    tps::home::HomeManager::getInstance().syncFromLevelDB();
+    tps::warp::WarpManager::getInstance().syncFromLevelDB();
+    tps::rule::RuleManager::getInstance().syncFromLevelDB();
+    tps::death::DeathManager::getInstance().syncFromLevelDB();
+    tps::pr::PrManager::getInstance().syncFromLevelDB();
+    return true;
 }
 
 bool entry::disable() {
     getSelf().getLogger().info("Disabling...");
-
-#ifdef PLUGIN_TPSYSTEM
-    return lbm::plugin::tpsystem::onDisable(getSelf());
-#endif
-#ifdef PLUGIN_FAKEPLAYER
-    return lbm::plugin::fakeplayer::onDisable(getSelf());
-#endif
+    mSelf.getLogger().info("正在禁用插件..."_tr());
+    tps::event::unRegisterEvent();
+    return true;
 }
 
-} // namespace lbm
+} // namespace tps
 
-LL_REGISTER_PLUGIN(lbm::entry, lbm::instance);
+LL_REGISTER_MOD(tps::entry, tps::instance);

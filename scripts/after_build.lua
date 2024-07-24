@@ -84,25 +84,10 @@ end
 
 function pack_plugin(target,plugin_define)
     import("lib.detect.find_file")
-    import("core.base.json")
 
     local manifest_path = find_file("manifest.json", os.projectdir())
     if manifest_path then
-        local manifest_re = io.readfile(manifest_path) -- 读取manifest.json文件内容
-        local manifest_parsed = json.decode(manifest_re) -- 解析manifest.json文件内容
-
-        manifest_parsed["dependencies"] = {} -- 添加依赖项
-        for _, dep in pairs(plugin_define.dependencies) do
-            table.insert(manifest_parsed["dependencies"], { name = dep }) -- 插入依赖项 格式: { name = "xxx" }
-        end
-
-        -- local manifest = json.encode(manifest_parsed, { indent = true }) -- 格式化manifest.json文件内容
-        local manifest = beautify_json(manifest_parsed, 4) -- 格式化manifest.json文件内容
-
-        -- print("manifest.json read: ", manifest_re)
-        -- print("manifest.json parsed: ", manifest_parsed)
-        -- print("manifest.json encoded: ", manifest)
-
+        local manifest = io.readfile(manifest_path)
         local bindir = path.join(os.projectdir(), "bin")
         local outputdir = path.join(bindir, plugin_define.pluginName)
         local targetfile = path.join(outputdir, plugin_define.pluginFile)
@@ -116,16 +101,10 @@ function pack_plugin(target,plugin_define)
         if os.isfile(oripdbfile) then
             os.cp(oripdbfile, pdbfile)
         end
-        -- 检查当前仓库下 assets 文件夹下，是否有对应插件名的资源文件夹，有则遍历复制到输出目录
-        -- assets/{plugin_name}/{floder}/{file}
-        local assets_dir = path.join(os.projectdir(), "assets")
-        local plugin_assets_dir = path.join(assets_dir, plugin_define.buildTargetName)
-        local plugin_assets_dir_serach = path.join(plugin_assets_dir, "*")
-        if os.isdir(plugin_assets_dir) then
-            for _, fileDir in ipairs(os.filedirs(plugin_assets_dir_serach)) do
-                os.cp(fileDir, outputdir)
-            end
-        end
+
+        -- copy data files
+        local datadir = path.join(os.projectdir(), "assets", "data")
+        os.cp(datadir, outputdir)
 
         formattedmanifest = string_formatter(manifest, plugin_define)
         io.writefile(manifestfile,formattedmanifest)

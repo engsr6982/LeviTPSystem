@@ -1,21 +1,22 @@
 #include "Menu.h"
-#include "api/McAPI.h"
 #include "entry/Entry.h"
 #include "ll/api/form/SimpleForm.h"
 #include "utils/Mc.h"
+#include "utils/McAPI.h"
 #include <functional>
 #include <memory>
 #include <optional>
 
 
-namespace lbm::modules {
+
+namespace tps::modules {
 
 // 定义静态成员变量
-std::filesystem::path                                         lbm::modules::Menu::rootDir;
-std::unordered_map<std::string, std::function<void(Player&)>> lbm::modules::Menu::functions;
+std::filesystem::path                                         tps::modules::Menu::rootDir;
+std::unordered_map<std::string, std::function<void(Player&)>> tps::modules::Menu::functions;
 
 std::unique_ptr<Menu> Menu::fromJSON(const json& json) {
-    auto& logger = lbm::entry::getInstance().getSelf().getLogger();
+    auto& logger = tps::entry::getInstance().getSelf().getLogger();
     try {
         auto me = std::make_unique<Menu>();
         json.at("title").get_to(me->title);
@@ -47,7 +48,7 @@ std::unique_ptr<Menu> Menu::fromJSON(const json& json) {
 }
 
 std::unique_ptr<Menu> Menu::fromJsonFile(const string fileName) {
-    auto& logger = lbm::entry::getInstance().getSelf().getLogger();
+    auto& logger = tps::entry::getInstance().getSelf().getLogger();
     try {
         std::filesystem::path path = Menu::rootDir / fileName;
         if (path.extension() != ".json") {
@@ -77,7 +78,7 @@ bool Menu::hasFunction(const string name) { return Menu::functions.find(name) !=
 
 void Menu::sendTo(Player& player) {
     using namespace ll::form;
-    auto& logger = lbm::entry::getInstance().getSelf().getLogger();
+    auto& logger = tps::entry::getInstance().getSelf().getLogger();
     try {
         SimpleForm fm;
         fm.setTitle(title);
@@ -86,7 +87,7 @@ void Menu::sendTo(Player& player) {
         for (const auto& bt : buttons) {
 
             std::function<void(Player&)> callback = [bt](Player& p) {
-                auto& logger = lbm::entry::getInstance().getSelf().getLogger();
+                auto& logger = tps::entry::getInstance().getSelf().getLogger();
                 if (bt.callbackType == "function") {
                     if (Menu::hasFunction(bt.callbackRun)) {
                         Menu::functions[bt.callbackRun](p);
@@ -115,4 +116,4 @@ void Menu::sendTo(Player& player) {
     }
 }
 
-} // namespace lbm::modules
+} // namespace tps::modules

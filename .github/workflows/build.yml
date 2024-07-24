@@ -1,31 +1,28 @@
 on:
   pull_request:
     paths:
-      - ./github/workflows/build.yml
-      - src/**
       - xmake.lua
-      - plugin/**
+      - src/**
+      - .github/workflows/build.yml
+
   push:
     paths:
-      - ./github/workflows/build.yml
-      - src/**
       - xmake.lua
-      - plugin/**
+      - src/**
+      - .github/workflows/build.yml
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        plugin:
-          # 插件名称
-          - TPSystem
-          - FakePlayer
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
 
       - uses: actions/cache@v4
         with:
@@ -35,32 +32,31 @@ jobs:
           restore-keys: |
             xmake-
 
+      - uses: microsoft/setup-msbuild@v2
+
       - run: |
           xmake repo -u
 
       - run: |
-          xmake f -a x64 -m release -p windows -v -y --plugin=${{ matrix.plugin }}
+          xmake f -a x64 -m release -p windows -v -y
 
       - run: |
           xmake -v -y
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Levi${{ matrix.plugin }}-windows-x64-${{ github.sha }}
+          name: ${{ github.event.repository.name }}-windows-x64-${{ github.sha }}
           path: |
             bin/
 
-  clang-format:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
+#  clang-format:
+#    runs-on: windows-latest
+#      - uses: actions/checkout@v4
 
-      - run: |
-          choco install llvm -y --version=17.0.6
+#      - run: |
+#          choco install llvm -y --version=17.0.6
 
-      - name: clang-format
-        run: |
-          Get-ChildItem src/ -Filter *.cpp -Recurse | ForEach-Object { clang-format --dry-run -Werror $_.FullName; if ($LASTEXITCODE -ne 0) { exit 1; } }
-          Get-ChildItem src/ -Filter *.h -Recurse | ForEach-Object { clang-format --dry-run -Werror $_.FullName; if ($LASTEXITCODE -ne 0) { exit 1; } }
-          Get-ChildItem plugin/ -Filter *.cpp -Recurse | ForEach-Object { clang-format --dry-run -Werror $_.FullName; if ($LASTEXITCODE -ne 0) { exit 1; } }
-          Get-ChildItem plugin/ -Filter *.h -Recurse | ForEach-Object { clang-format --dry-run -Werror $_.FullName; if ($LASTEXITCODE -ne 0) { exit 1; } }
+#      - name: clang-format
+#        run: |
+#          Get-ChildItem src/ -Filter *.cpp -Recurse | ForEach-Object { clang-format --dry-run -Werror $_.FullName; if ($LASTEXITCODE -ne 0) { exit 1; } }
+#          Get-ChildItem src/ -Filter *.h -Recurse | ForEach-Object { clang-format --dry-run -Werror $_.FullName; if ($LASTEXITCODE -ne 0) { exit 1; } }

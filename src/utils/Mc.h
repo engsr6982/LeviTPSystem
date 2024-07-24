@@ -10,7 +10,7 @@
 #include <unordered_map>
 
 
-namespace lbm::utils::mc {
+namespace tps::utils::mc {
 
 using string = std::string;
 
@@ -69,4 +69,4 @@ inline void sendText(ll::Logger& logger, const string& fmt, Args&&... args) {
     }
 }
 
-} // namespace lbm::utils::mc
+} // namespace tps::utils::mc

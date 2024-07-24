@@ -1,4 +1,3 @@
-#ifdef ENABLE_MONEY
 #include "LLMoney.h"
 #include "Moneys.h"
 #include "ll/api/service/Bedrock.h"
@@ -16,9 +15,9 @@
 // disable warning C4244: conversion from 'double' to 'int', possible loss of data
 #pragma warning(disable : 4244)
 
-namespace lbm::modules {
+namespace tps::modules {
 
-using namespace lbm::utils::mc;
+using namespace tps::utils::mc;
 
 // ScoreBoard
 
@@ -254,5 +253,4 @@ void Moneys::sendMoneySpendTip(Player& player, long long money) {
     );
 }
 
-} // namespace lbm::modules
-#endif // ENABLE_MONEY
+} // namespace tps::modules

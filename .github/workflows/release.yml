@@ -5,43 +5,14 @@ on:
 
 jobs:
   build:
-    outputs:
-      plugin_name: ${{ steps.plugin_name.outputs.plugin_name }}
-      plugin_name_lower: ${{ steps.plugin_name_lower.outputs.plugin_name_lower }}
-      plugin_version: ${{ steps.plugin_version.outputs.plugin_version }} # format: v1.2.3
     runs-on: windows-latest
     steps:
-      # 检出代码
       - uses: actions/checkout@v4
 
-      # 解析插件名称
-      - name: extract plugin name
-        id: plugin_name
-        run: |
-          tools/jse.exe -e "'refs/tags/v0.2.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[1]" > plugin_name.txt
-          echo "::set-output name=plugin_name::$(cat plugin_name.txt)"
-
-      - name: extract plugin name lower
-        id: plugin_name_lower
-        run: |
-          tools/jse.exe -e "'refs/tags/v0.2.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[1].toLowerCase()" > plugin_name_lower.txt
-          echo "::set-output name=plugin_name_lower::$(cat plugin_name_lower.txt)"
-
-      - name: extract plugin version
-        id: plugin_version
-        run: |
-          tools/jse.exe -e "'refs/tags/v0.2.0-TPSystem'.match(/v\d+\.\d+\.\d+-.+/).join().split('-')[0]" > plugin_version.txt
-          echo "::set-output name=plugin_version::$(cat plugin_version.txt)"
-
-      - run: |
-          echo "Plugin name: ${{ steps.plugin_name.outputs.plugin_name }}"
-          echo "Plugin name lower: ${{ steps.plugin_name_lower.outputs.plugin_name_lower }}"
-          echo "Plugin version: ${{ steps.plugin_version.outputs.plugin_version }}"
-
-      # 安装xmake
       - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: branch@master
 
-      # 缓存xmake
       - uses: actions/cache@v4
         with:
           path: |
@@ -50,55 +21,46 @@ jobs:
           restore-keys: |
             xmake-
 
-      # 更新仓库
+      - uses: microsoft/setup-msbuild@v2
+
       - run: |
           xmake repo -u
 
-      # 配置编译目标
       - run: |
-          xmake f -a x64 -m release -p windows -y --plugin=${{ steps.plugin_name.outputs.plugin_name }}
+          xmake f -a x64 -m release -p windows -y
 
-      # 编译插件
       - run: |
           xmake -w -y
 
-      # 上传编译产物
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-windows-x64-${{ github.sha }}
           path: |
             bin/
 
-  # 准备发布资产
-  prepare_assets:
-    needs: build
+  update-release-notes:
+    outputs:
+      release_notes: ${{ steps.extract-release-notes.outputs.release_notes }}
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - run: |
-          mkdir origin_repo
-          mkdir origin_repo/coder
-          cp -r plugin/${{ needs.build.outputs.plugin_name_lower }}/* origin_repo/coder/
-          cp -r assets/${{ needs.build.outputs.plugin_name_lower }}/* origin_repo/coder/
+      - id: extract-release-notes
+        uses: ffurrer2/extract-release-notes@v2
 
-      - name: Push files to corresponding repository
-        run: |
-          cd origin_repo
-          git config --global user.name "Actions"
-          git config --global user.email "pwxg286704@163.com"
-          git clone --depth=1 https://${{ secrets.SSH_PRIVATE_KEY }}@github.com/engsr6982/Levi${{ needs.build.outputs.plugin_name }}.git
-          cd Levi${{ needs.build.outputs.plugin_name }}
-          cp -r ../coder/* .
-          git add -A
-          git commit -m "Release ${{ needs.build.outputs.plugin_version }}"
-          git tag -a ${{ needs.build.outputs.plugin_version }} -m "Release ${{ needs.build.outputs.plugin_version }}"
-          git push
-          git push --tags
-          cd ../../
+      - uses: softprops/action-gh-release@v1
+        with:
+          body: |
+            ${{ steps.extract-release-notes.outputs.release_notes }}
 
-  package-and-release:
-    needs: build
+  upload-to-release:
+    needs:
+      - build
+      - update-release-notes
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -109,28 +71,45 @@ jobs:
           path: artifact
 
       - run: |
-          cp -r assets/${{ needs.build.outputs.plugin_name_lower}}/CHANGELOG.md artifact/
-          cp -r assets/${{ needs.build.outputs.plugin_name_lower }}/README.md artifact/
+          cp CHANGELOG.md LICENSE README.md artifact/
 
-      - name: Archive release
-        run: |
-          cd artifact
-          zip -r ../Levi${{ needs.build.outputs.plugin_name }}-windows-x64.zip *
-          cd ..
+      - run: |
+          zip -r ../${{ github.event.repository.name }}-windows-x64.zip *
+        working-directory: artifact
 
-      # 解析CHANGELOG
-      - uses: ffurrer2/extract-release-notes@v2
-        id: release-notes
-        with:
-          version: ${{ needs.build.outputs.plugin_version }}
-          changelog_file: assets/${{ needs.build.outputs.plugin_name_lower }}/CHANGELOG.md
-
-      # 创建目标仓库的Release
       - uses: softprops/action-gh-release@v1
         with:
-          repository: engsr6982/Levi${{ needs.build.outputs.plugin_name }}
-          body: ${{ steps.release-notes.outputs.release_notes }}
-          tag_name: ${{ needs.build.outputs.plugin_version }}
-          token: ${{ secrets.SSH_PRIVATE_KEY }}
           files: |
-            Levi${{ needs.build.outputs.plugin_name }}-windows-x64.zip
+            ${{ github.event.repository.name }}-windows-x64.zip
+
+  upload-to-minebbs:
+    needs:
+      - build
+      - update-release-notes
+    runs-on: ubuntu-latest
+    steps:
+      # 检出代码
+      - uses: actions/checkout@v4
+
+      # 下载构建产物
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}-windows-x64-${{ github.sha }}
+          path: artifact
+
+      # 复制文件
+      - run: |
+          cp CHANGELOG.md LICENSE README.md artifact/
+
+      # 重新打包
+      - run: |
+          zip -r ../${{ github.event.repository.name }}-windows-x64.zip *
+        working-directory: artifact
+
+      - name: Upload to MineBBS
+        uses: engsr6982/upload-minebbs@v1.2.0
+        with:
+          minebbs_token: ${{ secrets.MINEBBS_TOKEN }}
+          resource_id: "5755" #! 务必确保资源ID正确
+          upload_file: ${{ github.event.repository.name }}-windows-x64.zip
+          update_description: ${{ needs.update-release-notes.outputs.release_notes }} # 使用 update-release-notes 步骤的输出
