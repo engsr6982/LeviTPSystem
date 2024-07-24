@@ -99,7 +99,7 @@ jobs:
 
       # 复制文件
       - run: |
-          cp CHANGELOG.md LICENSE README.md artifact/
+          cp CHANGELOG.md README.md artifact/
 
       # 重新打包
       - run: |
