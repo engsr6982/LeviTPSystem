@@ -78,6 +78,16 @@ void registerEvent() {
     mPlayerRespawnListener = eventBus.emplaceListener<ll::event::player::PlayerRespawnEvent>(
         [](ll::event::player::PlayerRespawnEvent const& ev) {
             if (ev.self().isSimulatedPlayer()) return; // 过滤模拟玩家
+            auto rule = rule::RuleManager::getInstance().getPlayerRule(ev.self().getRealName());
+            if (rule.deathPopup) {
+                death::form::sendGoDeathGUI(ev.self());
+            }
+        }
+    );
+    // 玩家死亡事件
+    mPlayerDieListener =
+        eventBus.emplaceListener<ll::event::player::PlayerDieEvent>([](ll::event::player::PlayerDieEvent const& ev) {
+            if (ev.self().isSimulatedPlayer()) return; // 过滤模拟玩家
             auto            pos = ev.self().getPosition();
             data::DeathItem deathInfo;
             deathInfo.dimid = ev.self().getDimensionId().id;
@@ -87,16 +97,6 @@ void registerEvent() {
             deathInfo.time  = utils::Date{}.toString();
             death::DeathManager::getInstance().addDeathInfo(ev.self().getRealName(), deathInfo);
             utils::mc::sendText(ev.self(), "已记录本次死亡信息: {0}"_tr(deathInfo.toVec4String()));
-        }
-    );
-    // 玩家死亡事件
-    mPlayerDieListener =
-        eventBus.emplaceListener<ll::event::player::PlayerDieEvent>([](ll::event::player::PlayerDieEvent const& ev) {
-            if (ev.self().isSimulatedPlayer()) return; // 过滤模拟玩家
-            auto rule = rule::RuleManager::getInstance().getPlayerRule(ev.self().getRealName());
-            if (rule.deathPopup) {
-                death::form::sendGoDeathGUI(ev.self());
-            }
         });
 }
 
