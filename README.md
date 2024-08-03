@@ -234,7 +234,7 @@ lip install github.com/engsr6982/LeviTPSystem
 
 1. 备份`leveldb`文件夹
 2. 删除旧版`LSE-TPSystem`插件
-3. 解压`LSE-TPSystem.zip`到`bds\plugins`目录
+3. 使用上面的安装命令，安装 LeviTPSystem
 4. 启动服务器，等待插件生成新配置文件
 5. 与旧的`Config.json`对比，修改新版的`Config.json`
 6. 复制`leveldb`文件夹到新版的`bds\plugins\LeviTPSystem`目录下
