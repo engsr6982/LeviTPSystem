@@ -1,21 +1,25 @@
 # LeviTPSystem 传送系统
 
+特性：
+- 家园传送
+- 公共传送
+- 随机传送（TPR）
+- 玩家传送（TPA）
+- 死亡点传送
+- 死亡点查询
+- 命令/GUI操作
+- 玩家自定义规则
+
 ## 安装
 
-1. 将下载的`LSE-TPSystem.zip`解压
-2. 将解压后的文件夹移动至`bds\plugins`目录
-3. 重启服务器
+```bash
+lip install github.com/engsr6982/LeviTPSystem
+```
 
 ## 命令系统
 
-> TPSystem 的命令系统是以`顶层命令+功能枚举+操作名+参数`组成  
+> LeviTPSystem 的命令系统是以`顶层命令+功能枚举+操作名+参数`组成  
 > 这样可以避免多种同类型插件命令冲突（重复注册）
->
-> 命令参数：  
-> 尖括号<> → 必选参数  
-> 方括号[] → 可选参数  
-> `string`→ 字符串，`bool`→ 布尔型  
-> 如果需要在`string`参数输入以数字开头，请用引号`""`将参数包起来
 
 <details>
   <summary>命令详解 [点我展开]</summary>
