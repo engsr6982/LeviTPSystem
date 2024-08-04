@@ -126,7 +126,7 @@ std::pair<int, int> TprManager::randomPosition(Player& player) {
     if (tpr.RestrictedArea.Enable) {
         auto pvec = player.getPosition();
         if (tpr.RestrictedArea.Type == "Circle") { // 圆形限制区域
-            RCircle vec;
+            RandomArgs vec;
             vec.width   = tpr.RestrictedArea.Radius;
             vec.centerX = tpr.RestrictedArea.UsePlayerPos ? pvec.x : tpr.RestrictedArea.CenterX;
             vec.centerZ = tpr.RestrictedArea.UsePlayerPos ? pvec.z : tpr.RestrictedArea.CenterZ;
