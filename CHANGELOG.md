@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2024-8-16
+
+### Fixed
+
+- 修复死亡点坐标记录错误
+- 修复返回死亡点弹窗弹窗时机错误
+
 ## [0.2.2] - 2024-7-27
 
 ### Fixed

@@ -11,7 +11,7 @@ jobs:
 
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
-          xmake-version: branch@master
+          xmake-version: "2.9.3"
 
       - uses: actions/cache@v4
         with:
