@@ -41,7 +41,13 @@ void registerCommandWithTpa(const string& name) {
             auto& player      = *static_cast<Player*>(origin.getEntity()); // 获取玩家实体
             auto& pool        = tpa::core::TpaRequestPool::getInstance();  // 获取请求池
             auto  requestList = pool.getSenderList(player.getRealName());  // 获取发起者列表
-            if (requestList.empty()) {                                     // 没有请求
+
+            if (player.isSleeping()) {
+                sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
+                return;
+            }
+
+            if (requestList.empty()) { // 没有请求
                 sendText<MsgLevel::Error>(output, "你没有收到任何TPA请求！"_tr());
                 return;
             } else if (requestList.size() == 1) { // 只有一个请求

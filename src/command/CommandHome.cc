@@ -71,6 +71,11 @@ void registerCommandWithHome(const string& name) {
                 else sendText<MsgLevel::Error>(player, "删除家园 {} 失败！"_tr(param.homeName));
             } break;
             case OperationType::go: {
+                if (player.isSleeping()) {
+                    sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
+                    return;
+                }
+
                 bool isSuccess = homeMgr.teleportToHome(player, param.homeName);
                 if (isSuccess) sendText(player, "传送到家园 {} 成功！"_tr(param.homeName));
                 else sendText<MsgLevel::Error>(player, "传送到家园 {} 失败！"_tr(param.homeName));

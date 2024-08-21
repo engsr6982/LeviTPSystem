@@ -69,6 +69,11 @@ void registerCommandWithWarp(const string& name) {
                 else sendText<MsgLevel::Error>(player, "删除Warp {} 失败！"_tr(param.warpName));
             } break;
             case OperationType::go: {
+                if (player.isSleeping()) {
+                    sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
+                    return;
+                }
+
                 bool isSuccess = warpMgr.teleportToWarp(player, param.warpName);
                 if (isSuccess) sendText(player, "传送到Warp {} 成功！"_tr(param.warpName));
                 else sendText<MsgLevel::Error>(player, "传送到Warp {} 失败！"_tr(param.warpName));
