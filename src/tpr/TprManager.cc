@@ -30,6 +30,7 @@ using ll::i18n_literals::operator""_tr;
 
 namespace tps::tpr {
 
+
 ll::schedule::GameTickScheduler repeatScheduler;
 
 
@@ -78,38 +79,35 @@ std::shared_ptr<TaskItem> TprManager::getTask(const string& realName) {
 
 void TprManager::runTask(std::shared_ptr<TaskItem> task) {
     using ll::chrono_literals::operator""_tick;
-    auto id =
-        repeatScheduler
-            .add<ll::schedule::RepeatTask>(
-                2 * 20_tick,
-                [task, this]() {
-                    auto& logger = tps::entry::getInstance().getSelf().getLogger();
-                    auto  player = ll::service::getLevel()->getPlayer(task->realName);
-                    if (player == nullptr) {
-                        deleteTask(task->realName); // 玩家不在线，删除任务
-                        logger.warn("玩家 {} 在随机传送期间离开服务器，将撤销该任务。"_tr(task->realName));
-                        return;
-                    }
-                    // 检查目标区块状态
-                    try {
-                        auto& bs = player->getDimension().getBlockSourceFromMainChunkSource();
-                        auto& cs = bs.getChunkSource();
-                        cs.getOrLoadChunk(task->chunkPos, ::ChunkSource::LoadMode::Deferred, false); // 预加载chunk
-                        if (!bs.isChunkFullyLoaded(task->chunkPos, cs)) {
-                            return;
-                        }
-                        sendText(player, "区块地形生成完成，开始查找安全位置..."_tr());
-                        findSafePosition(task);     // 开始查找安全位置
-                        deleteTask(task->realName); // 任务完成，删除任务
-                    } catch (...) {
-                        player->teleport(task->backup, player->getDimensionId()); // 回退到备份位置
-                        deleteTask(task->realName);                               // 任务失败，删除任务
-                        logger.error("Fail in TprManager::runTask");
-                    }
-                }
-            )
-            ->getId();
-    task->taskID = id;
+    task->taskID = repeatScheduler
+                       .add<ll::schedule::RepeatTask>(
+                           2 * 20_tick,
+                           [task, this]() {
+                               auto& logger = tps::entry::getInstance().getSelf().getLogger();
+                               auto  player = ll::service::getLevel()->getPlayer(task->realName);
+                               if (!player) {
+                                   deleteTask(task->realName); // 玩家不在线，删除任务
+                                   logger.warn("玩家 {} 在随机传送期间离开服务器，将撤销该任务。"_tr(task->realName));
+                                   return;
+                               }
+                               // 检查目标区块状态
+                               try {
+                                   auto& bs = player->getDimensionBlockSource();
+                                   if (!bs.isChunkFullyLoaded(task->chunkPos, bs.getChunkSource())) {
+                                       return;
+                                   }
+
+                                   sendText(player, "区块已加载，开始查找安全位置..."_tr());
+                                   findSafePosition(task);     // 开始查找安全位置
+                                   deleteTask(task->realName); // 任务完成，删除任务
+                               } catch (...) {
+                                   player->teleport(task->backup, player->getDimensionId()); // 回退到备份位置
+                                   deleteTask(task->realName); // 任务失败，删除任务
+                                   logger.error("Fail in TprManager::runTask");
+                               }
+                           }
+                       )
+                       ->getId();
 }
 
 
@@ -124,20 +122,15 @@ std::pair<int, int> TprManager::randomPosition(Player& player) {
     auto& tpr = config::cfg.Tpr;
 
     if (tpr.RestrictedArea.Enable) {
-        auto pvec = player.getPosition();
+        auto& pvec = player.getPosition();
+        int   x    = tpr.RestrictedArea.UsePlayerPos ? pvec.x : tpr.RestrictedArea.CenterX;
+        int   z    = tpr.RestrictedArea.UsePlayerPos ? pvec.z : tpr.RestrictedArea.CenterZ;
+
         if (tpr.RestrictedArea.Type == "Circle") { // 圆形限制区域
-            RandomArgs vec;
-            vec.width   = tpr.RestrictedArea.Radius;
-            vec.centerX = tpr.RestrictedArea.UsePlayerPos ? pvec.x : tpr.RestrictedArea.CenterX;
-            vec.centerZ = tpr.RestrictedArea.UsePlayerPos ? pvec.z : tpr.RestrictedArea.CenterZ;
-            return randomPoint(vec);
+            return randomPoint(RandomArgs{tpr.RestrictedArea.Radius, x, z});
         } else if (tpr.RestrictedArea.Type == "CenteredSquare") { // 矩形限制区域
-            RCenteredSquare vec;
-            vec.width   = tpr.RestrictedArea.Radius;
-            vec.centerX = tpr.RestrictedArea.UsePlayerPos ? pvec.x : tpr.RestrictedArea.CenterX;
-            vec.centerZ = tpr.RestrictedArea.UsePlayerPos ? pvec.z : tpr.RestrictedArea.CenterZ;
-            return randomPoint(vec);
-        } else { // 未知限制区域类型
+            return randomPoint(RCenteredSquare{tpr.RestrictedArea.Radius, x, z});
+        } else {
             std::runtime_error("Fail in TprManager::randomPosition: unknown RestrictedArea.Type");
         }
     }
@@ -188,6 +181,7 @@ void TprManager::findSafePosition(std::shared_ptr<TaskItem> task) {
 }
 
 
+// public:
 // 处理传送
 void TprManager::teleport(Player& player) {
     if (!config::cfg.Tpr.Enable) {
@@ -218,17 +212,13 @@ void TprManager::teleport(Player& player) {
 
     auto& bs = player.getDimension().getBlockSourceFromMainChunkSource();
     auto& cs = bs.getChunkSource();
-    auto  ch = cs.getOrLoadChunk(task->chunkPos, ::ChunkSource::LoadMode::Deferred, false);
-    if (ch == nullptr) {
-        sendText<MsgLevel::Error>(player, "传送失败，加载目标区块失败。"_tr());
+    auto  ch = cs.getOrLoadChunk(task->chunkPos, ::ChunkSource::LoadMode::None, false);
+    if (!ch) {
+        sendText<MsgLevel::Error>(player, "传送失败，获取目标区块失败。"_tr());
         return;
     }
     if (!ch->isFullyLoaded()) {
-        sendText<MsgLevel::Error>(player, "传送失败，目标区块未加载。"_tr());
-        return;
-    }
-    if (!bs.isChunkFullyLoaded(task->chunkPos, cs)) {
-        sendText<MsgLevel::Warn>(player, "检测到目标区块未生成地形，将传送至目标区块..."_tr());
+        sendText<MsgLevel::Warn>(player, "检测到目标区块未加载，将传送至目标区块..."_tr());
         player.teleport(Vec3{task->blockPos.x, 666, task->blockPos.z}, player.getDimensionId());
         addTask(task);
         runTask(task);
@@ -255,7 +245,7 @@ void TprManager::showTprMenu(Player& player) {
         }
         auto val = dt.value();
         if ((bool)val) {
-            TprManager::getInstance().teleport(p); // 重新获取实例
+            TprManager::getInstance().teleport(p);
         } else {
             sendText(p, "已取消传送"_tr());
         }
