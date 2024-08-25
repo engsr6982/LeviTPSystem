@@ -8,6 +8,9 @@
 #include <utility>
 #include <vector>
 
+#include "PermissionCore/PermissionCore.h"
+#include "PermissionCore/PermissionManager.h"
+#include "permission/Permission.h"
 
 namespace tps::home {
 
@@ -140,7 +143,13 @@ bool HomeManager::createHome(const string& realName, const string& homeName, con
         auto& pl_home_vec = pl->second;
 
         // 限制最大家园数量
-        if (static_cast<int>(pl_home_vec.size()) >= config::cfg.Home.MaxHome) {
+        bool UnLimited = false;
+        auto core      = pmc::PermissionManager::getInstance().getPermissionCore(PLUGIN_NAME);
+        auto list      = core->getUserPermission(realName);
+        if (list.has_value()) {
+            UnLimited = list->hasPermission(permission::PermList::HomeCoutUnlimited);
+        }
+        if (static_cast<int>(pl_home_vec.size()) >= config::cfg.Home.MaxHome && !UnLimited) {
             utils::mc::sendText<utils::mc::MsgLevel::Error>(
                 realName,
                 "创建家园传送点\"{}\"失败！\n最大家园数量：{}"_tr(homeName, config::cfg.Home.MaxHome)
