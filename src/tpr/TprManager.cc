@@ -122,14 +122,14 @@ std::pair<int, int> TprManager::randomPosition(Player& player) {
     auto& tpr = config::cfg.Tpr;
 
     if (tpr.RestrictedArea.Enable) {
-        auto& pvec = player.getPosition();
-        int   x    = tpr.RestrictedArea.UsePlayerPos ? pvec.x : tpr.RestrictedArea.CenterX;
-        int   z    = tpr.RestrictedArea.UsePlayerPos ? pvec.z : tpr.RestrictedArea.CenterZ;
+        auto&  pvec = player.getPosition();
+        double x    = tpr.RestrictedArea.UsePlayerPos ? pvec.x : tpr.RestrictedArea.CenterX;
+        double z    = tpr.RestrictedArea.UsePlayerPos ? pvec.z : tpr.RestrictedArea.CenterZ;
 
         if (tpr.RestrictedArea.Type == "Circle") { // 圆形限制区域
-            return randomPoint(RandomArgs{tpr.RestrictedArea.Radius, x, z});
+            return randomPoint(RandomArgs{static_cast<double>(tpr.RestrictedArea.Radius), x, z});
         } else if (tpr.RestrictedArea.Type == "CenteredSquare") { // 矩形限制区域
-            return randomPoint(RCenteredSquare{tpr.RestrictedArea.Radius, x, z});
+            return randomPoint(RCenteredSquare{static_cast<double>(tpr.RestrictedArea.Radius), x, z});
         } else {
             std::runtime_error("Fail in TprManager::randomPosition: unknown RestrictedArea.Type");
         }
