@@ -217,8 +217,8 @@ bool HomeManager::deleteHome(Player& player, const string& homeName, bool ignore
 
 bool HomeManager::teleportToHome(Player& player, const string& homeName, bool ignoreMoneys) {
     auto& mon = modules::Moneys::getInstance();
-    if (ignoreMoneys == false) {
-        if (mon.reduceMoney(player, config::cfg.Home.GoHomeMoney) == false) {
+    if (!ignoreMoneys) {
+        if (!mon.reduceMoney(player, config::cfg.Home.GoHomeMoney)) {
             return false; // 钱不够
         }
     }
