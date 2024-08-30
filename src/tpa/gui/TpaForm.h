@@ -11,15 +11,11 @@
 #include <stdexcept>
 
 
-namespace tps::tpa::gui {
-
-using string = std::string;
-using ll::i18n_literals::operator""_tr;
-using SimpleForm = ll::form::SimpleForm;
+namespace tps::tpa {
 
 class TpaForm : public ll::form::SimpleForm {
 public:
-    TpaForm(Player& player, const string type);
+    TpaForm(Player& player, TpaType type);
 };
 
-} // namespace tps::tpa::gui
+} // namespace tps::tpa

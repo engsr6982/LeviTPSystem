@@ -12,7 +12,7 @@
 #include <stdexcept>
 
 
-namespace tps::tpa::gui {
+namespace tps::tpa {
 
 void tpaEntry(Player& player);
 

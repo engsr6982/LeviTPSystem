@@ -11,7 +11,7 @@
 
 ll::schedule::GameTickScheduler scheduler;
 
-namespace tps::tpa::core {
+namespace tps::tpa {
 
 TpaRequestPool& TpaRequestPool::getInstance() {
     static TpaRequestPool instance;
@@ -22,12 +22,11 @@ TpaRequestPool& TpaRequestPool::getInstance() {
 void TpaRequestPool::initSender(const string& realName) {
     if (mPool.find(realName) == mPool.end()) {
         // 玩家第一次接受tpa请求，初始化 发起者池
-        mPool[realName] = std::make_shared<std::unordered_map<string, std::shared_ptr<TpaRequest>>>();
+        mPool[realName] = std::make_shared<std::unordered_map<string, TpaRequestPtr>>();
     }
 }
 
-std::shared_ptr<std::unordered_map<string, std::shared_ptr<TpaRequest>>>
-TpaRequestPool::getSenderPool(const string& receiver) {
+std::shared_ptr<std::unordered_map<string, TpaRequestPtr>> TpaRequestPool::getSenderPool(const string& receiver) {
     auto receiverPool = mPool.find(receiver);
     if (receiverPool == mPool.end()) {
         return nullptr;
@@ -47,7 +46,7 @@ bool TpaRequestPool::hasRequest(const string& receiver, const string& sender) {
     return true;
 }
 
-bool TpaRequestPool::addRequest(std::shared_ptr<TpaRequest> request) {
+bool TpaRequestPool::addRequest(TpaRequestPtr request) {
     initSender(request->sender);
     // 为了安全，检查是否有重复请求，有责销毁旧请求
     deleteRequest(request->receiver, request->sender); // 删除旧请求(如果有)
@@ -91,7 +90,11 @@ void TpaRequestPool::checkAndRunCleanUpTask() {
                 if (avail != Available::Available) {
                     auto ptr = level->getPlayer(request->sender); // 获取发送者指针
                     if (ptr) {
-                        utils::mc::sendText<utils::mc::MsgLevel::Error>(ptr, "{0}", AvailDescription(avail));
+                        utils::mc::sendText<utils::mc::MsgLevel::Error>(
+                            ptr,
+                            "{0}",
+                            TpaRequest::getAvailableDescription(avail)
+                        );
                     }
                     instance.deleteRequest(receiver, sender); // 删除请求
                 }
@@ -100,7 +103,7 @@ void TpaRequestPool::checkAndRunCleanUpTask() {
     });
 }
 
-std::shared_ptr<TpaRequest> TpaRequestPool::getRequest(const string& receiver, const string& sender) {
+TpaRequestPtr TpaRequestPool::getRequest(const string& receiver, const string& sender) {
     auto receiverPool = mPool.find(receiver); // 获取接收者池
     if (receiverPool == mPool.end()) {
         return nullptr;
@@ -133,4 +136,4 @@ std::vector<string> TpaRequestPool::getSenderList(const string& receiver) {
 }
 
 
-} // namespace tps::tpa::core
+} // namespace tps::tpa

@@ -18,9 +18,8 @@ struct ParamOption {
     TpOption option;
 };
 
-enum TpType { to, here };
 struct ParamTp {
-    TpType                  type;
+    tpa::TpaType            type;
     CommandSelector<Player> target;
 };
 
@@ -31,7 +30,7 @@ void registerCommandWithTpa(const string& name) {
     cmd.overload().text("tpa").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         auto& player = *static_cast<Player*>(origin.getEntity());
-        tpa::gui::tpaEntry(player);
+        tps::tpa::tpaEntry(player);
     });
 
     // tps tpa <accept|deny>
@@ -39,7 +38,7 @@ void registerCommandWithTpa(const string& name) {
         [](CommandOrigin const& origin, CommandOutput& output, const ParamOption& param) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
             auto& player      = *static_cast<Player*>(origin.getEntity()); // 获取玩家实体
-            auto& pool        = tpa::core::TpaRequestPool::getInstance();  // 获取请求池
+            auto& pool        = tpa::TpaRequestPool::getInstance();        // 获取请求池
             auto  requestList = pool.getSenderList(player.getRealName());  // 获取发起者列表
 
             if (player.isSleeping()) {
@@ -60,7 +59,7 @@ void registerCommandWithTpa(const string& name) {
                 for (auto& name : requestList) {
                     fm.appendButton(name, [&](Player& p) {
                         auto req = pool.getRequest(p.getRealName(), name);
-                        if (req->getAvailable() == tpa::core::Available::Available) {
+                        if (req->getAvailable() == tpa::Available::Available) {
                             param.option == TpOption::accept ? req->accept() : req->deny();
                         }
                     });
@@ -75,9 +74,8 @@ void registerCommandWithTpa(const string& name) {
                                                                                        CommandOutput&       output,
                                                                                        const ParamTp&       param) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-        auto&        player = *static_cast<Player*>(origin.getEntity());
-        const string type   = (param.type == TpType::to) ? "tpa" : "tpahere";
-        auto         li     = param.target.results(origin);
+        auto& player = *static_cast<Player*>(origin.getEntity());
+        auto  li     = param.target.results(origin);
         if (li.empty()) {
             sendText<MsgLevel::Error>(output, "请至少选择一位玩家！"_tr());
             return;
@@ -85,17 +83,21 @@ void registerCommandWithTpa(const string& name) {
             sendText<MsgLevel::Error>(output, "仅支持对一位玩家发起TPA！"_tr());
             return;
         }
+
         auto request =
-            std::make_shared<tpa::core::TpaRequest>(player, *(*li.data)[0], type, config::cfg.Tpa.CacheExpirationTime);
-        tpa::core::Available avail = request->ask();
-        if (avail != tpa::core::Available::Available) {
-            sendText<MsgLevel::Error>(player, "{}"_tr(tpa::core::AvailDescription(avail)));
+            std::make_shared<tpa::TpaRequest>(player, *(*li.data)[0], param.type, config::cfg.Tpa.CacheExpirationTime);
+
+        tpa::Available avail = request->ask(); // 发送请求
+
+        if (avail != tpa::Available::Available) {
+            sendText<MsgLevel::Error>(player, "{}"_tr(tpa::TpaRequest::getAvailableDescription(avail)));
         }
+
         // Tpa 请求发送事件
         ll::event::EventBus::getInstance().publish(event::TpaRequestSendEvent(
             request->sender,
             request->receiver,
-            utils::Date::clone(*request->time),
+            *request->time,
             request->type,
             request->lifespan
         ));

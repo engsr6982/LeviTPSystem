@@ -3,6 +3,7 @@
 #include "config/Config.h"
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/service/Bedrock.h"
+#include "magic_enum.hpp"
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
 #include "modules/Moneys.h"
@@ -14,47 +15,17 @@
 #include <stdexcept>
 
 
-namespace tps::tpa::core {
+namespace tps::tpa {
 
 using ll::i18n_literals::operator""_tr;
 
-string AvailDescription(Available avail) {
-    switch (avail) {
-    case Available::Available: {
-        return "有效"_tr();
-    }
-    case Available::Expired: {
-        return "请求已过期"_tr();
-    }
-    case Available::SenderOffline: {
-        return "请求发送者已离线"_tr();
-    }
-    case Available::RecieverOffline: {
-        return "请求目标已离线"_tr();
-    }
-    case Available::Unaffordable: {
-        return "请求者余额不足，无法为此次tpa支付"_tr();
-    }
-    case Available::ProhibitTpaRequest: {
-        return "对方禁止任何人发送Tpa请求"_tr();
-    }
-    default: {
-        return "未知有效性描述"_tr();
-    }
-    }
-}
 
-
-TpaRequest::TpaRequest(Player& sender, Player& receiver, const string type, int lifespan) {
+TpaRequest::TpaRequest(Player& sender, Player& receiver, TpaType type, int lifespan) {
     this->sender   = sender.getRealName();
     this->receiver = receiver.getRealName();
-    this->type     = string(type);
+    this->type     = type;
     this->time     = std::make_unique<Date>();
     this->lifespan = lifespan;
-
-    if (type.empty() || (type != "tpa" && type != "teleport")) {
-        std::runtime_error("Invalid TpaRequest type: "_tr(type));
-    }
 }
 
 
@@ -79,26 +50,26 @@ void TpaRequest::accept() {
     Available avail = getAvailable();
     if (avail != Available::Available) {
         if (avail != Available::SenderOffline) {
-            sendText<MsgLevel::Error>(sender, "{}", AvailDescription(avail));
+            sendText<MsgLevel::Error>(sender, "{}", getAvailableDescription(avail));
         }
         return;
     }
     auto& level = *ll::service::getLevel();
-    if (type == "tpa") {
+    if (type == TpaType::Tpa) {
         auto rec = level.getPlayer(receiver);
         level.getPlayer(sender)->teleport(rec->getPosition(), rec->getDimensionId());
-    } else if (type == "tpahere") {
+    } else if (type == TpaType::TpaHere) {
         auto sen = level.getPlayer(sender);
         level.getPlayer(receiver)->teleport(sen->getPosition(), sen->getDimensionId());
     }
     // 扣除经济
     tps::modules::Moneys::getInstance().reduceMoney(sender, config::cfg.Tpa.Money);
-    sendText<MsgLevel::Success>(sender, "'{0}' 接受了您的 '{1}' 请求。"_tr(receiver, type));
+    sendText<MsgLevel::Success>(sender, "'{0}' 接受了您的 '{1}' 请求。"_tr(receiver, tpaTypeToString(type)));
     destoryThisRequestFormPool(); // 销毁请求
 }
 
 void TpaRequest::deny() {
-    sendText<MsgLevel::Error>(sender, "'{0}' 拒绝了您的 '{1}' 请求。"_tr(receiver, type));
+    sendText<MsgLevel::Error>(sender, "'{0}' 拒绝了您的 '{1}' 请求。"_tr(receiver, tpaTypeToString(type)));
     destoryThisRequestFormPool(); // 销毁请求
 }
 
@@ -106,17 +77,17 @@ Available TpaRequest::ask() {
     Available avail = getAvailable();
     if (avail != Available::Available) {
         if (avail != Available::SenderOffline) {
-            sendText<MsgLevel::Error>(sender, "{}", AvailDescription(avail));
+            sendText<MsgLevel::Error>(sender, "{}", getAvailableDescription(avail));
         }
         return avail;
     }
     // 创建询问表单
-    auto fm = gui::TpaAskForm(std::shared_ptr<TpaRequest>(shared_from_this()));
+    auto fm = TpaAskForm(TpaRequestPtr(shared_from_this()));
     // 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
     if (rule::RuleManager::getInstance().getPlayerRule(receiver).tpaPopup) {
         fm.sendTo(*ll::service::getLevel()->getPlayer(receiver)); // 发送弹窗给接收者
     } else {
-        fm.cacheRequest(std::shared_ptr<TpaRequest>(shared_from_this())); // 缓存到请求池
+        fm.cacheRequest(TpaRequestPtr(shared_from_this())); // 缓存到请求池
     }
     return avail;
 }
@@ -143,4 +114,32 @@ Available TpaRequest::getAvailable() {
 }
 
 
-} // namespace tps::tpa::core
+// static
+string TpaRequest::getAvailableDescription(Available avail) {
+    switch (avail) {
+    case Available::Available: {
+        return "有效"_tr();
+    }
+    case Available::Expired: {
+        return "请求已过期"_tr();
+    }
+    case Available::SenderOffline: {
+        return "请求发送者已离线"_tr();
+    }
+    case Available::RecieverOffline: {
+        return "请求目标已离线"_tr();
+    }
+    case Available::Unaffordable: {
+        return "请求者余额不足，无法为此次tpa支付"_tr();
+    }
+    case Available::ProhibitTpaRequest: {
+        return "对方禁止任何人发送Tpa请求"_tr();
+    }
+    default: {
+        return "未知有效性描述"_tr();
+    }
+    }
+}
+string TpaRequest::tpaTypeToString(TpaType type) { return string(magic_enum::enum_name(type)); }
+
+} // namespace tps::tpa

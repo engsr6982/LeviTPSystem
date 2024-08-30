@@ -1,23 +1,25 @@
 #include "TpaAskForm.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
-#include "ll/api/service/Bedrock.h"
 #include "mc/world/actor/player/Player.h"
+#include "tpa/core/TpaRequestPool.h"
+#include "utils/Mc.h"
 #include <memory>
 
-namespace tps::tpa::gui {
+
+namespace tps::tpa {
 
 using string = std::string;
 using ll::i18n_literals::operator""_tr;
 using namespace tps::utils::mc;
 using namespace tps::utils;
 
-TpaAskForm::TpaAskForm(std::shared_ptr<core::TpaRequest> request) {
+TpaAskForm::TpaAskForm(TpaRequestPtr request) {
     string tpaDescription;
-    if (request->type == "tpa") {
+    if (request->type == TpaType::Tpa) {
         tpaDescription = format("{0} 希望传送到您这里"_tr(request->sender));
-    } else if (request->type == "tpahere") {
-        tpaDescription = format("{0} 希望将您传送至他那里"_tr(request->receiver));
+    } else if (request->type == TpaType::TpaHere) {
+        tpaDescription = format("{0} 希望将您传送至他那里"_tr(request->sender));
     } else {
         tpaDescription = "未知请求类型"_tr();
     }
@@ -32,23 +34,19 @@ TpaAskForm::TpaAskForm(std::shared_ptr<core::TpaRequest> request) {
     appendButton("缓存本次请求"_tr(), [this, request](Player& p) { cacheRequest(request, p); });
 }
 
-bool TpaAskForm::cacheRequest(std::shared_ptr<core::TpaRequest> request) {
-    auto&  pool     = core::TpaRequestPool::getInstance();
-    string sender   = request->sender;
-    string receiver = request->receiver;
-    string type     = request->type;
-    return pool.addRequest(std::move(request));
+bool TpaAskForm::cacheRequest(TpaRequestPtr request) {
+    return TpaRequestPool::getInstance().addRequest(std::move(request));
 }
 
-bool TpaAskForm::cacheRequest(std::shared_ptr<core::TpaRequest> request, Player& player) {
+bool TpaAskForm::cacheRequest(TpaRequestPtr request, Player& player) {
     bool success = cacheRequest(request);
     if (success) {
-        sendText(player, "已缓存来自 {0} 的 {1} 请求"_tr(request->sender, request->type));
+        sendText(player, "已缓存来自 {0} 的 {1} 请求"_tr(request->sender, TpaRequest::tpaTypeToString(request->type)));
         return true;
     }
-    sendText(player, "无法缓存来自 {0} 的 {1} 请求"_tr(request->sender, request->type));
+    sendText(player, "无法缓存来自 {0} 的 {1} 请求"_tr(request->sender, TpaRequest::tpaTypeToString(request->type)));
     return false;
 }
 
 
-} // namespace tps::tpa::gui
+} // namespace tps::tpa

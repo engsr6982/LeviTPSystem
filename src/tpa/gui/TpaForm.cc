@@ -6,7 +6,6 @@
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
 #include "tpa/core/TpaRequest.h"
-#include "tpa/core/TpaRequestPool.h"
 #include "utils/Date.h"
 #include "utils/Mc.h"
 #include <memory>
@@ -16,17 +15,17 @@
 #include "ll/api/event/EventBus.h"
 
 
-namespace tps::tpa::gui {
+namespace tps::tpa {
 
 using string = std::string;
 using ll::i18n_literals::operator""_tr;
 using SimpleForm = ll::form::SimpleForm;
 
-TpaForm::TpaForm(Player& player, const string type) {
+TpaForm::TpaForm(Player& player, TpaType type) {
     auto level = ll::service::getLevel();
     if (!level.has_value()) {
         utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "获取 Level 指针失败"_tr());
-        std::runtime_error("Fail in TpaForm::constructor::level.has_value = false");
+        throw std::runtime_error("TpaForm::constructor::level is null");
         return;
     }
 
@@ -40,32 +39,23 @@ TpaForm::TpaForm(Player& player, const string type) {
     level->forEachPlayer([type, this](Player& target) {
         appendButton(target.getRealName(), [&target, type](Player& sender) {
             try {
-                auto req = std::make_shared<core::TpaRequest>(
-                    sender,
-                    target,
-                    string(type),
-                    config::cfg.Tpa.CacheExpirationTime
-                );
+                auto req = std::make_shared<TpaRequest>(sender, target, type, config::cfg.Tpa.CacheExpirationTime);
                 // 发送请求
-                tpa::core::Available avail = req->ask();
-                if (avail != tpa::core::Available::Available) {
-                    tps::utils::mc::sendText(sender, "{}", tpa::core::AvailDescription(avail));
+                tpa::Available avail = req->ask();
+
+                if (avail != tpa::Available::Available) {
+                    tps::utils::mc::sendText(sender, "{}", TpaRequest::getAvailableDescription(avail));
                 }
+
                 // Tpa 请求发送事件
-                ll::event::EventBus::getInstance().publish(event::TpaRequestSendEvent(
-                    req->sender,
-                    req->receiver,
-                    utils::Date::clone(*req->time),
-                    req->type,
-                    req->lifespan
-                ));
-            } catch (...) {
-                std::runtime_error("Fail in TpaForm::constructor::forEachPlayer::lambda::appendButton::lambda");
-            }
+                ll::event::EventBus::getInstance().publish(
+                    event::TpaRequestSendEvent(req->sender, req->receiver, *req->time, req->type, req->lifespan)
+                );
+            } catch (...) {}
         });
         return true;
     });
 }
 
 
-} // namespace tps::tpa::gui
+} // namespace tps::tpa

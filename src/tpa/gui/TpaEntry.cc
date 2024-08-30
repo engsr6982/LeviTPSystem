@@ -6,7 +6,7 @@
 
 using ll::i18n_literals::operator""_tr;
 
-namespace tps::tpa::gui {
+namespace tps::tpa {
 
 void tpaEntry(Player& player) {
     if (!config::cfg.Tpa.Enable) {
@@ -17,4 +17,4 @@ void tpaEntry(Player& player) {
     cs.sendTo(player);
 }
 
-} // namespace tps::tpa::gui
+} // namespace tps::tpa

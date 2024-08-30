@@ -4,20 +4,11 @@
 
 namespace tps::event {
 
-TpaRequestSendEvent::TpaRequestSendEvent(string sender, string reciever, utils::Date time, string type, int lifespan) {
-    mSender   = sender;
-    mReciever = reciever;
-    mTime     = time;
-    mType     = type;
-    mLifeSpan = lifespan;
-}
-
-
-string      TpaRequestSendEvent::getSender() { return mSender; }
-string      TpaRequestSendEvent::getReciever() { return mReciever; }
-string      TpaRequestSendEvent::getType() { return mType; }
-int         TpaRequestSendEvent::getLifeSpan() { return mLifeSpan; }
-utils::Date TpaRequestSendEvent::getTime() { return mTime; }
+string const&      TpaRequestSendEvent::getSender() { return mSender; }
+string const&      TpaRequestSendEvent::getReciever() { return mReciever; }
+tpa::TpaType       TpaRequestSendEvent::getType() { return mType; }
+int                TpaRequestSendEvent::getLifeSpan() { return mLifeSpan; }
+utils::Date const& TpaRequestSendEvent::getTime() { return mTime; }
 
 
 } // namespace tps::event
