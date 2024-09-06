@@ -169,11 +169,13 @@ void TprManager::findSafePosition(std::shared_ptr<TaskItem> task) {
         }
 
         if (modules::Moneys::getInstance().reduceMoney(player, Config::cfg.Tpr.Money)) {
-            Vec3 v3{safePos.x, safePos.y, safePos.z};
-            player->teleport(v3, player->getDimensionId());
+            player->teleport(Vec3{safePos.x, safePos.y, safePos.z}, player->getDimensionId());
             sendText<MsgLevel::Success>(player, "传送成功！"_tr());
             return;
         }
+
+        // 经济不足
+        player->teleport(task->backup, player->getDimensionId()); // 回退到备份位置
         sendText<MsgLevel::Error>(player, "传送失败，经济不足。"_tr());
     } catch (...) {
         tps::entry::getInstance().getSelf().getLogger().error("Fail in TprManager::findSafePosition");
@@ -207,21 +209,14 @@ void TprManager::teleport(Player& player) {
     task->chunkPos = ChunkPos{task->blockPos};
     task->backup   = player.getPosition();
 
-    sendText<MsgLevel::Success>(player, "数据准备完毕，加载目标区块..."_tr());
+    sendText<MsgLevel::Success>(player, "数据准备完毕，检查目标区块状态..."_tr());
 
-
-    auto& bs = player.getDimension().getBlockSourceFromMainChunkSource();
-    auto& cs = bs.getChunkSource();
-    auto  ch = cs.getOrLoadChunk(task->chunkPos, ::ChunkSource::LoadMode::None, false);
-    if (!ch) {
-        sendText<MsgLevel::Error>(player, "传送失败，获取目标区块失败。"_tr());
-        return;
-    }
-    if (!ch->isFullyLoaded()) {
-        sendText<MsgLevel::Warn>(player, "检测到目标区块未加载，将传送至目标区块..."_tr());
+    auto& blockSource = player.getDimension().getBlockSourceFromMainChunkSource();
+    if (!blockSource.isChunkFullyLoaded(task->chunkPos, blockSource.getChunkSource())) {
+        sendText<MsgLevel::Warn>(player, "目标区块未加载，将传送至目标区块..."_tr());
         player.teleport(Vec3{task->blockPos.x, 666, task->blockPos.z}, player.getDimensionId());
         addTask(task);
-        runTask(task);
+        runTask(task); // 进入任务队列
         return;
     }
 
