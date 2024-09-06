@@ -3,9 +3,9 @@ add_rules("mode.debug", "mode.release")
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 
 add_requires(
-    "levilamina 0.13.4",
+    "levilamina 0.13.5",
     "permissioncore 0.10.1",
-    "legacymoney 0.8.2"
+    "legacymoney 0.8.3"
 )
 
 
