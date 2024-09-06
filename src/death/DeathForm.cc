@@ -17,7 +17,6 @@
 #include <tuple>
 
 
-
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
@@ -28,7 +27,7 @@ namespace tps::death::form {
 
 
 void sendGoDeathGUI(Player& player) {
-    if (!config::cfg.Death.Enable) {
+    if (!Config::cfg.Death.Enable) {
         sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
         return;
     }
@@ -44,7 +43,7 @@ void sendGoDeathGUI(Player& player) {
     fm.setContent("时间: {0}\n坐标: {1}\n{2}"_tr(
         d.time,
         d.toVec4String(),
-        modules::Moneys::getInstance().getMoneySpendTipStr(player, config::cfg.Death.GoDeathMoney)
+        modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Death.GoDeathMoney)
     ));
 
     fm.setUpperButton("确认传送"_tr());
@@ -56,7 +55,7 @@ void sendGoDeathGUI(Player& player) {
             return;
         }
         if ((bool)val.value()) {
-            if (modules::Moneys::getInstance().reduceMoney(p, config::cfg.Death.GoDeathMoney)) {
+            if (modules::Moneys::getInstance().reduceMoney(p, Config::cfg.Death.GoDeathMoney)) {
                 p.teleport(Vec3{d.x, d.y, d.z}, d.dimid);
                 sendText(p, "传送成功"_tr());
             }

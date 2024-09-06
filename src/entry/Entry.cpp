@@ -39,10 +39,12 @@ bool entry::load() {
         auto path = rootDir / dir;
         if (!std::filesystem::exists(path)) std::filesystem::create_directory(path);
     }
+
     mSelf.getLogger().info("加载配置文件、数据库..."_tr());
-    tps::config::loadConfig();                                  // 加载配置文件
-    mSelf.getLogger().consoleLevel = tps::config::cfg.logLevel; // 设置日志等级
-    tps::data::LevelDB::getInstance().loadDB();                 // 加载leveldb数据
+    tps::Config::tryLoad();                                     // 加载配置文件
+    mSelf.getLogger().consoleLevel = tps::Config::cfg.logLevel; // 设置日志等级
+
+    tps::data::LevelDB::getInstance().loadDB(); // 加载leveldb数据
 
 #ifdef DEBUG
     mSelf.getLogger().consoleLevel = 5; // 调试模式，开启所有日志
@@ -54,8 +56,7 @@ bool entry::load() {
 
 bool entry::enable() {
     getSelf().getLogger().info("Enabling...");
-    // 插件启用，开始初始化...
-    getSelf().getLogger().info("开始初始化插件..."_tr());
+
     tps::command::registerCommands();       // 注册命令
     tps::permission::registerPermissions(); // 注册权限
 
@@ -69,19 +70,21 @@ bool entry::enable() {
     tps::event::registerEvent();
 
     // 初始化各个模块数据
-    tps::modules::Moneys::getInstance().updateConfig(config::cfg.Money);
+    tps::modules::Moneys::getInstance().updateConfig(Config::cfg.Money);
     tps::home::HomeManager::getInstance().syncFromLevelDB();
     tps::warp::WarpManager::getInstance().syncFromLevelDB();
     tps::rule::RuleManager::getInstance().syncFromLevelDB();
     tps::death::DeathManager::getInstance().syncFromLevelDB();
     tps::pr::PrManager::getInstance().syncFromLevelDB();
+
     return true;
 }
 
 bool entry::disable() {
     getSelf().getLogger().info("Disabling...");
-    mSelf.getLogger().info("正在禁用插件..."_tr());
+
     tps::event::unRegisterEvent();
+
     return true;
 }
 

@@ -113,13 +113,13 @@ void TprManager::runTask(std::shared_ptr<TaskItem> task) {
 
 // 检查维度是否允许传送
 bool TprManager::isDimensionAllowed(int dimension) const {
-    auto& ls = config::cfg.Tpr.Dimensions;
+    auto& ls = Config::cfg.Tpr.Dimensions;
     return std::find(ls.begin(), ls.end(), dimension) != ls.end();
 }
 // 随机位置
 std::pair<int, int> TprManager::randomPosition(Player& player) {
     using namespace utils::zonecheck::random;
-    auto& tpr = config::cfg.Tpr;
+    auto& tpr = Config::cfg.Tpr;
 
     if (tpr.RestrictedArea.Enable) {
         auto&  pvec = player.getPosition();
@@ -145,7 +145,7 @@ std::shared_ptr<TaskItem> TprManager::prepareData(Player& player) {
     args->findArgs.x     = rVec.first;                 // x
     args->findArgs.z     = rVec.second;                // z
     args->findArgs.dimid = player.getDimensionId().id; // 玩家当前维度
-    if (config::cfg.Tpr.DangerousBlocks.size() > 0) args->findArgs.dangerousBlocks = config::cfg.Tpr.DangerousBlocks;
+    if (Config::cfg.Tpr.DangerousBlocks.size() > 0) args->findArgs.dangerousBlocks = Config::cfg.Tpr.DangerousBlocks;
 
     if (args->findArgs.dimid == 1) {
         // Mc原版地狱高度限制
@@ -168,7 +168,7 @@ void TprManager::findSafePosition(std::shared_ptr<TaskItem> task) {
             return;
         }
 
-        if (modules::Moneys::getInstance().reduceMoney(player, config::cfg.Tpr.Money)) {
+        if (modules::Moneys::getInstance().reduceMoney(player, Config::cfg.Tpr.Money)) {
             Vec3 v3{safePos.x, safePos.y, safePos.z};
             player->teleport(v3, player->getDimensionId());
             sendText<MsgLevel::Success>(player, "传送成功！"_tr());
@@ -184,7 +184,7 @@ void TprManager::findSafePosition(std::shared_ptr<TaskItem> task) {
 // public:
 // 处理传送
 void TprManager::teleport(Player& player) {
-    if (!config::cfg.Tpr.Enable) {
+    if (!Config::cfg.Tpr.Enable) {
         sendText<MsgLevel::Error>(player, "传送失败，此功能未启用。"_tr());
         return;
     }
@@ -194,8 +194,8 @@ void TprManager::teleport(Player& player) {
     }
 
     auto& moneyInstance = modules::Moneys::getInstance();
-    if (moneyInstance.getMoney(player) < config::cfg.Tpr.Money) {
-        moneyInstance.sendMoneySpendTip(player, config::cfg.Tpr.Money);
+    if (moneyInstance.getMoney(player) < Config::cfg.Tpr.Money) {
+        moneyInstance.sendMoneySpendTip(player, Config::cfg.Tpr.Money);
         return;
     }
 
@@ -231,11 +231,11 @@ void TprManager::teleport(Player& player) {
 
 
 void TprManager::showTprMenu(Player& player) {
-    if (!config::cfg.Tpr.Enable) return sendText<MsgLevel::Error>(player, "此功能未启用。"_tr());
+    if (!Config::cfg.Tpr.Enable) return sendText<MsgLevel::Error>(player, "此功能未启用。"_tr());
     using namespace ll::form;
     ModalForm fm;
     fm.setTitle(PLUGIN_NAME);
-    fm.setContent(modules::Moneys::getInstance().getMoneySpendTipStr(player, config::cfg.Tpr.Money));
+    fm.setContent(modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Tpr.Money));
     fm.setUpperButton("确认传送"_tr());
     fm.setLowerButton("取消"_tr());
     fm.sendTo(player, [](Player& p, ModalFormResult const& dt, FormCancelReason) {

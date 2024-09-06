@@ -63,7 +63,7 @@ void TpaRequest::accept() {
         level.getPlayer(receiver)->teleport(sen->getPosition(), sen->getDimensionId());
     }
     // 扣除经济
-    tps::modules::Moneys::getInstance().reduceMoney(sender, config::cfg.Tpa.Money);
+    tps::modules::Moneys::getInstance().reduceMoney(sender, Config::cfg.Tpa.Money);
     sendText<MsgLevel::Success>(sender, "'{0}' 接受了您的 '{1}' 请求。"_tr(receiver, tpaTypeToString(type)));
     destoryThisRequestFormPool(); // 销毁请求
 }
@@ -103,7 +103,7 @@ Available TpaRequest::getAvailable() {
     if (getLevel()->getPlayer(receiver) == nullptr) {
         return Available::RecieverOffline;
     }
-    if (modules::Moneys::getInstance().getMoney(sender) < config::cfg.Tpa.Money && config::cfg.Tpa.Money != 0) {
+    if (modules::Moneys::getInstance().getMoney(sender) < Config::cfg.Tpa.Money && Config::cfg.Tpa.Money != 0) {
         return Available::Unaffordable;
     }
     // 检查对方是否禁止发送tpa请求

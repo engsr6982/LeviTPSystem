@@ -87,7 +87,7 @@ bool WarpManager::updateWarpData(const string& warpName, const data::WarpItem ne
 bool WarpManager::teleportToWarp(Player& player, const string& warpName, bool ignoreMoneys) {
     if (!ignoreMoneys) {
         auto& mon = modules::Moneys::getInstance();
-        if (!mon.reduceMoney(player, config::cfg.Warp.GoWarpMoney)) {
+        if (!mon.reduceMoney(player, Config::cfg.Warp.GoWarpMoney)) {
             return false;
         }
     }

@@ -3,23 +3,29 @@
 #include "ll/api/Config.h"
 #include "ll/api/i18n/I18n.h"
 
-namespace tps::config {
+namespace tps {
 
-using ll::i18n_literals::operator""_tr;
+#define CONFIG_FILE_NAME "Config.json"
+Config Config::cfg;
 
-Config cfg;
+bool Config::tryLoad() {
+    auto&      mSelf = tps::entry::getInstance().getSelf();
+    const auto path  = mSelf.getModDir() / CONFIG_FILE_NAME;
 
-bool loadConfig() {
-    auto&      mSelf       = tps::entry::getInstance().getSelf();
-    const auto path        = mSelf.getModDir() / "Config.json";
-    bool       isNotFailed = ll::config::loadConfig(cfg, path);
+    bool ok = ll::config::loadConfig(Config::cfg, path);
 
-    auto& logger = mSelf.getLogger();
-    if (!isNotFailed) {
-        logger.warn("加载配置文件失败，配置文件错误或版本不匹配!"_tr());
+    if (!ok) {
+        trySave(); // try to save default config
     }
-    return isNotFailed;
+    return ok;
+}
+
+bool Config::trySave() {
+    auto&      mSelf = tps::entry::getInstance().getSelf();
+    const auto path  = mSelf.getModDir() / CONFIG_FILE_NAME;
+
+    return ll::config::saveConfig(Config::cfg, path);
 }
 
 
-} // namespace tps::config
+} // namespace tps

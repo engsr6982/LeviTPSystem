@@ -85,7 +85,7 @@ void registerCommandWithTpa(const string& name) {
         }
 
         auto request =
-            std::make_shared<tpa::TpaRequest>(player, *(*li.data)[0], param.type, config::cfg.Tpa.CacheExpirationTime);
+            std::make_shared<tpa::TpaRequest>(player, *(*li.data)[0], param.type, Config::cfg.Tpa.CacheExpirationTime);
 
         tpa::Available avail = request->ask(); // 发送请求
 

@@ -39,7 +39,7 @@ bool DeathManager::addDeathInfo(const string& realName, data::DeathItem deathInf
     auto& vec = fin->second;
     vec.insert(vec.begin(), deathInfo);
     // 检查数据长度
-    if (static_cast<int>(vec.size()) > config::cfg.Death.MaxDeath) {
+    if (static_cast<int>(vec.size()) > Config::cfg.Death.MaxDeath) {
         vec.pop_back();
     }
     syncToLevelDB();
@@ -58,7 +58,7 @@ bool DeathManager::teleport(Player& player, const int& index) {
         utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "您还没有死亡点信息!");
         return false;
     }
-    if (modules::Moneys::getInstance().reduceMoney(player, config::cfg.Death.GoDeathMoney)) {
+    if (modules::Moneys::getInstance().reduceMoney(player, Config::cfg.Death.GoDeathMoney)) {
         auto death = fin->second[index];
         player.teleport(Vec3(death.x, death.y, death.z), death.dimid);
         return true;
