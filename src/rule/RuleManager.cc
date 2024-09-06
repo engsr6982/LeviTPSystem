@@ -24,7 +24,7 @@ bool RuleManager::hasPlayerRule(const string& realName) { return mRule->find(rea
 
 bool RuleManager::initPlayerRule(const string& realName) {
     if (hasPlayerRule(realName)) return false;
-    mRule->emplace(realName, data::RuleItem(config::cfg.Rule));
+    mRule->emplace(realName, data::RuleItem(Config::cfg.Rule));
     syncToLevelDB();
     return true;
 }

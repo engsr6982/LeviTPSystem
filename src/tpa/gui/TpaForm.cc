@@ -30,16 +30,16 @@ TpaForm::TpaForm(Player& player, TpaType type) {
     }
 
 #ifdef DEBUG
-    std::cout << "TpaForm::constructor::type: " << type << std::endl;
+    std::cout << "TpaForm::constructor::type: " << (int)type << std::endl;
 #endif
 
     setTitle("Tpa 选择目标玩家"_tr());
-    setContent(modules::Moneys::getInstance().getMoneySpendTipStr(player, config::cfg.Tpa.Money));
+    setContent(modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Tpa.Money));
 
     level->forEachPlayer([type, this](Player& target) {
         appendButton(target.getRealName(), [&target, type](Player& sender) {
             try {
-                auto req = std::make_shared<TpaRequest>(sender, target, type, config::cfg.Tpa.CacheExpirationTime);
+                auto req = std::make_shared<TpaRequest>(sender, target, type, Config::cfg.Tpa.CacheExpirationTime);
                 // 发送请求
                 tpa::Available avail = req->ask();
 

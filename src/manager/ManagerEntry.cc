@@ -20,7 +20,6 @@
 #include <tuple>
 
 
-
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
@@ -45,8 +44,8 @@ void index(Player& player) {
         manager::pr::index(p);
     });
     fm.appendButton("重载配置文件"_tr(), "textures/ui/refresh_light", "path", [](Player& p) {
-        config::loadConfig();
-        modules::Moneys::getInstance().updateConfig(config::cfg.Money);
+        Config::tryLoad();
+        modules::Moneys::getInstance().updateConfig(Config::cfg.Money);
         sendText(p, "Config Reloaded!"_tr());
     });
 

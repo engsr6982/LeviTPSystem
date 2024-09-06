@@ -81,7 +81,7 @@ void TpaRequestPool::checkAndRunCleanUpTask() {
     if (cleanUpIsRunning) return;
     cleanUpIsRunning = true;
     using ll::chrono_literals::operator""_tick;
-    scheduler.add<ll::schedule::RepeatTask>(config::cfg.Tpa.CacehCheckFrequency * 20_tick, []() {
+    scheduler.add<ll::schedule::RepeatTask>(Config::cfg.Tpa.CacehCheckFrequency * 20_tick, []() {
         auto  level    = ll::service::getLevel();
         auto& instance = TpaRequestPool::getInstance();
         for (auto& [receiver, senderPool] : instance.mPool) { // 遍历接收者池

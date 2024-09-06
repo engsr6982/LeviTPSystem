@@ -14,7 +14,6 @@
 #include <tuple>
 
 
-
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
@@ -24,10 +23,15 @@ namespace tps::warp::form {
 
 
 void index(Player& player) {
-    if (!config::cfg.Warp.Enable) {
+    if (!Config::cfg.Warp.Enable) {
         sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
         return;
     }
+    if (!Config::checkOpeningDimensions(Config::cfg.Warp.OpenDimensions, player.getDimensionId())) {
+        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+        return;
+    }
+
 
     SimpleForm fm;
     fm.setTitle(PLUGIN_NAME);
@@ -60,7 +64,7 @@ void _createWarp(Player& player) {
             sendText<MsgLevel::Error>(p, "名称不能为空"_tr());
             return;
         }
-        api::executeCommand(utils::format("{} warp add \"{}\"", config::cfg.Command.Command, name), &p);
+        api::executeCommand(utils::format("{} warp add \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 
@@ -81,13 +85,13 @@ void _selectWarp(Player& player, CallBack call) {
 
 void _deleteWarp(Player& player) {
     _selectWarp(player, [](Player& p, const string& name) {
-        api::executeCommand(utils::format("{} warp del \"{}\"", config::cfg.Command.Command, name), &p);
+        api::executeCommand(utils::format("{} warp del \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 
 void _goWarp(Player& player) {
     _selectWarp(player, [](Player& p, const string& name) {
-        api::executeCommand(utils::format("{} warp go \"{}\"", config::cfg.Command.Command, name), &p);
+        api::executeCommand(utils::format("{} warp go \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "utils/Mc.h"
 #include "config/Config.h"
 #include "data/LevelDB.h"
 #include "entry/Entry.h"
@@ -61,15 +60,12 @@
 #include <string>
 #include <vector>
 
+#include "magic_enum.hpp"
 
 namespace tps ::command {
 
 using string = std::string;
 using ll::i18n_literals::operator""_tr;
-using ll::command::CommandRegistrar;
-using string = std::string;
-using ll::i18n_literals::operator""_tr;
-using ll::command::CommandRegistrar;
 using namespace tps::utils::mc;
 using namespace tps::utils;
 
@@ -78,7 +74,6 @@ void registerCommandWithHome(const string& name);
 void registerCommandWithWarp(const string& name);
 void registerCommandWithTpa(const string& name);
 void registerCommandWithLevelDB(const string& name);
-void registerDebugCommand(const string& name);
 
 
 // ------------------------------ tools ----------------------------------
@@ -92,56 +87,16 @@ inline bool checkPlayerPermission(CommandOrigin const& origin, CommandOutput& ou
         bool  hasPermission = pmc::PermissionManager::getInstance()
                                  .getPermissionCore(string(PLUGIN_NAME))
                                  ->checkUserPermission(player.getUuid().asString().c_str(), permission);
-        if (!hasPermission)
+        if (!hasPermission) {
             utils::mc::sendText<utils::mc::MsgLevel::Error>(
                 output,
                 "你没有权限执行此命令，此命令需要权限 {0}！"_tr(permission)
             );
+        }
         return hasPermission;
-    } else {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(output, "获取实体指针失败！"_tr());
-        return false;
-    };
+    } else return false;
 }
 
-inline string CommandOriginTypeToString(CommandOriginType type) {
-    switch (type) {
-    case CommandOriginType::Player:
-        return "玩家"_tr();
-    case CommandOriginType::CommandBlock:
-        return "命令方块"_tr();
-    case CommandOriginType::MinecartCommandBlock:
-        return "Minecart命令方块"_tr();
-    case CommandOriginType::DevConsole:
-        return "开发者控制台"_tr();
-    case CommandOriginType::Test:
-        return "Test";
-    case CommandOriginType::AutomationPlayer:
-        return "AutomationPlayer";
-    case CommandOriginType::ClientAutomation:
-        return "ClientAutomation";
-    case CommandOriginType::DedicatedServer:
-        return "控制台"_tr();
-    case CommandOriginType::Entity:
-        return "实体"_tr();
-    case CommandOriginType::Virtual:
-        return "Virtual";
-    case CommandOriginType::GameArgument:
-        return "GameArgument";
-    case CommandOriginType::EntityServer:
-        return "EntityServer";
-    case CommandOriginType::Precompiled:
-        return "Precompiled";
-    case CommandOriginType::GameDirectorEntityServer:
-        return "GameDirectorEntityServer";
-    case CommandOriginType::Scripting:
-        return "Scripting";
-    case CommandOriginType::ExecuteContext:
-        return "ExecuteContext";
-    default:
-        return "未知"_tr();
-    }
-}
 
 #define CHECK_COMMAND_TYPE(output, origin, ...)                                                                        \
     {                                                                                                                  \
@@ -158,7 +113,7 @@ inline string CommandOriginTypeToString(CommandOriginType type) {
             bool              __first = true;                                                                          \
             for (auto __allowedType : __allowedTypes) {                                                                \
                 if (!__first) __allowedTypesStr << ", ";                                                               \
-                __allowedTypesStr << CommandOriginTypeToString(__allowedType);                                         \
+                __allowedTypesStr << magic_enum::enum_name(__allowedType);                                             \
                 __first = false;                                                                                       \
             }                                                                                                          \
             output.error("§c{0}此命令仅限 {1} 使用!"_tr(MSG_TITLE, __allowedTypesStr.str()));                          \

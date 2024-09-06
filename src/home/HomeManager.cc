@@ -122,7 +122,7 @@ bool HomeManager::updatePlayerHomeData(
     auto& mon = modules::Moneys::getInstance();
     if (ignoreMoneys) { // 忽略经济系统
         return updatePlayerHomeData(player.getRealName(), string(homeName), newData);
-    } else if (mon.reduceMoney(player, config::cfg.Home.EditHomeMoney)) { // 扣钱
+    } else if (mon.reduceMoney(player, Config::cfg.Home.EditHomeMoney)) { // 扣钱
         return updatePlayerHomeData(player.getRealName(), string(homeName), newData);
     }
 
@@ -149,10 +149,10 @@ bool HomeManager::createHome(const string& realName, const string& homeName, con
         if (list.has_value()) {
             UnLimited = list->hasPermission(permission::PermList::HomeCoutUnlimited);
         }
-        if (static_cast<int>(pl_home_vec.size()) >= config::cfg.Home.MaxHome && !UnLimited) {
+        if (static_cast<int>(pl_home_vec.size()) >= Config::cfg.Home.MaxHome && !UnLimited) {
             utils::mc::sendText<utils::mc::MsgLevel::Error>(
                 realName,
-                "创建家园传送点\"{}\"失败！\n最大家园数量：{}"_tr(homeName, config::cfg.Home.MaxHome)
+                "创建家园传送点\"{}\"失败！\n最大家园数量：{}"_tr(homeName, Config::cfg.Home.MaxHome)
             );
             return false; // 超过最大数量
         }
@@ -171,7 +171,7 @@ bool HomeManager::createHome(Player& player, const string& homeName, const data:
     auto& mon = modules::Moneys::getInstance();
     if (ignoreMoneys) {
         return createHome(player.getRealName(), string(homeName), vec4);
-    } else if (mon.reduceMoney(player, config::cfg.Home.CreatHomeMoney)) {
+    } else if (mon.reduceMoney(player, Config::cfg.Home.CreatHomeMoney)) {
         return createHome(player.getRealName(), string(homeName), vec4);
     }
 
@@ -204,7 +204,7 @@ bool HomeManager::deleteHome(Player& player, const string& homeName, bool ignore
     auto& mon = modules::Moneys::getInstance();
     if (ignoreMoneys) {
         return deleteHome(player.getRealName(), string(homeName));
-    } else if (mon.reduceMoney(player, config::cfg.Home.DeleteHomeMoney)) {
+    } else if (mon.reduceMoney(player, Config::cfg.Home.DeleteHomeMoney)) {
         return deleteHome(player.getRealName(), string(homeName));
     }
 
@@ -218,7 +218,7 @@ bool HomeManager::deleteHome(Player& player, const string& homeName, bool ignore
 bool HomeManager::teleportToHome(Player& player, const string& homeName, bool ignoreMoneys) {
     auto& mon = modules::Moneys::getInstance();
     if (!ignoreMoneys) {
-        if (!mon.reduceMoney(player, config::cfg.Home.GoHomeMoney)) {
+        if (!mon.reduceMoney(player, Config::cfg.Home.GoHomeMoney)) {
             return false; // 钱不够
         }
     }

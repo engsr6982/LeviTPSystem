@@ -16,8 +16,8 @@ namespace tps::command {
 
 bool registerCommands() {
     auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand(
-        config::cfg.Command.Command,
-        config::cfg.Command.Description
+        Config::cfg.Command.Command,
+        Config::cfg.Command.Description
     );
 
     // tps
@@ -74,8 +74,8 @@ bool registerCommands() {
     // tps reload
     cmd.overload().text("reload").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::DedicatedServer);
-        config::loadConfig();
-        modules::Moneys::getInstance().updateConfig(config::cfg.Money);
+        Config::tryLoad();
+        modules::Moneys::getInstance().updateConfig(Config::cfg.Money);
         sendText(output, "Config Reloaded!"_tr());
     });
 
@@ -89,14 +89,11 @@ bool registerCommands() {
 
 
     // Register All Commands
-    string name = config::cfg.Command.Command;
+    string name = Config::cfg.Command.Command;
     registerCommandWithLevelDB(name);
     registerCommandWithHome(name);
     registerCommandWithWarp(name);
     registerCommandWithTpa(name);
-#ifdef DEBUG
-    registerDebugCommand(name);
-#endif
     return true;
 }
 

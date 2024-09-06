@@ -2,13 +2,13 @@
 flowchart TD
     A[开始] --> B[getInstance]
     B --> C[teleport]
-    C --> D{config::cfg.Tpr.Enable}
+    C --> D{Config::cfg.Tpr.Enable}
     D -- No --> E[发送: 功能未启用]
     E --> Z[结束]
     D -- Yes --> F{isDimensionAllowed}
     F -- No --> G[发送: 此维度未开启传送]
     G --> Z
-    F -- Yes --> H{moneyInstance.getMoney < config::cfg.Tpr.Money}
+    F -- Yes --> H{moneyInstance.getMoney < Config::cfg.Tpr.Money}
     H -- Yes --> I[发送: 资金不足提示]
     I --> Z
     H -- No --> J[prepareData]

@@ -16,7 +16,6 @@
 #include <tuple>
 
 
-
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
@@ -27,10 +26,15 @@ namespace tps::home::form {
 
 
 void index(Player& player) {
-    if (!config::cfg.Home.Enable) {
+    if (!Config::cfg.Home.Enable) {
         sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
         return;
     }
+    if (!Config::checkOpeningDimensions(Config::cfg.Home.OpenDimensions, player.getDimensionId())) {
+        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+        return;
+    }
+
     SimpleForm fm;
     fm.setTitle(PLUGIN_NAME);
     fm.setContent("选择一个操作"_tr());
@@ -55,7 +59,7 @@ void _createHome(Player& player) {
     CustomForm fm;
     fm.setTitle(PLUGIN_NAME);
     fm.appendInput("name", "请输入家的名称："_tr(), "string");
-    fm.appendLabel(modules::Moneys::getInstance().getMoneySpendTipStr(player, config::cfg.Home.CreatHomeMoney));
+    fm.appendLabel(modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Home.CreatHomeMoney));
 
     fm.sendTo(player, [](Player& p, CustomFormResult const& dt, FormCancelReason) {
         if (!dt) {
@@ -67,7 +71,7 @@ void _createHome(Player& player) {
             sendText<MsgLevel::Error>(p, "请输入家的名称！"_tr());
             return;
         }
-        api::executeCommand(utils::format("{} home add \"{}\"", config::cfg.Command.Command, name), &p);
+        api::executeCommand(utils::format("{} home add \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 
@@ -89,7 +93,7 @@ void _selectHome(Player& player, Callback callback) {
 
 void _goHome(Player& player) {
     _selectHome(player, [](Player& p, string name) {
-        api::executeCommand(utils::format("{} home go \"{}\"", config::cfg.Command.Command, name), &p);
+        api::executeCommand(utils::format("{} home go \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 
@@ -128,7 +132,7 @@ void _inputNewHomeName(Player& player, string homeName) {
     CustomForm   fm;
     fm.setTitle(PLUGIN_NAME);
     fm.appendInput("name", "请输入新的名称："_tr(), "string", homeName);
-    fm.appendLabel(modules::Moneys::getInstance().getMoneySpendTipStr(player, config::cfg.Home.EditHomeMoney));
+    fm.appendLabel(modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Home.EditHomeMoney));
     fm.sendTo(player, [oldHomeName](Player& p, CustomFormResult const& dt, FormCancelReason) {
         if (!dt) {
             sendText(p, "表单已放弃"_tr());
@@ -157,7 +161,7 @@ void _inputNewHomeName(Player& player, string homeName) {
 
 void _deleteHome(Player& player) {
     _selectHome(player, [](Player& p, string name) {
-        api::executeCommand(utils::format("{} home del \"{}\"", config::cfg.Command.Command, name), &p);
+        api::executeCommand(utils::format("{} home del \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 
