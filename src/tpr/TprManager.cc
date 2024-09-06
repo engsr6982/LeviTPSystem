@@ -232,6 +232,12 @@ void TprManager::teleport(Player& player) {
 
 void TprManager::showTprMenu(Player& player) {
     if (!Config::cfg.Tpr.Enable) return sendText<MsgLevel::Error>(player, "此功能未启用。"_tr());
+    if (!Config::checkOpeningDimensions(Config::cfg.Tpr.OpenDimensions, player.getDimensionId())) {
+        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+        return;
+    }
+
+
     using namespace ll::form;
     ModalForm fm;
     fm.setTitle(PLUGIN_NAME);

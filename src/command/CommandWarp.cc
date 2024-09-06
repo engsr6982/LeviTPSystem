@@ -77,6 +77,11 @@ void registerCommandWithWarp(const string& name) {
                     sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
                     return;
                 }
+                if (!Config::checkOpeningDimensions(Config::cfg.Warp.OpenDimensions, player.getDimensionId())) {
+                    utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+                    return;
+                }
+
 
                 bool isSuccess = warpMgr.teleportToWarp(player, param.warpName);
                 if (isSuccess) sendText(player, "传送到Warp {} 成功！"_tr(param.warpName));

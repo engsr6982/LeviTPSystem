@@ -1,5 +1,6 @@
 #include "EventManager.h"
 #include "TpaRequestSendEvent.h"
+#include "config/Config.h"
 #include "death/DeathForm.h"
 #include "death/DeathManager.h"
 #include "event/LevelDBIllegalOperationEvent.h"
@@ -75,6 +76,10 @@ void registerEvent() {
     mPlayerRespawnListener = eventBus.emplaceListener<ll::event::player::PlayerRespawnEvent>(
         [](ll::event::player::PlayerRespawnEvent const& ev) {
             if (ev.self().isSimulatedPlayer()) return; // 过滤模拟玩家
+            if (!Config::checkOpeningDimensions(Config::cfg.Death.OpenDimensions, ev.self().getDimensionId())) {
+                return;
+            }
+
             auto rule = rule::RuleManager::getInstance().getPlayerRule(ev.self().getRealName());
             if (rule.deathPopup) {
                 death::form::sendGoDeathGUI(ev.self());
@@ -86,6 +91,10 @@ void registerEvent() {
     mPlayerDieListener =
         eventBus.emplaceListener<ll::event::player::PlayerDieEvent>([](ll::event::player::PlayerDieEvent const& ev) {
             if (ev.self().isSimulatedPlayer()) return; // 过滤模拟玩家
+            if (!Config::checkOpeningDimensions(Config::cfg.Death.OpenDimensions, ev.self().getDimensionId())) {
+                return;
+            }
+
             auto&           pos = ev.self().getPosition();
             data::DeathItem deathInfo{pos.x, pos.y, pos.z, ev.self().getDimensionId().id, utils::Date{}.toString()};
             death::DeathManager::getInstance().addDeathInfo(ev.self().getRealName(), deathInfo);

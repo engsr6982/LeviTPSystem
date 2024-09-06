@@ -27,6 +27,11 @@ void index(Player& player) {
         sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
         return;
     }
+    if (!Config::checkOpeningDimensions(Config::cfg.Warp.OpenDimensions, player.getDimensionId())) {
+        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+        return;
+    }
+
 
     SimpleForm fm;
     fm.setTitle(PLUGIN_NAME);

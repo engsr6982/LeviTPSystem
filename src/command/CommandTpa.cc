@@ -37,14 +37,20 @@ void registerCommandWithTpa(const string& name) {
     cmd.overload<ParamOption>().text("tpa").required("option").execute(
         [](CommandOrigin const& origin, CommandOutput& output, const ParamOption& param) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-            auto& player      = *static_cast<Player*>(origin.getEntity()); // 获取玩家实体
-            auto& pool        = tpa::TpaRequestPool::getInstance();        // 获取请求池
-            auto  requestList = pool.getSenderList(player.getRealName());  // 获取发起者列表
+            auto& player = *static_cast<Player*>(origin.getEntity()); // 获取玩家实体
 
             if (player.isSleeping()) {
                 sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
                 return;
             }
+            if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, player.getDimensionId())) {
+                sendText<MsgLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
+                return;
+            }
+
+
+            auto& pool        = tpa::TpaRequestPool::getInstance();       // 获取请求池
+            auto  requestList = pool.getSenderList(player.getRealName()); // 获取发起者列表
 
             if (requestList.empty()) { // 没有请求
                 sendText<MsgLevel::Error>(output, "你没有收到任何TPA请求！"_tr());
@@ -75,7 +81,13 @@ void registerCommandWithTpa(const string& name) {
                                                                                        const ParamTp&       param) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         auto& player = *static_cast<Player*>(origin.getEntity());
-        auto  li     = param.target.results(origin);
+        if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, player.getDimensionId())) {
+            sendText<MsgLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
+            return;
+        }
+
+
+        auto li = param.target.results(origin);
         if (li.empty()) {
             sendText<MsgLevel::Error>(output, "请至少选择一位玩家！"_tr());
             return;

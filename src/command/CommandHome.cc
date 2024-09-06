@@ -80,6 +80,10 @@ void registerCommandWithHome(const string& name) {
                     sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
                     return;
                 }
+                if (!Config::checkOpeningDimensions(Config::cfg.Home.OpenDimensions, player.getDimensionId())) {
+                    utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+                    return;
+                }
 
                 bool isSuccess = homeMgr.teleportToHome(player, param.homeName);
                 if (isSuccess) sendText(player, "传送到家园 {} 成功！"_tr(param.homeName));

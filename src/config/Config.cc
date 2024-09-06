@@ -2,6 +2,9 @@
 #include "entry/Entry.h"
 #include "ll/api/Config.h"
 #include "ll/api/i18n/I18n.h"
+#include "utils/Utils.h"
+#include <algorithm>
+
 
 namespace tps {
 
@@ -25,6 +28,19 @@ bool Config::trySave() {
     const auto path  = mSelf.getModDir() / CONFIG_FILE_NAME;
 
     return ll::config::saveConfig(Config::cfg, path);
+}
+
+
+bool Config::checkOpeningDimensions(OpeningDimensions& dimensions, int dimension) {
+    if (dimensions.empty()) {
+        return false;
+    }
+
+    if (utils::some(dimensions, -1)) {
+        return true; // all dimensions are allowed
+    }
+
+    return utils::some(dimensions, dimension); // check if dimension is in list
 }
 
 
