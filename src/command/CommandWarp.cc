@@ -51,8 +51,10 @@ void registerCommandWithWarp(const string& name) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
             auto& player  = *static_cast<Player*>(origin.getEntity());
             auto& warpMgr = warp::WarpManager::getInstance();
-            if (param.warpName.empty() || param.warpName == "")
+            if (param.warpName.empty() || param.warpName == "") {
                 return sendText<MsgLevel::Error>(player, "请输入正确的Warp名称！"_tr());
+            }
+
             switch (param.operation) {
             case OperationType::add: {
                 if (!checkPlayerPermission(origin, output, permission::PermList::AllowPlayerAddWarp)) return;
@@ -61,13 +63,15 @@ void registerCommandWithWarp(const string& name) {
                 bool       isSuccess = warpMgr.createWarp(param.warpName, vec3);
                 if (isSuccess) sendText(player, "创建Warp {} 成功！"_tr(param.warpName));
                 else sendText<MsgLevel::Error>(player, "创建Warp {} 失败！"_tr(param.warpName));
-            } break;
+                break;
+            }
             case OperationType::del: {
                 if (!checkPlayerPermission(origin, output, permission::PermList::AllowPlayerDelWarp)) return;
                 bool isSuccess = warpMgr.deleteWarp(param.warpName);
                 if (isSuccess) sendText(player, "删除Warp {} 成功！"_tr(param.warpName));
                 else sendText<MsgLevel::Error>(player, "删除Warp {} 失败！"_tr(param.warpName));
-            } break;
+                break;
+            }
             case OperationType::go: {
                 if (player.isSleeping()) {
                     sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
@@ -77,7 +81,8 @@ void registerCommandWithWarp(const string& name) {
                 bool isSuccess = warpMgr.teleportToWarp(player, param.warpName);
                 if (isSuccess) sendText(player, "传送到Warp {} 成功！"_tr(param.warpName));
                 else sendText<MsgLevel::Error>(player, "传送到Warp {} 失败！"_tr(param.warpName));
-            } break;
+                break;
+            }
             }
         });
 }

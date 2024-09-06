@@ -39,9 +39,9 @@ void registerCommandWithHome(const string& name) {
             sendText<MsgLevel::Error>(player, "您还没有家园传送点！"_tr());
             return;
         }
-        string homeList = "您有以下家园传送点：| "_tr();
+        string homeList = "您有以下家园传送点:\n"_tr();
         for (auto const& home : homes) {
-            homeList += "'" + home.name + "' | ";
+            homeList += "[H] " + home.name + "\n";
         }
         sendText<MsgLevel::Info>(player, homeList);
     });
@@ -57,19 +57,24 @@ void registerCommandWithHome(const string& name) {
             auto& homeMgr = home::HomeManager::getInstance();
             if (param.homeName.empty() || param.homeName == "")
                 return sendText<MsgLevel::Error>(player, "请输入家园名称！"_tr());
+
             switch (param.operation) {
             case OperationType::add: {
                 auto       pos = player.getPosition();
                 data::Vec4 vec3{pos.x, pos.y, pos.z, player.getDimensionId().id}; // McVec3 to MyVec3
-                bool       isSuccess = homeMgr.createHome(player, param.homeName, vec3);
-                if (isSuccess) sendText(player, "创建家园 {} 成功！"_tr(param.homeName));
-                else sendText<MsgLevel::Error>(player, "创建家园 {} 失败！"_tr(param.homeName));
-            } break;
+                if (homeMgr.createHome(player, param.homeName, vec3)) {
+                    sendText(player, "创建家园 {} 成功！"_tr(param.homeName));
+                } else {
+                    sendText<MsgLevel::Error>(player, "创建家园 {} 失败！"_tr(param.homeName));
+                }
+                break;
+            }
             case OperationType::del: {
                 bool isSuccess = homeMgr.deleteHome(player, param.homeName);
                 if (isSuccess) sendText(player, "删除家园 {} 成功！"_tr(param.homeName));
                 else sendText<MsgLevel::Error>(player, "删除家园 {} 失败！"_tr(param.homeName));
-            } break;
+                break;
+            }
             case OperationType::go: {
                 if (player.isSleeping()) {
                     sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
@@ -79,7 +84,9 @@ void registerCommandWithHome(const string& name) {
                 bool isSuccess = homeMgr.teleportToHome(player, param.homeName);
                 if (isSuccess) sendText(player, "传送到家园 {} 成功！"_tr(param.homeName));
                 else sendText<MsgLevel::Error>(player, "传送到家园 {} 失败！"_tr(param.homeName));
-            } break;
+
+                break;
+            }
             }
         });
 }

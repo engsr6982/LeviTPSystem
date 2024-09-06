@@ -94,9 +94,6 @@ bool registerCommands() {
     registerCommandWithHome(name);
     registerCommandWithWarp(name);
     registerCommandWithTpa(name);
-#ifdef DEBUG
-    registerDebugCommand(name);
-#endif
     return true;
 }
 
