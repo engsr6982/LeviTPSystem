@@ -37,40 +37,42 @@ void registerCommandWithTpa(const string& name) {
     cmd.overload<ParamOption>().text("tpa").required("option").execute(
         [](CommandOrigin const& origin, CommandOutput& output, const ParamOption& param) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-            auto& player = *static_cast<Player*>(origin.getEntity()); // 获取玩家实体
+            auto& receiver = *static_cast<Player*>(origin.getEntity()); // 获取玩家实体
 
-            if (player.isSleeping()) {
+            if (receiver.isSleeping()) {
                 sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
                 return;
             }
-            if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, player.getDimensionId())) {
+            if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, receiver.getDimensionId())) {
                 sendText<MsgLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
                 return;
             }
 
 
-            auto& pool        = tpa::TpaRequestPool::getInstance();       // 获取请求池
-            auto  requestList = pool.getSenderList(player.getRealName()); // 获取发起者列表
+            auto pool        = &tpa::TpaRequestPool::getInstance();         // 获取请求池
+            auto requestList = pool->getSenderList(receiver.getRealName()); // 获取发起者列表
 
             if (requestList.empty()) { // 没有请求
                 sendText<MsgLevel::Error>(output, "你没有收到任何TPA请求！"_tr());
                 return;
+
             } else if (requestList.size() == 1) { // 只有一个请求
-                auto req = pool.getRequest(player.getRealName(), requestList[0]);
+                auto req = pool->getRequest(receiver.getRealName(), requestList[0]);
                 param.option == TpOption::accept ? req->accept() : req->deny();
                 return;
+
             } else {
                 // 多个请求
                 ll::form::SimpleForm fm;
-                for (auto& name : requestList) {
-                    fm.appendButton(name, [&](Player& p) {
-                        auto req = pool.getRequest(p.getRealName(), name);
+                for (auto& sender : requestList) {
+                    fm.appendButton(sender, [sender, pool, param](Player& receiver2) {
+                        auto req = pool->getRequest(receiver2.getRealName(), sender);
                         if (req->getAvailable() == tpa::Available::Available) {
                             param.option == TpOption::accept ? req->accept() : req->deny();
                         }
                     });
                 }
-                fm.sendTo(player);
+                fm.sendTo(receiver);
             }
         }
     );
@@ -80,8 +82,8 @@ void registerCommandWithTpa(const string& name) {
                                                                                        CommandOutput&       output,
                                                                                        const ParamTp&       param) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-        auto& player = *static_cast<Player*>(origin.getEntity());
-        if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, player.getDimensionId())) {
+        auto& sender = *static_cast<Player*>(origin.getEntity());
+        if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, sender.getDimensionId())) {
             sendText<MsgLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
             return;
         }
@@ -97,12 +99,12 @@ void registerCommandWithTpa(const string& name) {
         }
 
         auto request =
-            std::make_shared<tpa::TpaRequest>(player, *(*li.data)[0], param.type, Config::cfg.Tpa.CacheExpirationTime);
+            std::make_shared<tpa::TpaRequest>(sender, *(*li.data)[0], param.type, Config::cfg.Tpa.CacheExpirationTime);
 
         tpa::Available avail = request->ask(); // 发送请求
 
         if (avail != tpa::Available::Available) {
-            sendText<MsgLevel::Error>(player, "{}"_tr(tpa::TpaRequest::getAvailableDescription(avail)));
+            sendText<MsgLevel::Error>(sender, "{}"_tr(tpa::TpaRequest::getAvailableDescription(avail)));
         }
 
         // Tpa 请求发送事件

@@ -48,11 +48,20 @@ void registerEvent() {
 
     // 发送tpa请求事件
     mTpaRequestSendListener = eventBus.emplaceListener<TpaRequestSendEvent>([](TpaRequestSendEvent& ev) {
-        auto player = ll::service::getLevel()->getPlayer(ev.getReciever());
-        if (player) {
+        auto sender   = ll::service::getLevel()->getPlayer(ev.getSender());   // 获取发送者
+        auto receiver = ll::service::getLevel()->getPlayer(ev.getReciever()); // 获取接收者
+
+        if (sender) {
             utils::mc::sendText(
-                player,
-                "收到来自 {0} 的 {1} 请求"_tr(ev.getSender(), tpa::TpaRequest::tpaTypeToString(ev.getType()))
+                sender,
+                "已向 {} 发起 {} 请求."_tr(receiver->getRealName(), tpa::TpaRequest::tpaTypeToString(ev.getType()))
+            );
+        }
+
+        if (receiver) {
+            utils::mc::sendText(
+                receiver,
+                "收到来自 {} 的 {} 请求."_tr(sender->getRealName(), tpa::TpaRequest::tpaTypeToString(ev.getType()))
             );
         }
     });
