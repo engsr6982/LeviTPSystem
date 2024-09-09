@@ -24,20 +24,19 @@ TpaAskForm::TpaAskForm(TpaRequestPtr request) {
         tpaDescription = "未知请求类型"_tr();
     }
 
-    setTitle(request->receiver + " tpa");
+    setTitle("TPA Request"_tr());
     setContent(tpaDescription);
 
     appendButton("接受"_tr(), "textures/ui/realms_green_check", "path", [request](Player&) { request->accept(); });
 
     appendButton("拒绝"_tr(), "textures/ui/realms_red_x", "path", [request](Player&) { request->deny(); });
 
-    appendButton("缓存本次请求"_tr(), [this, request](Player& p) { cacheRequest(request, p); });
+    appendButton("缓存本次请求"_tr(), "textures/ui/backup_replace", "path", [this, request](Player& p) {
+        cacheRequest(request, p);
+    });
 }
 
-bool TpaAskForm::cacheRequest(TpaRequestPtr request) {
-    return TpaRequestPool::getInstance().addRequest(std::move(request));
-}
-
+bool TpaAskForm::cacheRequest(TpaRequestPtr request) { return TpaRequestPool::getInstance().addRequest(request); }
 bool TpaAskForm::cacheRequest(TpaRequestPtr request, Player& player) {
     bool success = cacheRequest(request);
     if (success) {
