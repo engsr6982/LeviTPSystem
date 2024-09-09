@@ -7,12 +7,18 @@
 
 namespace tps::tpa {
 
-class TpaAskForm : public ll::form::SimpleForm {
+class TpaAskForm {
 public:
     TpaAskForm(TpaRequestPtr request);
 
-    bool cacheRequest(TpaRequestPtr request, Player& player);
-    bool cacheRequest(TpaRequestPtr request);
+    bool cacheRequest(Player& player);
+    bool cacheRequest();
+
+    void sendTo(Player& player);
+
+private:
+    ll::form::SimpleForm form;
+    TpaRequestPtr        request;
 };
 
 } // namespace tps::tpa

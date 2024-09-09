@@ -15,6 +15,8 @@ using namespace tps::utils::mc;
 using namespace tps::utils;
 
 TpaAskForm::TpaAskForm(TpaRequestPtr request) {
+    this->request = request;
+
     string tpaDescription;
     if (request->type == TpaType::Tpa) {
         tpaDescription = format("{0} 希望传送到您这里"_tr(request->sender));
@@ -24,21 +26,30 @@ TpaAskForm::TpaAskForm(TpaRequestPtr request) {
         tpaDescription = "未知请求类型"_tr();
     }
 
-    setTitle("TPA Request"_tr());
-    setContent(tpaDescription);
+    form.setTitle("TPA Request"_tr());
+    form.setContent(tpaDescription);
 
-    appendButton("接受"_tr(), "textures/ui/realms_green_check", "path", [request](Player&) { request->accept(); });
+    form.appendButton("接受"_tr(), "textures/ui/realms_green_check", "path", [request](Player&) { request->accept(); });
 
-    appendButton("拒绝"_tr(), "textures/ui/realms_red_x", "path", [request](Player&) { request->deny(); });
+    form.appendButton("拒绝"_tr(), "textures/ui/realms_red_x", "path", [request](Player&) { request->deny(); });
 
-    appendButton("缓存本次请求"_tr(), "textures/ui/backup_replace", "path", [this, request](Player& p) {
-        cacheRequest(request, p);
+    form.appendButton("缓存本次请求"_tr(), "textures/ui/backup_replace", "path", [this, request](Player& p) {
+        cacheRequest(p);
+    });
+}
+void TpaAskForm::sendTo(Player& player) {
+    using namespace ll::form;
+    form.sendTo(player, [this](Player&, int idk, FormCancelReason) {
+        if (idk == -1) {
+            this->cacheRequest(); // 表单被关闭
+        }
     });
 }
 
-bool TpaAskForm::cacheRequest(TpaRequestPtr request) { return TpaRequestPool::getInstance().addRequest(request); }
-bool TpaAskForm::cacheRequest(TpaRequestPtr request, Player& player) {
-    bool success = cacheRequest(request);
+
+bool TpaAskForm::cacheRequest() { return TpaRequestPool::getInstance().addRequest(request); }
+bool TpaAskForm::cacheRequest(Player& player) {
+    bool success = cacheRequest();
     if (success) {
         sendText(player, "已缓存来自 {0} 的 {1} 请求"_tr(request->sender, TpaRequest::tpaTypeToString(request->type)));
         return true;

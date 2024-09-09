@@ -87,7 +87,7 @@ Available TpaRequest::ask() {
     if (rule::RuleManager::getInstance().getPlayerRule(receiver).tpaPopup) {
         fm.sendTo(*ll::service::getLevel()->getPlayer(receiver)); // 发送弹窗给接收者
     } else {
-        fm.cacheRequest(TpaRequestPtr(shared_from_this())); // 缓存到请求池
+        fm.cacheRequest(); // 缓存到请求池
     }
     return avail;
 }
