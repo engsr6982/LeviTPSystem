@@ -75,8 +75,8 @@ inline bool some(const std::vector<T>& vec, const T& val) {
 }
 
 
-inline void DebugFormPrint(const ll::form::CustomFormResult& dt) {
 #ifdef DEBUG
+inline void DebugFormPrint(const ll::form::CustomFormResult& dt) {
     std::cout << "\033[0m\033[1;35m"
               << "======================================================================================" << "\033[0m"
               << std::endl;
@@ -98,7 +98,10 @@ inline void DebugFormPrint(const ll::form::CustomFormResult& dt) {
         };
         logDebugResult(result);
     }
-#endif
 }
+#else
+inline void DebugFormPrint(const ll::form::CustomFormResult&) {}
+#endif
+
 
 } // namespace tps::utils
