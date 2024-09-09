@@ -82,12 +82,12 @@ Available TpaRequest::ask() {
         return avail;
     }
     // 创建询问表单
-    auto fm = TpaAskForm(TpaRequestPtr(shared_from_this()));
+    auto fm = TpaAskForm::create(TpaRequestPtr(shared_from_this()));
     // 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
     if (rule::RuleManager::getInstance().getPlayerRule(receiver).tpaPopup) {
-        fm.sendTo(*ll::service::getLevel()->getPlayer(receiver)); // 发送弹窗给接收者
+        fm->sendTo(*ll::service::getLevel()->getPlayer(receiver)); // 发送弹窗给接收者
     } else {
-        fm.cacheRequest(); // 缓存到请求池
+        fm->cacheRequest(); // 缓存到请求池
     }
     return avail;
 }

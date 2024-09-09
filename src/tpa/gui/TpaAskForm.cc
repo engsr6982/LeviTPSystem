@@ -39,9 +39,9 @@ TpaAskForm::TpaAskForm(TpaRequestPtr request) {
 }
 void TpaAskForm::sendTo(Player& player) {
     using namespace ll::form;
-    form.sendTo(player, [this](Player&, int idk, FormCancelReason) {
+    form.sendTo(player, [this](Player& self, int idk, FormCancelReason) {
         if (idk == -1) {
-            this->cacheRequest(); // 表单被关闭
+            this->cacheRequest(self); // 表单被关闭
         }
     });
 }
@@ -57,6 +57,9 @@ bool TpaAskForm::cacheRequest(Player& player) {
     sendText(player, "无法缓存来自 {0} 的 {1} 请求"_tr(request->sender, TpaRequest::tpaTypeToString(request->type)));
     return false;
 }
+
+
+std::unique_ptr<TpaAskForm> TpaAskForm::create(TpaRequestPtr request) { return std::make_unique<TpaAskForm>(request); }
 
 
 } // namespace tps::tpa

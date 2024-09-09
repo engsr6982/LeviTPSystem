@@ -3,6 +3,7 @@
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
 #include "tpa/core/TpaRequest.h"
+#include <memory>
 
 
 namespace tps::tpa {
@@ -15,6 +16,8 @@ public:
     bool cacheRequest();
 
     void sendTo(Player& player);
+
+    static std::unique_ptr<TpaAskForm> create(TpaRequestPtr request);
 
 private:
     ll::form::SimpleForm form;
