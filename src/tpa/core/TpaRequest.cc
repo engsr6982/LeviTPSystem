@@ -107,7 +107,7 @@ Available TpaRequest::getAvailable() {
         return Available::Unaffordable;
     }
     // 检查对方是否禁止发送tpa请求
-    if (rule::RuleManager::getInstance().getPlayerRule(receiver).allowTpa == false) {
+    if (!rule::RuleManager::getInstance().getPlayerRule(receiver).allowTpa) {
         return Available::ProhibitTpaRequest;
     }
     return Available::Available;

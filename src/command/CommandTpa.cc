@@ -23,8 +23,8 @@ struct ParamTp {
     CommandSelector<Player> target;
 };
 
-void registerCommandWithTpa(const string& name) {
-    auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand(name);
+void registerCommandWithTpa(const string& _commandName) {
+    auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand(_commandName);
 
     // tps tpa
     cmd.overload().text("tpa").execute([](CommandOrigin const& origin, CommandOutput& output) {
@@ -49,22 +49,22 @@ void registerCommandWithTpa(const string& name) {
             }
 
 
-            auto pool        = &tpa::TpaRequestPool::getInstance();         // 获取请求池
-            auto requestList = pool->getSenderList(receiver.getRealName()); // 获取发起者列表
+            auto pool    = &tpa::TpaRequestPool::getInstance();         // 获取请求池
+            auto senders = pool->getSenderList(receiver.getRealName()); // 获取发起者列表
 
-            if (requestList.empty()) { // 没有请求
+            if (senders.empty()) { // 没有请求
                 sendText<MsgLevel::Error>(output, "你没有收到任何TPA请求！"_tr());
                 return;
 
-            } else if (requestList.size() == 1) { // 只有一个请求
-                auto req = pool->getRequest(receiver.getRealName(), requestList[0]);
+            } else if (senders.size() == 1) { // 只有一个请求
+                auto req = pool->getRequest(receiver.getRealName(), senders[0]);
                 param.option == TpOption::accept ? req->accept() : req->deny();
                 return;
 
             } else {
                 // 多个请求
                 ll::form::SimpleForm fm;
-                for (auto& sender : requestList) {
+                for (auto& sender : senders) {
                     fm.appendButton(sender, [sender, pool, param](Player& receiver2) {
                         auto req = pool->getRequest(receiver2.getRealName(), sender);
                         if (req->getAvailable() == tpa::Available::Available) {
