@@ -1,9 +1,11 @@
 #include "TpaRequestPool.h"
 #include "config/Config.h"
+#include "entry/Entry.h"
 #include "ll/api/chrono/GameChrono.h"
 #include "ll/api/schedule/Scheduler.h"
 #include "ll/api/schedule/Task.h"
 #include "ll/api/service/Bedrock.h"
+#include "tpa/core/TpaRequest.h"
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -13,126 +15,145 @@ ll::schedule::GameTickScheduler scheduler;
 
 namespace tps::tpa {
 
-TpaRequestPool& TpaRequestPool::getInstance() {
-    static TpaRequestPool instance;
-    instance.checkAndRunCleanUpTask();
-    return instance;
-}
+void TpaRequestPool::_initTask() {
+    static bool isInited = false;
+    if (isInited) {
+        return;
+    }
+    isInited = true;
 
-void TpaRequestPool::initSender(const string& realName) {
-    if (mPool.find(realName) == mPool.end()) {
-        // 玩家第一次接受tpa请求，初始化 发起者池
-        mPool[realName] = std::make_shared<std::unordered_map<string, TpaRequestPtr>>();
-    }
-}
-
-std::shared_ptr<std::unordered_map<string, TpaRequestPtr>> TpaRequestPool::getSenderPool(const string& receiver) {
-    auto receiverPool = mPool.find(receiver);
-    if (receiverPool == mPool.end()) {
-        return nullptr;
-    }
-    return receiverPool->second;
-}
-
-bool TpaRequestPool::hasRequest(const string& receiver, const string& sender) {
-    const auto& receiverPool = getSenderPool(receiver);
-    if (!receiverPool) {
-        return false;
-    }
-    auto request = receiverPool->find(sender);
-    if (request == receiverPool->end()) {
-        return false;
-    }
-    return true;
-}
-
-bool TpaRequestPool::addRequest(TpaRequestPtr request) {
-    initSender(request->sender);
-    // 为了安全，检查是否有重复请求，有责销毁旧请求
-    deleteRequest(request->receiver, request->sender); // 删除旧请求(如果有)
-    // 获取接收者池
-    auto receiverPool = mPool.find(request->receiver);
-    if (receiverPool == mPool.end()) {
-        return false;
-    }
-    // 获取发送者池，添加请求
-    auto senderPool = receiverPool->second->find(request->sender);
-    if (senderPool == receiverPool->second->end()) {
-        (*receiverPool->second)[request->sender] = request;
-        return true;
-    }
-    return false;
-}
-
-bool TpaRequestPool::deleteRequest(const string& receiver, const string& sender) {
-    auto receiverPool = mPool.find(receiver); // 获取接收者池
-    if (receiverPool == mPool.end()) {
-        return false;
-    }
-    auto request = receiverPool->second->find(sender); // 获取发送者池
-    if (request == receiverPool->second->end()) {
-        return false;
-    }
-    receiverPool->second->erase(request); // 删除请求
-    return true;
-}
-
-void TpaRequestPool::checkAndRunCleanUpTask() {
-    if (cleanUpIsRunning) return;
-    cleanUpIsRunning = true;
     using ll::chrono_literals::operator""_tick;
-    scheduler.add<ll::schedule::RepeatTask>(Config::cfg.Tpa.CacehCheckFrequency * 20_tick, []() {
-        auto  level    = ll::service::getLevel();
-        auto& instance = TpaRequestPool::getInstance();
-        for (auto& [receiver, senderPool] : instance.mPool) { // 遍历接收者池
-            for (auto& [sender, request] : *senderPool) {     // 遍历发送者池
-                auto avail = request->getAvailable();         // 获取请求可用性
+    scheduler.add<ll::schedule::RepeatTask>(Config::cfg.Tpa.CacehCheckFrequency * 20_tick, [this]() {
+        auto level = ll::service::getLevel();
+        if (!level.has_value()) {
+            return;
+        }
+
+        for (auto& [receiver, senderPool] : this->mPool) {
+            for (auto& [sender, request] : senderPool) {
+                auto avail = request->getAvailable();
                 if (avail != Available::Available) {
-                    auto ptr = level->getPlayer(request->sender); // 获取发送者指针
-                    if (ptr) {
+                    auto player = level->getPlayer(sender);
+                    if (player) {
                         utils::mc::sendText<utils::mc::MsgLevel::Error>(
-                            ptr,
+                            player,
                             "{0}",
                             TpaRequest::getAvailableDescription(avail)
                         );
                     }
-                    instance.deleteRequest(receiver, sender); // 删除请求
+                    this->deleteRequest(receiver, sender);
                 }
             }
         }
     });
 }
-
-TpaRequestPtr TpaRequestPool::getRequest(const string& receiver, const string& sender) {
-    auto receiverPool = mPool.find(receiver); // 获取接收者池
-    if (receiverPool == mPool.end()) {
-        return nullptr;
+void TpaRequestPool::_initReceiver(const string& receiver) {
+    if (mPool.find(receiver) == mPool.end()) {
+        mPool.emplace(string(receiver), std::unordered_map<string, TpaRequestPtr>());
     }
-    auto request = receiverPool->second->find(sender); // 获取发送者池
-    if (request == receiverPool->second->end()) {
-        return nullptr;
-    }
-    return request->second;
 }
 
-std::vector<string> TpaRequestPool::getReceiverList() {
-    std::vector<string> receiverList;
+
+TpaRequestPool& TpaRequestPool::getInstance() {
+    static TpaRequestPool instance;
+    instance._initTask();
+    return instance;
+}
+
+
+bool TpaRequestPool::hasRequest(const string& receiver, const string& sender) const {
+    auto senderPool = mPool.find(receiver); // receiver => sender => request
+    if (senderPool == mPool.end()) {
+        return false;
+    }
+
+    auto request = senderPool->second.find(sender);
+    if (request == senderPool->second.end()) {
+        return false;
+    }
+
+    return true;
+}
+
+bool TpaRequestPool::addRequest(TpaRequestPtr request) {
+    auto& logger = entry::getInstance().getSelf().getLogger();
+
+    string const& receiver = request->receiver;
+    string const& sender   = request->sender;
+
+    _initReceiver(receiver); // 初始化接收者
+
+    if (hasRequest(receiver, sender)) {
+        deleteRequest(receiver, sender); // 同玩家重复请求，删除旧请求
+    }
+
+    auto senderPool = mPool.find(receiver);
+    if (senderPool == mPool.end()) {
+        logger.debug("senderPool not found");
+        return false; // 接收者池不存在
+    }
+
+    senderPool->second.emplace(string(sender), request);
+    return true;
+}
+
+bool TpaRequestPool::deleteRequest(const string& receiver, const string& sender) {
+    auto senderPool = mPool.find(receiver); // receiver => sender => request
+
+    if (senderPool == mPool.end()) {
+        return false;
+    }
+
+    auto request = senderPool->second.find(sender); // sender => request
+    if (request == senderPool->second.end()) {
+        return false;
+    }
+
+    senderPool->second.erase(request); // 删除请求
+    return true;
+}
+
+
+std::vector<string> TpaRequestPool::getReceiverList() const {
+    std::vector<string> receiverList{};
     for (const auto& [receiver, _] : mPool) {
         receiverList.push_back(receiver);
     }
     return receiverList;
 }
 
-std::vector<string> TpaRequestPool::getSenderList(const string& receiver) {
-    auto receiverPool = mPool.find(receiver); // 获取接收者池
-    if (receiverPool == mPool.end()) {
+std::vector<string> TpaRequestPool::getSenderList(const string& receiver) const {
+    auto senderPool = mPool.find(receiver); // receiver => sender => request
+    if (senderPool == mPool.end()) {
         return {};
     }
-    std::vector<string> senderList;
-    for (const auto& [sender, _] : *receiverPool->second) {
-        senderList.push_back(sender);
+
+    std::vector<string> senders{};
+    for (const auto& [sender, _] : senderPool->second) {
+        senders.push_back(sender);
     }
-    return senderList;
+    return senders;
+}
+
+TpaRequestPtr TpaRequestPool::getRequest(const string& receiver, const string& sender) const {
+    auto senderPool = mPool.find(receiver); // receiver => sender => request
+    if (senderPool == mPool.end()) {
+        return nullptr;
+    }
+
+    auto request = senderPool->second.find(sender); // sender => request
+    if (request == senderPool->second.end()) {
+        return nullptr;
+    }
+    return request->second;
+}
+
+std::unordered_map<string, TpaRequestPtr>* TpaRequestPool::getSenderPool(const string& receiver) {
+    auto senderPool = mPool.find(receiver); // receiver => sender => request
+    if (senderPool == mPool.end()) {
+        return nullptr;
+    }
+    return &senderPool->second;
 }
 
 
