@@ -20,32 +20,36 @@ void TpaRequestPool::_initTask() {
     if (isInited) {
         return;
     }
-    isInited = true;
+    isInited    = true;
+    auto thread = std::thread([this]() {
+        auto& logger = entry::getInstance().getSelf().getLogger();
+        try {
+            auto level = ll::service::getLevel();
+            if (!level.has_value()) {
+                return;
+            }
 
-    using ll::chrono_literals::operator""_tick;
-    scheduler.add<ll::schedule::RepeatTask>(Config::cfg.Tpa.CacehCheckFrequency * 20_tick, [this]() {
-        auto level = ll::service::getLevel();
-        if (!level.has_value()) {
-            return;
-        }
-
-        for (auto& [receiver, senderPool] : this->mPool) {
-            for (auto& [sender, request] : senderPool) {
-                auto avail = request->getAvailable();
-                if (avail != Available::Available) {
-                    auto player = level->getPlayer(sender);
-                    if (player) {
-                        utils::mc::sendText<utils::mc::MsgLevel::Error>(
-                            player,
-                            "{0}",
-                            TpaRequest::getAvailableDescription(avail)
-                        );
+            for (auto& [receiver, senderPool] : this->mPool) {
+                for (auto& [sender, request] : senderPool) {
+                    auto avail = request->getAvailable();
+                    if (avail != Available::Available) {
+                        auto player = level->getPlayer(sender);
+                        if (player) {
+                            utils::mc::sendText<utils::mc::MsgLevel::Error>(
+                                player,
+                                "{0}",
+                                TpaRequest::getAvailableDescription(avail)
+                            );
+                        }
+                        this->deleteRequest(receiver, sender);
                     }
-                    this->deleteRequest(receiver, sender);
                 }
             }
+        } catch (...) {
+            logger.error("TpaRequestPool::_initTask() error");
         }
     });
+    thread.detach();
 }
 void TpaRequestPool::_initReceiver(const string& receiver) {
     if (mPool.find(receiver) == mPool.end()) {
