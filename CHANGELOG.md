@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - 重构 TpaRequestPool、TpaAskForm
+- 完善 Tpa 传送旋转角、接受&拒绝提示
 
 ### Fixed
 
