@@ -56,7 +56,7 @@ public:
     static string tpaTypeToString(TpaType type);            // 获取请求类型描述
 
 private:
-    void destoryThisRequestFormPool(); // 销毁请求
+    void destoryThisRequestFromPool(); // 销毁请求
 
     TpaRequest(const TpaRequest&)            = delete; // 禁止拷贝构造
     TpaRequest& operator=(const TpaRequest&) = delete; // 禁止拷贝赋值

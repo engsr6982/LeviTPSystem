@@ -39,7 +39,7 @@ TpaRequest::~TpaRequest() {
 }
 
 
-void TpaRequest::destoryThisRequestFormPool() {
+void TpaRequest::destoryThisRequestFromPool() {
     auto& pool = TpaRequestPool::getInstance();
     if (pool.hasRequest(receiver, sender)) {
         pool.deleteRequest(receiver, sender);
@@ -53,9 +53,9 @@ bool TpaRequest::isOutdated() {
     return false;
 }
 
+
 using namespace ll::service;
 using namespace tps::utils::mc;
-
 void TpaRequest::accept() {
     Available avail = getAvailable();
     if (avail != Available::Available) {
@@ -64,24 +64,37 @@ void TpaRequest::accept() {
         }
         return;
     }
-    auto& level = *ll::service::getLevel();
-    if (type == TpaType::Tpa) {
-        auto rec = level.getPlayer(receiver);
-        level.getPlayer(sender)->teleport(rec->getPosition(), rec->getDimensionId());
-    } else if (type == TpaType::TpaHere) {
-        auto sen = level.getPlayer(sender);
-        level.getPlayer(receiver)->teleport(sen->getPosition(), sen->getDimensionId());
+
+    auto level          = ll::service::getLevel();
+    auto receiverPlayer = level->getPlayer(this->receiver);
+    auto senderPlayer   = level->getPlayer(this->sender);
+    if (!receiverPlayer || !senderPlayer) {
+        destoryThisRequestFromPool(); // 销毁请求
+        return;
     }
+
+    if (type == TpaType::Tpa) {
+        senderPlayer->teleport(receiverPlayer->getPosition(), receiverPlayer->getDimensionId());
+    } else if (type == TpaType::TpaHere) {
+        receiverPlayer->teleport(senderPlayer->getPosition(), senderPlayer->getDimensionId());
+    }
+
     // 扣除经济
-    tps::modules::Moneys::getInstance().reduceMoney(sender, Config::cfg.Tpa.Money);
-    sendText<MsgLevel::Success>(sender, "'{0}' 接受了您的 '{1}' 请求。"_tr(receiver, tpaTypeToString(type)));
-    destoryThisRequestFormPool(); // 销毁请求
+    tps::modules::Moneys::getInstance().reduceMoney(senderPlayer, Config::cfg.Tpa.Money);
+
+    sendText<MsgLevel::Success>(senderPlayer, "'{0}' 接受了您的 '{1}' 请求。"_tr(receiver, tpaTypeToString(type)));
+    sendText<MsgLevel::Success>(receiverPlayer, "您接受了来自 '{0}' 的 '{1}' 请求。"_tr(sender, tpaTypeToString(type)));
+
+    destoryThisRequestFromPool(); // 销毁请求
 }
 
 void TpaRequest::deny() {
     sendText<MsgLevel::Error>(sender, "'{0}' 拒绝了您的 '{1}' 请求。"_tr(receiver, tpaTypeToString(type)));
-    destoryThisRequestFormPool(); // 销毁请求
+    sendText<MsgLevel::Error>(receiver, "您拒绝了来自 '{0}' 的 '{1}' 请求。"_tr(sender, tpaTypeToString(type)));
+
+    destoryThisRequestFromPool(); // 销毁请求
 }
+
 
 Available TpaRequest::ask() {
     Available avail = getAvailable();
