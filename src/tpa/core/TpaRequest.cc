@@ -74,9 +74,11 @@ void TpaRequest::accept() {
     }
 
     if (type == TpaType::Tpa) {
-        senderPlayer->teleport(receiverPlayer->getPosition(), receiverPlayer->getDimensionId());
+        senderPlayer
+            ->teleport(receiverPlayer->getPosition(), receiverPlayer->getDimensionId(), senderPlayer->getRotation());
     } else if (type == TpaType::TpaHere) {
-        receiverPlayer->teleport(senderPlayer->getPosition(), senderPlayer->getDimensionId());
+        receiverPlayer
+            ->teleport(senderPlayer->getPosition(), senderPlayer->getDimensionId(), receiverPlayer->getRotation());
     }
 
     // 扣除经济
