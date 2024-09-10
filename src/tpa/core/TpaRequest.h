@@ -33,6 +33,8 @@ public:
     std::unique_ptr<Date> time;     // 请求创建时间
     int                   lifespan; // 请求有效期
 
+    std::unique_ptr<class TpaAskForm> _mAskForm; // 请求表单 (保证生命周期)
+
     TpaRequest(Player& sender, Player& receiver, TpaType type, int lifespan);
 
     bool isOutdated(); // 判断请求是否过期

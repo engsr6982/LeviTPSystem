@@ -1,3 +1,4 @@
+#pragma once
 #include "../core/TpaRequest.h"
 #include "ll/api/form/SimpleForm.h"
 #include "mc/world/actor/player/Player.h"
