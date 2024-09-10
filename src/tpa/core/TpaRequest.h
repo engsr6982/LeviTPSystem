@@ -1,6 +1,7 @@
 #pragma once
 #include "mc/world/actor/player/Player.h"
 #include "utils/Date.h"
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -33,9 +34,13 @@ public:
     std::unique_ptr<Date> time;     // 请求创建时间
     int                   lifespan; // 请求有效期
 
-    std::unique_ptr<class TpaAskForm> _mAskForm; // 请求表单 (保证生命周期)
+    uint64_t const mRequestId; // 请求id
 
     TpaRequest(Player& sender, Player& receiver, TpaType type, int lifespan);
+    ~TpaRequest(); // 析构函数
+
+    bool operator==(const TpaRequest& other) const;
+    bool operator!=(const TpaRequest& other) const;
 
     bool isOutdated(); // 判断请求是否过期
 

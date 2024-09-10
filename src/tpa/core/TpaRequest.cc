@@ -11,21 +11,31 @@
 #include "tpa/gui/TpaAskForm.h"
 #include "utils/Date.h"
 #include "utils/Mc.h"
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <unordered_map>
 
 
 namespace tps::tpa {
 
 using ll::i18n_literals::operator""_tr;
 
+std::unordered_map<uint64_t, std::unique_ptr<TpaAskForm>> mAskList;
+static uint64_t                                           NextRequestId = 0;
 
-TpaRequest::TpaRequest(Player& sender, Player& receiver, TpaType type, int lifespan) {
+TpaRequest::TpaRequest(Player& sender, Player& receiver, TpaType type, int lifespan) : mRequestId(NextRequestId++) {
     this->sender   = sender.getRealName();
     this->receiver = receiver.getRealName();
     this->type     = type;
     this->time     = std::make_unique<Date>();
     this->lifespan = lifespan;
+}
+TpaRequest::~TpaRequest() {
+    auto iter = mAskList.find(this->mRequestId);
+    if (iter != mAskList.end()) {
+        mAskList.erase(iter);
+    }
 }
 
 
@@ -81,13 +91,17 @@ Available TpaRequest::ask() {
         }
         return avail;
     }
+
     // 创建询问表单
-    this->_mAskForm = TpaAskForm::create(TpaRequestPtr(shared_from_this()));
+    auto ptr = std::make_unique<TpaAskForm>(TpaRequestPtr(shared_from_this()));
+    // 移交表单所有权
+    mAskList[this->mRequestId] = std::move(ptr);
+
     // 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
     if (rule::RuleManager::getInstance().getPlayerRule(receiver).tpaPopup) {
-        this->_mAskForm->sendTo(*ll::service::getLevel()->getPlayer(receiver)); // 发送弹窗给接收者
+        ptr->sendTo(*ll::service::getLevel()->getPlayer(receiver)); // 发送弹窗给接收者
     } else {
-        this->_mAskForm->cacheRequest(); // 缓存到请求池
+        ptr->cacheRequest(); // 缓存到请求池
     }
     return avail;
 }
