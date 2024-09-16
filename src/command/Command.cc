@@ -43,25 +43,28 @@ bool registerCommands() {
     });
 
     // tps back
-    cmd.overload().text("back").execute([](CommandOrigin const& origin, CommandOutput& output) {
-        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-        Player& player = *static_cast<Player*>(origin.getEntity());
-        death::form::sendGoDeathGUI(player);
-    });
+    if (Config::cfg.Death.Enable)
+        cmd.overload().text("back").execute([](CommandOrigin const& origin, CommandOutput& output) {
+            CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+            Player& player = *static_cast<Player*>(origin.getEntity());
+            death::form::sendGoDeathGUI(player);
+        });
 
     // tps death
-    cmd.overload().text("death").execute([](CommandOrigin const& origin, CommandOutput& output) {
-        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-        Player& player = *static_cast<Player*>(origin.getEntity());
-        death::form::sendQueryGUI(player);
-    });
+    if (Config::cfg.Death.Enable)
+        cmd.overload().text("death").execute([](CommandOrigin const& origin, CommandOutput& output) {
+            CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+            Player& player = *static_cast<Player*>(origin.getEntity());
+            death::form::sendQueryGUI(player);
+        });
 
     // tps pr
-    cmd.overload().text("pr").execute([](CommandOrigin const& origin, CommandOutput& output) {
-        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-        Player& player = *static_cast<Player*>(origin.getEntity());
-        pr::form::index(player);
-    });
+    if (Config::cfg.Pr.Enable)
+        cmd.overload().text("pr").execute([](CommandOrigin const& origin, CommandOutput& output) {
+            CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+            Player& player = *static_cast<Player*>(origin.getEntity());
+            pr::form::index(player);
+        });
 
     // tps rule
     cmd.overload().text("rule").execute([](CommandOrigin const& origin, CommandOutput& output) {
@@ -80,20 +83,21 @@ bool registerCommands() {
     });
 
     // tps tpr
-    cmd.overload().text("tpr").execute([](CommandOrigin const& origin, CommandOutput& output) {
-        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-        Player& player = *static_cast<Player*>(origin.getEntity());
-        auto&   tprMgr = tpr::TprManager::getInstance();
-        tprMgr.showTprMenu(player);
-    });
+    if (Config::cfg.Tpr.Enable)
+        cmd.overload().text("tpr").execute([](CommandOrigin const& origin, CommandOutput& output) {
+            CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+            Player& player = *static_cast<Player*>(origin.getEntity());
+            auto&   tprMgr = tpr::TprManager::getInstance();
+            tprMgr.showTprMenu(player);
+        });
 
 
     // Register All Commands
     string name = Config::cfg.Command.Command;
     registerCommandWithLevelDB(name);
-    registerCommandWithHome(name);
-    registerCommandWithWarp(name);
-    registerCommandWithTpa(name);
+    if (Config::cfg.Home.Enable) registerCommandWithHome(name);
+    if (Config::cfg.Warp.Enable) registerCommandWithWarp(name);
+    if (Config::cfg.Tpa.Enable) registerCommandWithTpa(name);
     return true;
 }
 
