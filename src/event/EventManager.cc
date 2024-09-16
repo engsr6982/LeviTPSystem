@@ -47,24 +47,26 @@ void registerEvent() {
         });
 
     // 发送tpa请求事件
-    mTpaRequestSendListener = eventBus.emplaceListener<TpaRequestSendEvent>([](TpaRequestSendEvent& ev) {
-        auto sender   = ll::service::getLevel()->getPlayer(ev.getSender());   // 获取发送者
-        auto receiver = ll::service::getLevel()->getPlayer(ev.getReciever()); // 获取接收者
+    if (Config::cfg.Tpa.Enable) {
+        mTpaRequestSendListener = eventBus.emplaceListener<TpaRequestSendEvent>([](TpaRequestSendEvent& ev) {
+            auto sender   = ll::service::getLevel()->getPlayer(ev.getSender());   // 获取发送者
+            auto receiver = ll::service::getLevel()->getPlayer(ev.getReciever()); // 获取接收者
 
-        if (sender) {
-            utils::mc::sendText(
-                sender,
-                "已向 {} 发起 {} 请求."_tr(receiver->getRealName(), tpa::TpaRequest::tpaTypeToString(ev.getType()))
-            );
-        }
+            if (sender) {
+                utils::mc::sendText(
+                    sender,
+                    "已向 {} 发起 {} 请求."_tr(receiver->getRealName(), tpa::TpaRequest::tpaTypeToString(ev.getType()))
+                );
+            }
 
-        if (receiver) {
-            utils::mc::sendText(
-                receiver,
-                "收到来自 {} 的 {} 请求."_tr(sender->getRealName(), tpa::TpaRequest::tpaTypeToString(ev.getType()))
-            );
-        }
-    });
+            if (receiver) {
+                utils::mc::sendText(
+                    receiver,
+                    "收到来自 {} 的 {} 请求."_tr(sender->getRealName(), tpa::TpaRequest::tpaTypeToString(ev.getType()))
+                );
+            }
+        });
+    }
 
     // 玩家加入事件
     mPlayerJoinListener =
@@ -82,33 +84,36 @@ void registerEvent() {
         });
 
     // 玩家重生事件
-    mPlayerRespawnListener = eventBus.emplaceListener<ll::event::player::PlayerRespawnEvent>(
-        [](ll::event::player::PlayerRespawnEvent const& ev) {
-            if (ev.self().isSimulatedPlayer()) return; // 过滤模拟玩家
-            if (!Config::checkOpeningDimensions(Config::cfg.Death.OpenDimensions, ev.self().getDimensionId())) {
-                return;
-            }
+    if (Config::cfg.Death.Enable) {
+        mPlayerRespawnListener = eventBus.emplaceListener<ll::event::player::PlayerRespawnEvent>(
+            [](ll::event::player::PlayerRespawnEvent const& ev) {
+                if (ev.self().isSimulatedPlayer()) return; // 过滤模拟玩家
+                if (!Config::checkOpeningDimensions(Config::cfg.Death.OpenDimensions, ev.self().getDimensionId())) {
+                    return;
+                }
 
-            auto rule = rule::RuleManager::getInstance().getPlayerRule(ev.self().getRealName());
-            if (rule.deathPopup) {
-                death::form::sendGoDeathGUI(ev.self());
+                auto rule = rule::RuleManager::getInstance().getPlayerRule(ev.self().getRealName());
+                if (rule.deathPopup) {
+                    death::form::sendGoDeathGUI(ev.self());
+                }
             }
-        }
-    );
+        );
 
-    // 玩家死亡事件
-    mPlayerDieListener =
-        eventBus.emplaceListener<ll::event::player::PlayerDieEvent>([](ll::event::player::PlayerDieEvent const& ev) {
-            if (ev.self().isSimulatedPlayer()) return; // 过滤模拟玩家
-            if (!Config::checkOpeningDimensions(Config::cfg.Death.OpenDimensions, ev.self().getDimensionId())) {
-                return;
-            }
+        // 玩家死亡事件
+        mPlayerDieListener =
+            eventBus.emplaceListener<ll::event::player::PlayerDieEvent>([](ll::event::player::PlayerDieEvent const& ev
+                                                                        ) {
+                if (ev.self().isSimulatedPlayer()) return; // 过滤模拟玩家
+                if (!Config::checkOpeningDimensions(Config::cfg.Death.OpenDimensions, ev.self().getDimensionId())) {
+                    return;
+                }
 
-            auto&           pos = ev.self().getPosition();
-            data::DeathItem deathInfo{pos.x, pos.y, pos.z, ev.self().getDimensionId().id, utils::Date{}.toString()};
-            death::DeathManager::getInstance().addDeathInfo(ev.self().getRealName(), deathInfo);
-            utils::mc::sendText(ev.self(), "已记录本次死亡信息: {0}"_tr(deathInfo.toVec4String()));
-        });
+                auto&           pos = ev.self().getPosition();
+                data::DeathItem deathInfo{pos.x, pos.y, pos.z, ev.self().getDimensionId().id, utils::Date{}.toString()};
+                death::DeathManager::getInstance().addDeathInfo(ev.self().getRealName(), deathInfo);
+                utils::mc::sendText(ev.self(), "已记录本次死亡信息: {0}"_tr(deathInfo.toVec4String()));
+            });
+    }
 }
 
 
