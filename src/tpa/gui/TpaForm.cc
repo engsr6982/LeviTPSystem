@@ -13,7 +13,7 @@
 
 #include "event/TpaRequestSendEvent.h"
 #include "ll/api/event/EventBus.h"
-
+#include <ll/api/mod/ModManagerRegistry.h>
 
 namespace tps::tpa {
 
@@ -37,6 +37,9 @@ TpaForm::TpaForm(Player& player, TpaType type) {
     setContent(modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Tpa.Money));
 
     level->forEachPlayer([type, this](Player& target) {
+
+        if (ll::mod::ModManagerRegistry::getInstance().hasMod("vanish") && target.isInvisible()) return true; // vanish
+
         appendButton(target.getRealName(), [&target, type](Player& sender) {
             try {
                 auto req = std::make_shared<TpaRequest>(sender, target, type, Config::cfg.Tpa.CacheExpirationTime);
