@@ -13,7 +13,7 @@ namespace tps::tpa {
 class TpaRequestPool {
 public:
     //                 接收者 => 发起者池 => 发起者 => 请求实例
-    std::unordered_map<string, std::unordered_map<string, TpaRequestPtr>> mPool;
+    std::unordered_map<string, std::unordered_map<string, std::unique_ptr<TpaRequest>>> mPool;
 
     TpaRequestPool()                                 = default;
     TpaRequestPool(const TpaRequestPool&)            = delete;
@@ -23,7 +23,7 @@ public:
 
     bool hasRequest(const string& receiver, const string& sender) const;
 
-    bool addRequest(TpaRequestPtr request);
+    bool addRequest(std::unique_ptr<TpaRequest> request); // 添加请求实例 (需移交所有权)
 
     bool deleteRequest(const string& receiver, const string& sender);
 
@@ -31,10 +31,11 @@ public:
 
     std::vector<string> getSenderList(const string& receiver) const; // 获取所有发起者
 
-    TpaRequestPtr getRequest(const string& receiver, const string& sender) const; // 获取请求实例
+    TpaRequest* getRequest(const string& receiver, const string& sender) const; // 获取请求实例
 
-    std::unordered_map<string, TpaRequestPtr>* getSenderPool(const string& receiver); // 获取发起者池
+    std::unordered_map<string, std::unique_ptr<TpaRequest>>* getSenderPool(const string& receiver); // 获取发起者池
 
+    TpaRequest* makeRequest(Player& sender, Player& receiver, TpaType type); // 创建请求实例
 
     // private:
     void _initReceiver(const string& receiver);

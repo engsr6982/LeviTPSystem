@@ -6,6 +6,7 @@
 #include "ll/api/schedule/Task.h"
 #include "ll/api/service/Bedrock.h"
 #include "tpa/core/TpaRequest.h"
+#include <cstddef>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -53,7 +54,7 @@ void TpaRequestPool::_initTask() {
 }
 void TpaRequestPool::_initReceiver(const string& receiver) {
     if (mPool.find(receiver) == mPool.end()) {
-        mPool.emplace(string(receiver), std::unordered_map<string, TpaRequestPtr>());
+        mPool.emplace(string(receiver), std::unordered_map<string, std::unique_ptr<TpaRequest>>());
     }
 }
 
@@ -79,11 +80,11 @@ bool TpaRequestPool::hasRequest(const string& receiver, const string& sender) co
     return true;
 }
 
-bool TpaRequestPool::addRequest(TpaRequestPtr request) {
+bool TpaRequestPool::addRequest(std::unique_ptr<TpaRequest> request) {
     auto& logger = entry::getInstance().getSelf().getLogger();
 
-    string const& receiver = request->receiver;
-    string const& sender   = request->sender;
+    string const& receiver = request->getReceiver();
+    string const& sender   = request->getSender();
 
     _initReceiver(receiver); // 初始化接收者
 
@@ -139,7 +140,7 @@ std::vector<string> TpaRequestPool::getSenderList(const string& receiver) const 
     return senders;
 }
 
-TpaRequestPtr TpaRequestPool::getRequest(const string& receiver, const string& sender) const {
+TpaRequest* TpaRequestPool::getRequest(const string& receiver, const string& sender) const {
     auto senderPool = mPool.find(receiver); // receiver => sender => request
     if (senderPool == mPool.end()) {
         return nullptr;
@@ -149,15 +150,20 @@ TpaRequestPtr TpaRequestPool::getRequest(const string& receiver, const string& s
     if (request == senderPool->second.end()) {
         return nullptr;
     }
-    return request->second;
+    return request->second.get();
 }
 
-std::unordered_map<string, TpaRequestPtr>* TpaRequestPool::getSenderPool(const string& receiver) {
+std::unordered_map<string, std::unique_ptr<TpaRequest>>* TpaRequestPool::getSenderPool(const string& receiver) {
     auto senderPool = mPool.find(receiver); // receiver => sender => request
     if (senderPool == mPool.end()) {
         return nullptr;
     }
     return &senderPool->second;
+}
+
+TpaRequest* TpaRequestPool::makeRequest(Player& sender, Player& receiver, TpaType type) {
+    addRequest(std::make_unique<TpaRequest>(sender, receiver, type));
+    return getRequest(receiver.getRealName(), sender.getRealName());
 }
 
 

@@ -8,46 +8,57 @@
 #include "mc/world/level/Level.h"
 #include "modules/Moneys.h"
 #include "rule/RuleManager.h"
-#include "tpa/gui/TpaAskForm.h"
-#include "utils/Date.h"
 #include "utils/Mc.h"
-#include <cstdint>
-#include <memory>
-#include <stdexcept>
-#include <unordered_map>
 
 
 namespace tps::tpa {
 
+
 using ll::i18n_literals::operator""_tr;
+TpaRequest::TpaRequest(Player& sender, Player& receiver, TpaType type) {
+    this->mSender   = sender.getRealName();
+    this->mReceiver = receiver.getRealName();
+    this->mType     = type;
+    this->mTime     = Date();
+    this->mLifespan = Config::cfg.Tpa.CacheExpirationTime;
 
-std::unordered_map<uint64_t, std::unique_ptr<TpaAskForm>> mAskList;
-static uint64_t                                           NextRequestId = 0;
 
-TpaRequest::TpaRequest(Player& sender, Player& receiver, TpaType type, int lifespan) : mRequestId(NextRequestId++) {
-    this->sender   = sender.getRealName();
-    this->receiver = receiver.getRealName();
-    this->type     = type;
-    this->time     = std::make_unique<Date>();
-    this->lifespan = lifespan;
-}
-TpaRequest::~TpaRequest() {
-    auto iter = mAskList.find(this->mRequestId);
-    if (iter != mAskList.end()) {
-        mAskList.erase(iter);
+    // 构造表单
+    string tpaDescription;
+    if (mType == TpaType::Tpa) {
+        tpaDescription = "{0} 希望传送到您这里"_tr(mSender);
+    } else if (mType == TpaType::TpaHere) {
+        tpaDescription = "{0} 希望将您传送至他那里"_tr(mSender);
+    } else {
+        tpaDescription = "未知请求类型"_tr();
     }
+
+    mAskForm.setTitle("TPA Request"_tr());
+    mAskForm.setContent(tpaDescription);
+
+    mAskForm.appendButton("接受"_tr(), "textures/ui/realms_green_check", "path", [this](Player&) { this->_accept(); });
+
+    mAskForm.appendButton("拒绝"_tr(), "textures/ui/realms_red_x", "path", [this](Player&) { this->_deny(); });
+
+    mAskForm.appendButton("暂时忽略\n(有效期至: {0})"_tr(mTime.toString()), "textures/ui/backup_replace", "path");
 }
 
+string const& TpaRequest::getSender() const { return mSender; }
+string const& TpaRequest::getReceiver() const { return mReceiver; }
+TpaType       TpaRequest::getType() const { return mType; }
+Date const&   TpaRequest::getTime() const { return mTime; }
+int           TpaRequest::getLifespan() const { return mLifespan; }
 
-void TpaRequest::destoryThisRequestFromPool() {
+void TpaRequest::destroy() const {
     auto& pool = TpaRequestPool::getInstance();
-    if (pool.hasRequest(receiver, sender)) {
-        pool.deleteRequest(receiver, sender);
+    if (pool.hasRequest(mReceiver, mSender)) {
+        pool.deleteRequest(mReceiver, mSender);
     }
 }
 
-bool TpaRequest::isOutdated() {
-    if (Date{}.getTime() - this->time->getTime() >= this->lifespan) {
+bool TpaRequest::isAvailable() const { return getAvailable() == Available::Available; }
+bool TpaRequest::isOutdated() const {
+    if (Date{}.getTime() - this->mTime.getTime() >= this->mLifespan) {
         return true;
     }
     return false;
@@ -56,27 +67,27 @@ bool TpaRequest::isOutdated() {
 
 using namespace ll::service;
 using namespace tps::utils::mc;
-void TpaRequest::accept() {
+void TpaRequest::_accept() const {
     Available avail = getAvailable();
     if (avail != Available::Available) {
         if (avail != Available::SenderOffline) {
-            sendText<MsgLevel::Error>(sender, "{}", getAvailableDescription(avail));
+            sendText<MsgLevel::Error>(mSender, "{}", getAvailableDescription(avail));
         }
         return;
     }
 
     auto level          = ll::service::getLevel();
-    auto receiverPlayer = level->getPlayer(this->receiver);
-    auto senderPlayer   = level->getPlayer(this->sender);
+    auto receiverPlayer = level->getPlayer(this->mReceiver);
+    auto senderPlayer   = level->getPlayer(this->mSender);
     if (!receiverPlayer || !senderPlayer) {
-        destoryThisRequestFromPool(); // 销毁请求
+        destroy(); // 销毁请求
         return;
     }
 
-    if (type == TpaType::Tpa) {
+    if (mType == TpaType::Tpa) {
         senderPlayer
             ->teleport(receiverPlayer->getPosition(), receiverPlayer->getDimensionId(), senderPlayer->getRotation());
-    } else if (type == TpaType::TpaHere) {
+    } else if (mType == TpaType::TpaHere) {
         receiverPlayer
             ->teleport(senderPlayer->getPosition(), senderPlayer->getDimensionId(), receiverPlayer->getRotation());
     }
@@ -84,64 +95,67 @@ void TpaRequest::accept() {
     // 扣除经济
     tps::modules::Moneys::getInstance().reduceMoney(senderPlayer, Config::cfg.Tpa.Money);
 
-    sendText<MsgLevel::Success>(senderPlayer, "'{0}' 接受了您的 '{1}' 请求。"_tr(receiver, tpaTypeToString(type)));
-    sendText<MsgLevel::Success>(receiverPlayer, "您接受了来自 '{0}' 的 '{1}' 请求。"_tr(sender, tpaTypeToString(type)));
+    sendText<MsgLevel::Success>(senderPlayer, "'{0}' 接受了您的 '{1}' 请求。"_tr(mReceiver, tpaTypeToString(mType)));
+    sendText<MsgLevel::Success>(
+        receiverPlayer,
+        "您接受了来自 '{0}' 的 '{1}' 请求。"_tr(mSender, tpaTypeToString(mType))
+    );
 
-    destoryThisRequestFromPool(); // 销毁请求
+    destroy(); // 销毁请求
 }
 
-void TpaRequest::deny() {
-    sendText<MsgLevel::Error>(sender, "'{0}' 拒绝了您的 '{1}' 请求。"_tr(receiver, tpaTypeToString(type)));
-    sendText<MsgLevel::Error>(receiver, "您拒绝了来自 '{0}' 的 '{1}' 请求。"_tr(sender, tpaTypeToString(type)));
+void TpaRequest::_deny() const {
+    sendText<MsgLevel::Error>(mSender, "'{0}' 拒绝了您的 '{1}' 请求。"_tr(mReceiver, tpaTypeToString(mType)));
+    sendText<MsgLevel::Error>(mReceiver, "您拒绝了来自 '{0}' 的 '{1}' 请求。"_tr(mSender, tpaTypeToString(mType)));
 
-    destoryThisRequestFromPool(); // 销毁请求
+    destroy(); // 销毁请求
 }
 
 
-Available TpaRequest::ask() {
+Available TpaRequest::sendAskForm() {
     Available avail = getAvailable();
     if (avail != Available::Available) {
         if (avail != Available::SenderOffline) {
-            sendText<MsgLevel::Error>(sender, "{}", getAvailableDescription(avail));
+            sendText<MsgLevel::Error>(mSender, "{}", getAvailableDescription(avail));
         }
         return avail;
     }
 
     // 创建询问表单
-    auto ptr = std::make_unique<TpaAskForm>(TpaRequestPtr(shared_from_this()));
-    // 移交表单所有权
-    mAskList[this->mRequestId] = std::move(ptr);
-
-    // 检查玩家是否接受弹窗, 接受则发送弹窗，否则缓存到请求池
-    if (rule::RuleManager::getInstance().getPlayerRule(receiver).tpaPopup) {
-        ptr->sendTo(*ll::service::getLevel()->getPlayer(receiver)); // 发送弹窗给接收者
-    } else {
-        ptr->cacheRequest(); // 缓存到请求池
+    // 检查玩家是否接受弹窗, 接受则发送弹窗，否则
+    if (rule::RuleManager::getInstance().getPlayerRule(mReceiver).tpaPopup) {
+        mAskForm.sendTo(*ll::service::getLevel()->getPlayer(mReceiver), [](Player&, int, ll::form::FormCancelReason) {
+        });
     }
+
     return avail;
 }
 
-
-Available TpaRequest::getAvailable() {
+Available TpaRequest::getAvailable() const {
     if (isOutdated()) {
         return Available::Expired;
     }
-    if (getLevel()->getPlayer(sender) == nullptr) {
+    if (getLevel()->getPlayer(mSender) == nullptr) {
         return Available::SenderOffline;
     }
-    if (getLevel()->getPlayer(receiver) == nullptr) {
+    if (getLevel()->getPlayer(mReceiver) == nullptr) {
         return Available::RecieverOffline;
     }
-    if (modules::Moneys::getInstance().getMoney(sender) < Config::cfg.Tpa.Money && Config::cfg.Tpa.Money != 0) {
+    if (modules::Moneys::getInstance().getMoney(mSender) < Config::cfg.Tpa.Money && Config::cfg.Tpa.Money != 0) {
         return Available::Unaffordable;
     }
     // 检查对方是否禁止发送tpa请求
-    if (!rule::RuleManager::getInstance().getPlayerRule(receiver).allowTpa) {
+    if (!rule::RuleManager::getInstance().getPlayerRule(mReceiver).allowTpa) {
         return Available::ProhibitTpaRequest;
     }
     return Available::Available;
 }
 
+// TpaRequest::operator bool() const { return isAvailable(); }
+bool TpaRequest::operator!=(const TpaRequest& other) const { return !(*this == other); }
+bool TpaRequest::operator==(const TpaRequest& other) const {
+    return mSender == other.mSender && mReceiver == other.mReceiver && mType == other.mType;
+}
 
 // static
 string TpaRequest::getAvailableDescription(Available avail) {

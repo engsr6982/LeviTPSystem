@@ -6,6 +6,7 @@
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
 #include "tpa/core/TpaRequest.h"
+#include "tpa/core/TpaRequestPool.h"
 #include "utils/Date.h"
 #include "utils/Mc.h"
 #include <memory>
@@ -39,18 +40,16 @@ TpaForm::TpaForm(Player& player, TpaType type) {
     level->forEachPlayer([type, this](Player& target) {
         appendButton(target.getRealName(), [&target, type](Player& sender) {
             try {
-                auto req = std::make_shared<TpaRequest>(sender, target, type, Config::cfg.Tpa.CacheExpirationTime);
+                auto req = TpaRequestPool::getInstance().makeRequest(sender, target, type);
                 // 发送请求
-                tpa::Available avail = req->ask();
+                tpa::Available avail = req->sendAskForm();
 
                 if (avail != tpa::Available::Available) {
                     tps::utils::mc::sendText(sender, "{}", TpaRequest::getAvailableDescription(avail));
                 }
 
                 // Tpa 请求发送事件
-                ll::event::EventBus::getInstance().publish(
-                    event::TpaRequestSendEvent(req->sender, req->receiver, *req->time, req->type, req->lifespan)
-                );
+                ll::event::EventBus::getInstance().publish(event::TpaRequestSendEvent(req));
             } catch (...) {}
         });
         return true;

@@ -58,7 +58,7 @@ void registerCommandWithTpa(const string& _commandName) {
 
             } else if (senders.size() == 1) { // 只有一个请求
                 auto req = pool->getRequest(receiver.getRealName(), senders[0]);
-                param.option == TpOption::accept ? req->accept() : req->deny();
+                param.option == TpOption::accept ? req->_accept() : req->_deny();
                 return;
 
             } else {
@@ -68,7 +68,7 @@ void registerCommandWithTpa(const string& _commandName) {
                     fm.appendButton(sender, [sender, pool, param](Player& receiver2) {
                         auto req = pool->getRequest(receiver2.getRealName(), sender);
                         if (req->getAvailable() == tpa::Available::Available) {
-                            param.option == TpOption::accept ? req->accept() : req->deny();
+                            param.option == TpOption::accept ? req->_accept() : req->_deny();
                         }
                     });
                 }
@@ -78,44 +78,37 @@ void registerCommandWithTpa(const string& _commandName) {
     );
 
     // tps tpa <here|to> <Player>
-    cmd.overload<ParamTp>().text("tpa").required("type").required("target").execute([](CommandOrigin const& origin,
-                                                                                       CommandOutput&       output,
-                                                                                       const ParamTp&       param) {
-        CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
-        auto& sender = *static_cast<Player*>(origin.getEntity());
-        if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, sender.getDimensionId())) {
-            sendText<MsgLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
-            return;
+    cmd.overload<ParamTp>().text("tpa").required("type").required("target").execute(
+        [](CommandOrigin const& origin, CommandOutput& output, const ParamTp& param) {
+            CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
+            auto& sender = *static_cast<Player*>(origin.getEntity());
+            if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, sender.getDimensionId())) {
+                sendText<MsgLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
+                return;
+            }
+
+
+            auto li = param.target.results(origin);
+            if (li.empty()) {
+                sendText<MsgLevel::Error>(output, "请至少选择一位玩家！"_tr());
+                return;
+            } else if (li.size() > 1) {
+                sendText<MsgLevel::Error>(output, "仅支持对一位玩家发起TPA！"_tr());
+                return;
+            }
+
+            auto request = tpa::TpaRequestPool::getInstance().makeRequest(sender, *(*li.data)[0], param.type);
+
+            tpa::Available avail = request->sendAskForm(); // 发送请求
+
+            if (avail != tpa::Available::Available) {
+                sendText<MsgLevel::Error>(sender, "{}"_tr(tpa::TpaRequest::getAvailableDescription(avail)));
+            }
+
+            // Tpa 请求发送事件
+            ll::event::EventBus::getInstance().publish(event::TpaRequestSendEvent(request));
         }
-
-
-        auto li = param.target.results(origin);
-        if (li.empty()) {
-            sendText<MsgLevel::Error>(output, "请至少选择一位玩家！"_tr());
-            return;
-        } else if (li.size() > 1) {
-            sendText<MsgLevel::Error>(output, "仅支持对一位玩家发起TPA！"_tr());
-            return;
-        }
-
-        auto request =
-            std::make_shared<tpa::TpaRequest>(sender, *(*li.data)[0], param.type, Config::cfg.Tpa.CacheExpirationTime);
-
-        tpa::Available avail = request->ask(); // 发送请求
-
-        if (avail != tpa::Available::Available) {
-            sendText<MsgLevel::Error>(sender, "{}"_tr(tpa::TpaRequest::getAvailableDescription(avail)));
-        }
-
-        // Tpa 请求发送事件
-        ll::event::EventBus::getInstance().publish(event::TpaRequestSendEvent(
-            request->sender,
-            request->receiver,
-            *request->time,
-            request->type,
-            request->lifespan
-        ));
-    });
+    );
 }
 
 } // namespace tps::command
