@@ -32,32 +32,66 @@ void TpaRequestPool::_initTask() {
                 return;
             }
 
-            for (auto& [receiver, senderPool] : this->mPool) {
+            // 使用迭代器来安全地删除元素
+            for (auto receiverIt = mPool.begin(); receiverIt != mPool.end();) {
+                auto& [receiver, senderPool] = *receiverIt;
                 if (senderPool.empty()) {
+                    receiverIt = mPool.erase(receiverIt);
                     continue;
                 }
-                for (auto const& [sender, request] : senderPool) {
-                    if (request == nullptr) {
-                        this->deleteRequest(receiver, sender);
+
+                for (auto senderIt = senderPool.begin(); senderIt != senderPool.end();) {
+                    auto& [sender, request] = *senderIt;
+                    if (!request) {
+                        senderIt = senderPool.erase(senderIt);
                         continue;
                     }
 
-                    auto avail = request->getAvailable();
-                    if (avail != Available::Available) {
-                        auto player = level->getPlayer(sender);
-                        if (player) {
-                            utils::mc::sendText<utils::mc::MsgLevel::Error>(
-                                player,
-                                "{0}",
-                                TpaRequest::getAvailableDescription(avail)
-                            );
+                    // 添加额外的空指针检查
+                    if (request.get() == nullptr) {
+                        entry::getInstance().getSelf().getLogger().error(
+                            "Null pointer detected for sender: {}",
+                            sender
+                        );
+                        senderIt = senderPool.erase(senderIt);
+                        continue;
+                    }
+
+                    try {
+                        auto avail = request->getAvailable();
+                        if (avail != Available::Available) {
+                            auto player = level->getPlayer(sender);
+                            if (player) {
+                                utils::mc::sendText<utils::mc::MsgLevel::Error>(
+                                    player,
+                                    "{0}",
+                                    TpaRequest::getAvailableDescription(avail)
+                                );
+                            }
+                            senderIt = senderPool.erase(senderIt);
+                        } else {
+                            ++senderIt;
                         }
-                        this->deleteRequest(receiver, sender);
+                    } catch (const std::exception& e) {
+                        entry::getInstance().getSelf().getLogger().error(
+                            "Exception in getAvailable for sender {}: {}",
+                            sender,
+                            e.what()
+                        );
+                        senderIt = senderPool.erase(senderIt);
                     }
                 }
+
+                if (senderPool.empty()) {
+                    receiverIt = mPool.erase(receiverIt);
+                } else {
+                    ++receiverIt;
+                }
             }
+        } catch (const std::exception& e) {
+            entry::getInstance().getSelf().getLogger().error("Exception in {}: {}", __FUNCTION__, e.what());
         } catch (...) {
-            entry::getInstance().getSelf().getLogger().error("Cached exception in {}", __FUNCTION__);
+            entry::getInstance().getSelf().getLogger().error("Unknown exception in {}", __FUNCTION__);
         }
     });
 }
