@@ -34,8 +34,8 @@ public:
     string const& getSender() const;
     string const& getReceiver() const;
     TpaType       getType() const;
-    Date const&   getTime() const;
-    int           getLifespan() const;
+    Date const&   getCreationTime() const; // 获取创建时间
+    Date const&   getExpireTime() const;   // 获取过期时间
 
     // others
     bool isAvailable() const; // 判断请求是否可用
@@ -52,7 +52,6 @@ public:
     // operators
     bool     operator==(const TpaRequest& other) const;
     bool     operator!=(const TpaRequest& other) const;
-    // explicit operator bool() const; // isAvailable
 
 
     // static
@@ -60,17 +59,17 @@ public:
     static string tpaTypeToString(TpaType type);            // 获取请求类型描述
 
 private:
-    ll::form::SimpleForm mAskForm;  // 请求表单
-    string               mSender;   // 请求者
-    string               mReceiver; // 接收者
-    TpaType              mType;     // 请求类型
-    Date                 mTime;     // 请求创建时间
-    int                  mLifespan; // 请求有效期
+    ll::form::SimpleForm mAskForm;      // 请求表单
+    string               mSender;       // 请求者
+    string               mReceiver;     // 接收者
+    TpaType              mType;         // 请求类型
+    Date                 mCreationTime; // 创建时间
+    Date                 mExpireTime;   // 过期时间
 
-    // TpaRequest(const TpaRequest&)            = delete; // 禁止拷贝构造
-    // TpaRequest& operator=(const TpaRequest&) = delete; // 禁止拷贝赋值
-    // TpaRequest(TpaRequest&&)                 = delete; // 禁止移动构造
-    // TpaRequest& operator=(TpaRequest&&)      = delete; // 禁止移动赋值
+    TpaRequest(const TpaRequest&)            = delete; // 禁止拷贝构造
+    TpaRequest& operator=(const TpaRequest&) = delete; // 禁止拷贝赋值
+    TpaRequest(TpaRequest&&)                 = delete; // 禁止移动构造
+    TpaRequest& operator=(TpaRequest&&)      = delete; // 禁止移动赋值
 };
 
 

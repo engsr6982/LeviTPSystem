@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2024-10-8
+
+### Fixed
+
+- 修复 Tpa 模块异常
+
+### Changed
+
+- 重构 Tpa 模块(请求、请求池、表单)
+
 ## [0.4.3] - 2024-9-16
 
 ### Fixed
@@ -20,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- 修复亿些Tpa的Bug(具体忘了)
+- 修复亿些 Tpa 的 Bug(具体忘了)
 
 ## [0.4.1] - 2024-9-6
 

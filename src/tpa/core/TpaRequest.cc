@@ -16,12 +16,11 @@ namespace tps::tpa {
 
 using ll::i18n_literals::operator""_tr;
 TpaRequest::TpaRequest(Player& sender, Player& receiver, TpaType type) {
-    this->mSender   = sender.getRealName();
-    this->mReceiver = receiver.getRealName();
-    this->mType     = type;
-    this->mTime     = Date();
-    this->mLifespan = Config::cfg.Tpa.CacheExpirationTime;
-
+    this->mSender       = sender.getRealName();
+    this->mReceiver     = receiver.getRealName();
+    this->mType         = type;
+    this->mCreationTime = Date{};
+    this->mExpireTime   = Date::future(Config::cfg.Tpa.CacheExpirationTime);
 
     // 构造表单
     string tpaDescription;
@@ -35,19 +34,16 @@ TpaRequest::TpaRequest(Player& sender, Player& receiver, TpaType type) {
 
     mAskForm.setTitle("TPA Request"_tr());
     mAskForm.setContent(tpaDescription);
-
     mAskForm.appendButton("接受"_tr(), "textures/ui/realms_green_check", "path", [this](Player&) { this->_accept(); });
-
     mAskForm.appendButton("拒绝"_tr(), "textures/ui/realms_red_x", "path", [this](Player&) { this->_deny(); });
-
-    mAskForm.appendButton("暂时忽略\n(有效期至: {0})"_tr(mTime.toString()), "textures/ui/backup_replace", "path");
+    mAskForm.appendButton("暂时忽略\n(有效期至: {0})"_tr(mExpireTime.toString()), "textures/ui/backup_replace", "path");
 }
 
 string const& TpaRequest::getSender() const { return mSender; }
 string const& TpaRequest::getReceiver() const { return mReceiver; }
 TpaType       TpaRequest::getType() const { return mType; }
-Date const&   TpaRequest::getTime() const { return mTime; }
-int           TpaRequest::getLifespan() const { return mLifespan; }
+Date const&   TpaRequest::getCreationTime() const { return mCreationTime; }
+Date const&   TpaRequest::getExpireTime() const { return mExpireTime; }
 
 void TpaRequest::destroy() const {
     auto& pool = TpaRequestPool::getInstance();
@@ -58,7 +54,7 @@ void TpaRequest::destroy() const {
 
 bool TpaRequest::isAvailable() const { return getAvailable() == Available::Available; }
 bool TpaRequest::isOutdated() const {
-    if (Date{}.getTime() - this->mTime.getTime() >= this->mLifespan) {
+    if (Date{}.getTime() > mExpireTime.getTime()) {
         return true;
     }
     return false;
@@ -151,7 +147,6 @@ Available TpaRequest::getAvailable() const {
     return Available::Available;
 }
 
-// TpaRequest::operator bool() const { return isAvailable(); }
 bool TpaRequest::operator!=(const TpaRequest& other) const { return !(*this == other); }
 bool TpaRequest::operator==(const TpaRequest& other) const {
     return mSender == other.mSender && mReceiver == other.mReceiver && mType == other.mType;

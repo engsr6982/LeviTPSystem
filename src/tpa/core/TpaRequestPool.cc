@@ -18,20 +18,30 @@ namespace tps::tpa {
 
 void TpaRequestPool::_initTask() {
     static bool isInited = false;
-    if (isInited) {
-        return;
-    }
-    isInited    = true;
-    auto thread = std::thread([this]() {
-        auto& logger = entry::getInstance().getSelf().getLogger();
+    if (isInited) return;
+    isInited = true;
+
+    scheduler.add<ll::schedule::RepeatTask>(ll::chrono::ticks(Config::cfg.Tpa.CacehCheckFrequency * 20), [this]() {
         try {
+            if (mPool.empty()) {
+                return;
+            }
+
             auto level = ll::service::getLevel();
             if (!level.has_value()) {
                 return;
             }
 
             for (auto& [receiver, senderPool] : this->mPool) {
-                for (auto& [sender, request] : senderPool) {
+                if (senderPool.empty()) {
+                    continue;
+                }
+                for (auto const& [sender, request] : senderPool) {
+                    if (request == nullptr) {
+                        this->deleteRequest(receiver, sender);
+                        continue;
+                    }
+
                     auto avail = request->getAvailable();
                     if (avail != Available::Available) {
                         auto player = level->getPlayer(sender);
@@ -47,10 +57,9 @@ void TpaRequestPool::_initTask() {
                 }
             }
         } catch (...) {
-            logger.error("TpaRequestPool::_initTask() error");
+            entry::getInstance().getSelf().getLogger().error("Cached exception in {}", __FUNCTION__);
         }
     });
-    thread.detach();
 }
 
 
