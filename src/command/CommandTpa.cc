@@ -1,15 +1,15 @@
-#include "../tpa/core/TpaRequestPool.h"
-#include "../tpa/gui/TpaEntry.h"
 #include "Command.h"
+#include "event/TpaRequestSendEvent.h"
 #include "ll/api/command/CommandRegistrar.h"
+#include "ll/api/event/EventBus.h"
 #include "ll/api/form/SimpleForm.h"
 #include "mc/server/commands/CommandOrigin.h"
 #include "mc/server/commands/CommandOriginType.h"
 #include "mc/server/commands/CommandOutput.h"
 #include "mc/server/commands/CommandSelector.h"
+#include "tpa/TpaGUI.h"
+#include "tpa/core/TpaRequestPool.h"
 
-#include "event/TpaRequestSendEvent.h"
-#include "ll/api/event/EventBus.h"
 
 namespace tps::command {
 
@@ -30,7 +30,7 @@ void registerCommandWithTpa(const string& _commandName) {
     cmd.overload().text("tpa").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         auto& player = *static_cast<Player*>(origin.getEntity());
-        tps::tpa::tpaEntry(player);
+        tps::tpa::TpaGUI::TpaEntryGUI(player);
     });
 
     // tps tpa <accept|deny>
