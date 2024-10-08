@@ -52,11 +52,6 @@ void TpaRequestPool::_initTask() {
     });
     thread.detach();
 }
-void TpaRequestPool::_initReceiver(const string& receiver) {
-    if (mPool.find(receiver) == mPool.end()) {
-        mPool.emplace(string(receiver), std::unordered_map<string, std::unique_ptr<TpaRequest>>());
-    }
-}
 
 
 TpaRequestPool& TpaRequestPool::getInstance() {
@@ -67,17 +62,10 @@ TpaRequestPool& TpaRequestPool::getInstance() {
 
 
 bool TpaRequestPool::hasRequest(const string& receiver, const string& sender) const {
-    auto senderPool = mPool.find(receiver); // receiver => sender => request
-    if (senderPool == mPool.end()) {
-        return false;
+    if (mPool.contains(receiver)) {
+        return mPool.at(receiver).contains(sender); // receiver => sender => request
     }
-
-    auto request = senderPool->second.find(sender);
-    if (request == senderPool->second.end()) {
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 bool TpaRequestPool::addRequest(std::unique_ptr<TpaRequest> request) {
@@ -86,7 +74,10 @@ bool TpaRequestPool::addRequest(std::unique_ptr<TpaRequest> request) {
     string const& receiver = request->getReceiver();
     string const& sender   = request->getSender();
 
-    _initReceiver(receiver); // 初始化接收者
+    // 初始化接收者池
+    if (!mPool.contains(receiver)) {
+        mPool[string(receiver)] = std::unordered_map<string, std::unique_ptr<TpaRequest>>{};
+    }
 
     if (hasRequest(receiver, sender)) {
         deleteRequest(receiver, sender); // 同玩家重复请求，删除旧请求
@@ -98,34 +89,21 @@ bool TpaRequestPool::addRequest(std::unique_ptr<TpaRequest> request) {
         return false; // 接收者池不存在
     }
 
-    senderPool->second.emplace(string(sender), request);
+    senderPool->second.emplace(string(sender), std::move(request));
     return true;
 }
 
 bool TpaRequestPool::deleteRequest(const string& receiver, const string& sender) {
-    auto senderPool = mPool.find(receiver); // receiver => sender => request
-
-    if (senderPool == mPool.end()) {
-        return false;
+    if (mPool.contains(receiver)) {
+        auto& senders = mPool.at(receiver);
+        if (senders.contains(sender)) {
+            senders.erase(sender);
+            return true;
+        }
     }
-
-    auto request = senderPool->second.find(sender); // sender => request
-    if (request == senderPool->second.end()) {
-        return false;
-    }
-
-    senderPool->second.erase(request); // 删除请求
-    return true;
+    return false;
 }
 
-
-std::vector<string> TpaRequestPool::getReceiverList() const {
-    std::vector<string> receiverList{};
-    for (const auto& [receiver, _] : mPool) {
-        receiverList.push_back(receiver);
-    }
-    return receiverList;
-}
 
 std::vector<string> TpaRequestPool::getSenderList(const string& receiver) const {
     auto senderPool = mPool.find(receiver); // receiver => sender => request
@@ -151,14 +129,6 @@ TpaRequest* TpaRequestPool::getRequest(const string& receiver, const string& sen
         return nullptr;
     }
     return request->second.get();
-}
-
-std::unordered_map<string, std::unique_ptr<TpaRequest>>* TpaRequestPool::getSenderPool(const string& receiver) {
-    auto senderPool = mPool.find(receiver); // receiver => sender => request
-    if (senderPool == mPool.end()) {
-        return nullptr;
-    }
-    return &senderPool->second;
 }
 
 TpaRequest* TpaRequestPool::makeRequest(Player& sender, Player& receiver, TpaType type) {
