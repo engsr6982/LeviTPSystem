@@ -44,6 +44,8 @@ public:
     bool teleportToWarp(Player& player, const string& warpName, bool ignoreMoneys = false);
 
     data::Warp getWarps();
+
+    data::Warp queryWarps(const string& keyword) const; // 模糊查询
 };
 
 } // namespace tps::warp

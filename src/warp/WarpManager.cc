@@ -102,5 +102,15 @@ bool WarpManager::teleportToWarp(Player& player, const string& warpName, bool ig
 
 data::Warp WarpManager::getWarps() { return *mWarpData; }
 
+data::Warp WarpManager::queryWarps(const string& keyword) const {
+    data::Warp result; // 模糊查询结果
+    for (const auto& warp : *mWarpData) {
+        if (warp.name.find(keyword) != string::npos) {
+            result.emplace_back(warp);
+        }
+    }
+    return result;
+}
+
 
 } // namespace tps::warp
