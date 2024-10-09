@@ -114,7 +114,7 @@ void _selectWarp(Player& player, CallBack call) {
     fm.setTitle(PLUGIN_NAME);
 
     fm.appendButton("返回上一页", "textures/ui/icon_import", "path", [](Player& p) { index(p); });
-    fm.appendButton("搜索", "textures/ui/icon_search", "path", [](Player& self) { SerarchWarp(self); });
+    fm.appendButton("搜索", "textures/ui/magnifyingGlass", "path", [](Player& self) { SerarchWarp(self); });
 
     for (auto const& w : warps) {
         string name = w.name;
