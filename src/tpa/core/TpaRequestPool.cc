@@ -6,6 +6,8 @@
 #include "ll/api/schedule/Task.h"
 #include "ll/api/service/Bedrock.h"
 #include "tpa/core/TpaRequest.h"
+#include "utils/Mc.h"
+#include "utils/McAPI.h"
 #include <cstddef>
 #include <memory>
 #include <unordered_map>

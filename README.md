@@ -1,13 +1,14 @@
 # LeviTPSystem 传送系统
 
 特性：
+
 - 家园传送
 - 公共传送
 - 随机传送（TPR）
 - 玩家传送（TPA）
 - 死亡点传送
 - 死亡点查询
-- 命令/GUI操作
+- 命令/GUI 操作
 - 玩家自定义规则
 
 ## 安装
@@ -106,11 +107,11 @@ lip install github.com/engsr6982/LeviTPSystem
     "Command": "tps", // 顶层命令
     "Description": "LeviTPSystem" // 命令描述
   },
-  "Money": {
-    "Enable": false, // 是否启用经济系统
-    "MoneyType": "LLMoney", // 经济系统类型，支持 LLMoney、ScoreBoard
-    "MoneyName": "money", // 经济名称
-    "ScoreName": "" // 计分板名称
+  "EconomySystem": {
+    "enabled": false, // 是否启用经济系统
+    "kit": "LegacyMoney", // 经济套件，支持 LegacyMoney、Scoreboard
+    "currency": "money", // 经济名称
+    "scoreboard": "" // 计分板名称
   },
   "Tpa": {
     "Enable": true,

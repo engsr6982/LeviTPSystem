@@ -12,7 +12,7 @@ using string            = std::string;
 using OpeningDimensions = std::vector<int>; // 开放维度 -1为不限制
 
 struct Config {
-    int version  = 3; // 配置文件版本
+    int version  = 4; // 配置文件版本
     int logLevel = 4; // 日志等级
 
     // 基础配置
