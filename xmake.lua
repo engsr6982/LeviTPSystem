@@ -4,8 +4,7 @@ add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 
 add_requires(
     "levilamina 0.13.5",
-    "permissioncore 0.10.1",
-    "legacymoney 0.8.3"
+    "permissioncore 0.10.1"
 )
 
 
@@ -50,7 +49,6 @@ target("LeviTPSystem")
 
     add_defines("PLUGIN_NAME=\"LeviTPSystem\"")
     add_packages("permissioncore")
-    add_packages("legacymoney")
 
     after_build(function (target)
         local plugin_packer = import("scripts.after_build")

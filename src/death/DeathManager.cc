@@ -5,7 +5,7 @@
 #include "ll/api/i18n/I18n.h"
 #include "mc/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
-#include "modules/Moneys.h"
+#include "modules/EconomySystem.h"
 #include "utils/Mc.h"
 #include <memory>
 #include <vector>
@@ -58,7 +58,7 @@ bool DeathManager::teleport(Player& player, const int& index) {
         utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "您还没有死亡点信息!");
         return false;
     }
-    if (modules::Moneys::getInstance().reduceMoney(player, Config::cfg.Death.GoDeathMoney)) {
+    if (modules::EconomySystem::getInstance().reduce(player, Config::cfg.Death.GoDeathMoney)) {
         auto death = fin->second[index];
         player.teleport(Vec3(death.x, death.y, death.z), death.dimid);
         return true;

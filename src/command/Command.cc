@@ -3,8 +3,8 @@
 #include "death/DeathForm.h"
 #include "ll/api/command/CommandRegistrar.h"
 #include "manager/ManagerEntry.h"
+#include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "modules/Moneys.h"
 #include "permission/Permission.h"
 #include "pr/PrForm.h"
 #include "rule/RuleForm.h"
@@ -78,7 +78,7 @@ bool registerCommands() {
     cmd.overload().text("reload").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::DedicatedServer);
         Config::tryLoad();
-        modules::Moneys::getInstance().updateConfig(Config::cfg.Money);
+        modules::EconomySystem::getInstance().update(&Config::cfg.EconomySystem);
         sendText(output, "Config Reloaded!"_tr());
     });
 

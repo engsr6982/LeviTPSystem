@@ -6,7 +6,7 @@
 #include "magic_enum.hpp"
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/Level.h"
-#include "modules/Moneys.h"
+#include "modules/EconomySystem.h"
 #include "rule/RuleManager.h"
 #include "utils/Mc.h"
 
@@ -89,7 +89,7 @@ void TpaRequest::_accept() const {
     }
 
     // 扣除经济
-    tps::modules::Moneys::getInstance().reduceMoney(senderPlayer, Config::cfg.Tpa.Money);
+    modules::EconomySystem::getInstance().reduce(*senderPlayer, Config::cfg.Tpa.Money);
 
     sendText<MsgLevel::Success>(senderPlayer, "'{0}' 接受了您的 '{1}' 请求。"_tr(mReceiver, tpaTypeToString(mType)));
     sendText<MsgLevel::Success>(
@@ -137,7 +137,8 @@ Available TpaRequest::getAvailable() const {
     if (getLevel()->getPlayer(mReceiver) == nullptr) {
         return Available::RecieverOffline;
     }
-    if (modules::Moneys::getInstance().getMoney(mSender) < Config::cfg.Tpa.Money && Config::cfg.Tpa.Money != 0) {
+    if (modules::EconomySystem::getInstance().get(*getLevel()->getPlayer(mSender)) < Config::cfg.Tpa.Money
+        && Config::cfg.Tpa.Money != 0) {
         return Available::Unaffordable;
     }
     // 检查对方是否禁止发送tpa请求

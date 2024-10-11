@@ -8,8 +8,8 @@
 #include "ll/api/form/ModalForm.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
+#include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "modules/Moneys.h"
 #include "utils/Mc.h"
 #include "utils/McAPI.h"
 #include "utils/Utils.h"
@@ -48,7 +48,7 @@ void sendGoDeathGUI(Player& player) {
     fm.setContent("时间: {0}\n坐标: {1}\n{2}"_tr(
         d.time,
         d.toVec4String(),
-        modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Death.GoDeathMoney)
+        modules::EconomySystem::getInstance().getCostMessage(player, Config::cfg.Death.GoDeathMoney)
     ));
 
     fm.setUpperButton("确认传送"_tr());
@@ -60,7 +60,7 @@ void sendGoDeathGUI(Player& player) {
             return;
         }
         if ((bool)val.value()) {
-            if (modules::Moneys::getInstance().reduceMoney(p, Config::cfg.Death.GoDeathMoney)) {
+            if (modules::EconomySystem::getInstance().reduce(p, Config::cfg.Death.GoDeathMoney)) {
                 p.teleport(Vec3{d.x, d.y, d.z}, d.dimid);
                 sendText(p, "传送成功"_tr());
             }

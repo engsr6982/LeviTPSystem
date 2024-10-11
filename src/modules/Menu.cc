@@ -8,12 +8,11 @@
 #include <optional>
 
 
-
-namespace tps::modules {
+namespace modules {
 
 // 定义静态成员变量
-std::filesystem::path                                         tps::modules::Menu::rootDir;
-std::unordered_map<std::string, std::function<void(Player&)>> tps::modules::Menu::functions;
+std::filesystem::path                                         modules::Menu::rootDir;
+std::unordered_map<std::string, std::function<void(Player&)>> modules::Menu::functions;
 
 std::unique_ptr<Menu> Menu::fromJSON(const json& json) {
     auto& logger = tps::entry::getInstance().getSelf().getLogger();
@@ -71,7 +70,7 @@ std::unique_ptr<Menu> Menu::fromJsonFile(const string fileName) {
 void Menu::fromJsonFile(Player& player) {
     auto me = fromJsonFile("index.json");
     if (me) me->sendTo(player);
-    else utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "Menu file not found");
+    else tps::utils::mc::sendText<tps::utils::mc::MsgLevel::Error>(player, "Menu file not found");
 }
 
 bool Menu::hasFunction(const string name) { return Menu::functions.find(name) != Menu::functions.end(); }
@@ -93,7 +92,7 @@ void Menu::sendTo(Player& player) {
                         Menu::functions[bt.callbackRun](p);
                     } else logger.error("Fail in Menu::sendTo, function not found {}", bt.callbackRun);
                 } else if (bt.callbackType == "cmd") {
-                    api::executeCommand(bt.callbackRun, &p);
+                    tps::api::executeCommand(bt.callbackRun, &p);
                 } else if (bt.callbackType == "subform") {
                     auto sub = Menu::fromJsonFile(bt.callbackRun);
                     if (sub) sub->sendTo(p);
@@ -116,4 +115,4 @@ void Menu::sendTo(Player& player) {
     }
 }
 
-} // namespace tps::modules
+} // namespace modules

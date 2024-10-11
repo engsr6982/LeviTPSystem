@@ -7,8 +7,8 @@
 #include "ll/api/form/ModalForm.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
+#include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "modules/Moneys.h"
 #include "utils/Mc.h"
 #include "utils/McAPI.h"
 #include "utils/Utils.h"
@@ -59,7 +59,7 @@ void _createHome(Player& player) {
     CustomForm fm;
     fm.setTitle(PLUGIN_NAME);
     fm.appendInput("name", "请输入家的名称："_tr(), "string");
-    fm.appendLabel(modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Home.CreatHomeMoney));
+    fm.appendLabel(modules::EconomySystem::getInstance().getCostMessage(player, Config::cfg.Home.CreatHomeMoney));
 
     fm.sendTo(player, [](Player& p, CustomFormResult const& dt, FormCancelReason) {
         if (!dt) {
@@ -132,7 +132,7 @@ void _inputNewHomeName(Player& player, string homeName) {
     CustomForm   fm;
     fm.setTitle(PLUGIN_NAME);
     fm.appendInput("name", "请输入新的名称："_tr(), "string", homeName);
-    fm.appendLabel(modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Home.EditHomeMoney));
+    fm.appendLabel(modules::EconomySystem::getInstance().getCostMessage(player, Config::cfg.Home.EditHomeMoney));
     fm.sendTo(player, [oldHomeName](Player& p, CustomFormResult const& dt, FormCancelReason) {
         if (!dt) {
             sendText(p, "表单已放弃"_tr());

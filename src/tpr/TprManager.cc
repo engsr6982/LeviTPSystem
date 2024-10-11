@@ -13,7 +13,7 @@
 #include "mc/world/level/ChunkPos.h"
 #include "mc/world/level/chunk/ChunkSource.h"
 #include "mc/world/level/chunk/LevelChunk.h"
-#include "modules/Moneys.h"
+#include "modules/EconomySystem.h"
 #include "string"
 #include "utils/Mc.h"
 #include "utils/ZoneCheck.h"
@@ -168,7 +168,7 @@ void TprManager::findSafePosition(std::shared_ptr<TaskItem> task) {
             return;
         }
 
-        if (modules::Moneys::getInstance().reduceMoney(player, Config::cfg.Tpr.Money)) {
+        if (modules::EconomySystem::getInstance().reduce(*player, Config::cfg.Tpr.Money)) {
             player->teleport(Vec3{safePos.x, safePos.y, safePos.z}, player->getDimensionId());
             sendText<MsgLevel::Success>(player, "传送成功！"_tr());
             return;
@@ -195,9 +195,9 @@ void TprManager::teleport(Player& player) {
         return;
     }
 
-    auto& moneyInstance = modules::Moneys::getInstance();
-    if (moneyInstance.getMoney(player) < Config::cfg.Tpr.Money) {
-        moneyInstance.sendMoneySpendTip(player, Config::cfg.Tpr.Money);
+    auto& moneyInstance = modules::EconomySystem::getInstance();
+    if (moneyInstance.get(player) < Config::cfg.Tpr.Money) {
+        moneyInstance.sendNotEnoughMessage(player, Config::cfg.Tpr.Money);
         return;
     }
 
@@ -236,7 +236,7 @@ void TprManager::showTprMenu(Player& player) {
     using namespace ll::form;
     ModalForm fm;
     fm.setTitle(PLUGIN_NAME);
-    fm.setContent(modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Tpr.Money));
+    fm.setContent(modules::EconomySystem::getInstance().getCostMessage(player, Config::cfg.Tpr.Money));
     fm.setUpperButton("确认传送"_tr());
     fm.setLowerButton("取消"_tr());
     fm.sendTo(player, [](Player& p, ModalFormResult const& dt, FormCancelReason) {

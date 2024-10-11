@@ -8,8 +8,8 @@
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/mod/RegisterHelper.h"
+#include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "modules/Moneys.h"
 #include "permission/Permission.h"
 #include "pr/PrManager.h"
 #include "rule/RuleManager.h"
@@ -61,8 +61,8 @@ bool entry::enable() {
     tps::permission::registerPermissions(); // 注册权限
 
     // 注册菜单
-    tps::modules::Menu::rootDir   = mSelf.getDataDir();
-    tps::modules::Menu::functions = {
+    modules::Menu::rootDir   = mSelf.getDataDir();
+    modules::Menu::functions = {
         {"warp", warp::form::index}
     };
 
@@ -70,7 +70,7 @@ bool entry::enable() {
     tps::event::registerEvent();
 
     // 初始化各个模块数据
-    tps::modules::Moneys::getInstance().updateConfig(Config::cfg.Money);
+    modules::EconomySystem::getInstance().update(&Config::cfg.EconomySystem);
     tps::home::HomeManager::getInstance().syncFromLevelDB();
     tps::warp::WarpManager::getInstance().syncFromLevelDB();
     tps::rule::RuleManager::getInstance().syncFromLevelDB();

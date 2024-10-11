@@ -11,8 +11,8 @@
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
 #include "mc/world/actor/player/Player.h"
+#include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "modules/Moneys.h"
 #include "utils/Mc.h"
 #include "utils/McAPI.h"
 #include "utils/Utils.h"
@@ -45,7 +45,7 @@ void index(Player& player) {
     });
     fm.appendButton("重载配置文件"_tr(), "textures/ui/refresh_light", "path", [](Player& p) {
         Config::tryLoad();
-        modules::Moneys::getInstance().updateConfig(Config::cfg.Money);
+        modules::EconomySystem::getInstance().update(&Config::cfg.EconomySystem);
         sendText(p, "Config Reloaded!"_tr());
     });
 

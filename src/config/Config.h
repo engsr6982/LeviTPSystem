@@ -1,7 +1,7 @@
 #pragma once
 #include "data/Structure.h"
 #include "ll/api/Config.h"
-#include "modules/Moneys.h"
+#include "modules/EconomySystem.h"
 #include "string"
 #include <vector>
 
@@ -20,8 +20,8 @@ struct Config {
         string Command     = "tps";       // 命令名称
         string Description = PLUGIN_NAME; // 命令描述
     } Command;
-    tps::modules::MoneysConfig Money; // 经济系统配置
-    data::RuleItemRoot         Rule;  // 规则
+    modules::EconomySystem::Config EconomySystem; // 经济系统配置
+    data::RuleItemRoot             Rule;          // 规则
 
     // 模块配置
     struct {

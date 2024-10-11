@@ -4,7 +4,7 @@
 #include "data/LevelDB.h"
 #include "mc/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
-#include "modules/Moneys.h"
+#include "modules/EconomySystem.h"
 #include <algorithm>
 #include <memory>
 #include <utility>
@@ -84,10 +84,10 @@ bool WarpManager::updateWarpData(const string& warpName, const data::WarpItem ne
 }
 
 
-bool WarpManager::teleportToWarp(Player& player, const string& warpName, bool ignoreMoneys) {
-    if (!ignoreMoneys) {
-        auto& mon = modules::Moneys::getInstance();
-        if (!mon.reduceMoney(player, Config::cfg.Warp.GoWarpMoney)) {
+bool WarpManager::teleportToWarp(Player& player, const string& warpName, bool ignoreEconomySystem) {
+    if (!ignoreEconomySystem) {
+        auto& mon = modules::EconomySystem::getInstance();
+        if (!mon.reduce(player, Config::cfg.Warp.GoWarpMoney)) {
             return false;
         }
     }

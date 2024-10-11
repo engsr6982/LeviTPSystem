@@ -3,7 +3,7 @@
 #include "data/LevelDB.h"
 #include "mc/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
-#include "modules/Moneys.h"
+#include "modules/EconomySystem.h"
 #include <memory>
 #include <utility>
 #include <vector>
@@ -117,12 +117,12 @@ bool HomeManager::updatePlayerHomeData(
     Player&              player,
     const string&        homeName,
     const data::HomeItem newData,
-    bool                 ignoreMoneys
+    bool                 ignoreEconomySystem
 ) {
-    auto& mon = modules::Moneys::getInstance();
-    if (ignoreMoneys) { // 忽略经济系统
+    auto& mon = modules::EconomySystem::getInstance();
+    if (ignoreEconomySystem) { // 忽略经济系统
         return updatePlayerHomeData(player.getRealName(), string(homeName), newData);
-    } else if (mon.reduceMoney(player, Config::cfg.Home.EditHomeMoney)) { // 扣钱
+    } else if (mon.reduce(player, Config::cfg.Home.EditHomeMoney)) { // 扣钱
         return updatePlayerHomeData(player.getRealName(), string(homeName), newData);
     }
 
@@ -167,11 +167,11 @@ bool HomeManager::createHome(const string& realName, const string& homeName, con
     return false; // 没有这个玩家
 }
 
-bool HomeManager::createHome(Player& player, const string& homeName, const data::Vec4 vec4, bool ignoreMoneys) {
-    auto& mon = modules::Moneys::getInstance();
-    if (ignoreMoneys) {
+bool HomeManager::createHome(Player& player, const string& homeName, const data::Vec4 vec4, bool ignoreEconomySystem) {
+    auto& mon = modules::EconomySystem::getInstance();
+    if (ignoreEconomySystem) {
         return createHome(player.getRealName(), string(homeName), vec4);
-    } else if (mon.reduceMoney(player, Config::cfg.Home.CreatHomeMoney)) {
+    } else if (mon.reduce(player, Config::cfg.Home.CreatHomeMoney)) {
         return createHome(player.getRealName(), string(homeName), vec4);
     }
 
@@ -200,11 +200,11 @@ bool HomeManager::deleteHome(const string& realName, const string& homeName) {
     return false; // 没有这个玩家
 }
 
-bool HomeManager::deleteHome(Player& player, const string& homeName, bool ignoreMoneys) {
-    auto& mon = modules::Moneys::getInstance();
-    if (ignoreMoneys) {
+bool HomeManager::deleteHome(Player& player, const string& homeName, bool ignoreEconomySystem) {
+    auto& mon = modules::EconomySystem::getInstance();
+    if (ignoreEconomySystem) {
         return deleteHome(player.getRealName(), string(homeName));
-    } else if (mon.reduceMoney(player, Config::cfg.Home.DeleteHomeMoney)) {
+    } else if (mon.reduce(player, Config::cfg.Home.DeleteHomeMoney)) {
         return deleteHome(player.getRealName(), string(homeName));
     }
 
@@ -215,10 +215,10 @@ bool HomeManager::deleteHome(Player& player, const string& homeName, bool ignore
     return false;
 }
 
-bool HomeManager::teleportToHome(Player& player, const string& homeName, bool ignoreMoneys) {
-    auto& mon = modules::Moneys::getInstance();
-    if (!ignoreMoneys) {
-        if (!mon.reduceMoney(player, Config::cfg.Home.GoHomeMoney)) {
+bool HomeManager::teleportToHome(Player& player, const string& homeName, bool ignoreEconomySystem) {
+    auto& mon = modules::EconomySystem::getInstance();
+    if (!ignoreEconomySystem) {
+        if (!mon.reduce(player, Config::cfg.Home.GoHomeMoney)) {
             return false; // 钱不够
         }
     }

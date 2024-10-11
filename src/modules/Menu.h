@@ -13,7 +13,7 @@ using json   = nlohmann::json;
 using path   = std::filesystem::path;
 
 
-namespace tps::modules {
+namespace modules {
 
 struct Menu {
     struct ButtonItem {
@@ -39,4 +39,4 @@ struct Menu {
     static bool                                                     hasFunction(const string name);
 };
 
-} // namespace tps::modules
+} // namespace modules

@@ -45,20 +45,20 @@ public:
     [[deprecated]] bool setPlayerHomeData(const string& realName, const string& homeName, const data::HomeItem newData);
 
     bool createHome(const string& realName, const string& homeName, const data::Vec4 vec4);
-    bool createHome(Player& player, const string& homeName, const data::Vec4 vec4, bool ignoreMoneys = false);
+    bool createHome(Player& player, const string& homeName, const data::Vec4 vec4, bool ignoreEconomySystem = false);
 
-    bool teleportToHome(Player& player, const string& homeName, bool ignoreMoneys = false);
+    bool teleportToHome(Player& player, const string& homeName, bool ignoreEconomySystem = false);
 
     bool updatePlayerHomeData(const string& realName, const string& homeName, const data::HomeItem newData);
     bool updatePlayerHomeData(
         Player&              player,
         const string&        homeName,
         const data::HomeItem newData,
-        bool                 ignoreMoneys = false
+        bool                 ignoreEconomySystem = false
     );
 
     bool deleteHome(const string& realName, const string& homeName);
-    bool deleteHome(Player& player, const string& homeName, bool ignoreMoneys = false);
+    bool deleteHome(Player& player, const string& homeName, bool ignoreEconomySystem = false);
 
 
     std::vector<data::HomeItem> getPlayerHomes(const string& realName);

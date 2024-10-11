@@ -43,7 +43,7 @@ void TpaGUI::ChooseTpaPlayerGUI(Player& player, TpaType type) {
     ll::form::SimpleForm fm;
 
     fm.setTitle("Tpa 选择目标玩家"_tr());
-    fm.setContent(modules::Moneys::getInstance().getMoneySpendTipStr(player, Config::cfg.Tpa.Money));
+    fm.setContent(modules::EconomySystem::getInstance().getCostMessage(player, Config::cfg.Tpa.Money));
 
     level->forEachPlayer([type, &fm](Player& target) {
         if (ll::mod::ModManagerRegistry::getInstance().hasMod("vanish") && target.isInvisible()) return true; // vanish

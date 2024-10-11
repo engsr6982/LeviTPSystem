@@ -10,8 +10,8 @@
 #include "ll/api/form/ModalForm.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
+#include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "modules/Moneys.h"
 #include "utils/Mc.h"
 #include "utils/McAPI.h"
 #include "utils/Utils.h"
@@ -61,7 +61,7 @@ void _createPr(Player& player) {
             fm.setContent("名称: {0}\n{1}\n{2}\n\n并入成功后不会删除家园传送点且无法自行撤销"_tr(
                 home.name,
                 home.toVec4String(),
-                modules::Moneys::getInstance().getMoneySpendTipStr(p, Config::cfg.Pr.SendRequestMoney)
+                modules::EconomySystem::getInstance().getCostMessage(p, Config::cfg.Pr.SendRequestMoney)
             ));
             fm.setUpperButton("确认"_tr());
             fm.setLowerButton("返回"_tr());
@@ -105,7 +105,7 @@ void _deletePr(Player& player) {
                 pr.data.name,
                 pr.data.toVec4String(),
                 pr.time,
-                modules::Moneys::getInstance().getMoneySpendTipStr(p, Config::cfg.Pr.DeleteRequestMoney)
+                modules::EconomySystem::getInstance().getCostMessage(p, Config::cfg.Pr.DeleteRequestMoney)
             ));
             fm.setUpperButton("确认"_tr());
             fm.setLowerButton("返回"_tr());

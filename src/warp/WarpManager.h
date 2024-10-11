@@ -41,7 +41,7 @@ public:
 
     bool updateWarpData(const string& warpName, const data::WarpItem newData);
 
-    bool teleportToWarp(Player& player, const string& warpName, bool ignoreMoneys = false);
+    bool teleportToWarp(Player& player, const string& warpName, bool ignoreEconomySystem = false);
 
     data::Warp getWarps();
 

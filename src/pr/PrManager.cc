@@ -4,7 +4,7 @@
 #include "ll/api/i18n/I18n.h"
 #include "mc/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
-#include "modules/Moneys.h"
+#include "modules/EconomySystem.h"
 #include "utils/Mc.h"
 #include <memory>
 #include <random>
