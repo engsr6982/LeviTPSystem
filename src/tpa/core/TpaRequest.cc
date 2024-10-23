@@ -10,6 +10,7 @@
 #include "rule/RuleManager.h"
 #include "utils/Mc.h"
 
+#include "modules/Cooldown.h"
 
 namespace tps::tpa {
 
@@ -21,6 +22,19 @@ TpaRequest::TpaRequest(Player& sender, Player& receiver, TpaType type) {
     this->mType         = type;
     this->mCreationTime = Date{};
     this->mExpireTime   = Date::future(Config::cfg.Tpa.CacheExpirationTime);
+
+    // 检查是否可以发送TPA请求
+    auto& col = Cooldown::getInstance();
+    if (col.isCooldown("tpa", mSender)) {
+        utils::mc::sendText<utils::mc::MsgLevel::Error>(
+            mSender,
+            "TPA 请求冷却中，请稍后再试, 冷却时间: {0}"_tr(col.getCooldownString("tpa", mSender))
+        );
+        destroy(); // 请求无效，销毁
+        return;
+    } else {
+        col.setCooldown("tpa", mSender, Config::cfg.Tpa.CooldownTime);
+    }
 
     // 构造表单
     string tpaDescription;

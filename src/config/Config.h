@@ -30,6 +30,7 @@ struct Config {
         int               CacheExpirationTime = 120;  // 缓存过期时间 unit: s
         int               CacehCheckFrequency = 60;   // 缓存检查频率 unit: s
         OpeningDimensions OpenDimensions      = {-1}; // 开放维度
+        int               CooldownTime        = 10;   // 冷却时间 unit: s
     } Tpa;
 
     struct {
@@ -66,6 +67,8 @@ struct Config {
         std::vector<int>    Dimensions      = {0, 1, 2};                                    // 允许的维度
         std::vector<string> DangerousBlocks = {"minecraft:lava", "minecraft:flowing_lava"}; // 危险方块列表
         OpeningDimensions   OpenDimensions  = {-1};                                         // 开放维度
+        int                 CooldownTime    = 10;                                           // 冷却时间 unit: s
+
         struct {
             bool   Enable       = false;
             string Type         = "Circle"; // 限制类型 Circle / CenteredSquare

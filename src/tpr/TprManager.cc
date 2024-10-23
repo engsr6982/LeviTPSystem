@@ -13,6 +13,7 @@
 #include "mc/world/level/ChunkPos.h"
 #include "mc/world/level/chunk/ChunkSource.h"
 #include "mc/world/level/chunk/LevelChunk.h"
+#include "modules/Cooldown.h"
 #include "modules/EconomySystem.h"
 #include "string"
 #include "utils/Mc.h"
@@ -230,6 +231,17 @@ void TprManager::showTprMenu(Player& player) {
     if (!Config::checkOpeningDimensions(Config::cfg.Tpr.OpenDimensions, player.getDimensionId())) {
         utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
         return;
+    }
+
+    string const& name = player.getRealName();
+    auto&         col  = Cooldown::getInstance();
+    if (col.isCooldown("tpr", name)) {
+        utils::mc::sendText<utils::mc::MsgLevel::Error>(
+            player,
+            "TPR 请求冷却中，请稍后再试, 冷却时间: {0}"_tr(col.getCooldownString("tpa", name))
+        );
+    } else {
+        col.setCooldown("tpr", name, Config::cfg.Tpr.CooldownTime);
     }
 
 
