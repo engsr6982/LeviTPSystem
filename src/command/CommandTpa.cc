@@ -98,6 +98,9 @@ void registerCommandWithTpa(const string& _commandName) {
             }
 
             auto request = tpa::TpaRequestPool::getInstance().makeRequest(sender, *(*li.data)[0], param.type);
+            if (!request) {
+                return;
+            }
 
             tpa::Available avail = request->sendAskForm(); // 发送请求
 

@@ -51,6 +51,10 @@ void TpaGUI::ChooseTpaPlayerGUI(Player& player, TpaType type) {
         fm.appendButton(target.getRealName(), [&target, type](Player& sender) {
             try {
                 auto req = TpaRequestPool::getInstance().makeRequest(sender, target, type);
+                if (!req) {
+                    return;
+                }
+
                 // 发送请求
                 tpa::Available avail = req->sendAskForm();
 

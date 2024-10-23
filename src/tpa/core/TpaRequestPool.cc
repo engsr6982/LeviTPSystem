@@ -5,6 +5,7 @@
 #include "ll/api/schedule/Scheduler.h"
 #include "ll/api/schedule/Task.h"
 #include "ll/api/service/Bedrock.h"
+#include "modules/Cooldown.h"
 #include "tpa/core/TpaRequest.h"
 #include "utils/Mc.h"
 #include "utils/McAPI.h"
@@ -177,6 +178,19 @@ TpaRequest* TpaRequestPool::getRequest(const string& receiver, const string& sen
 }
 
 TpaRequest* TpaRequestPool::makeRequest(Player& sender, Player& receiver, TpaType type) {
+    // 检查是否可以发送TPA请求
+    auto& col = Cooldown::getInstance();
+    if (col.isCooldown("tpa", sender.getRealName())) {
+        utils::mc::sendText<utils::mc::MsgLevel::Error>(
+            sender.getRealName(),
+            "TPA 请求冷却中，请稍后再试, 冷却时间: {0}"_tr(col.getCooldownString("tpa", sender.getRealName()))
+        );
+        return nullptr;
+    } else {
+        col.setCooldown("tpa", sender.getRealName(), Config::cfg.Tpa.CooldownTime);
+    }
+
+
     addRequest(std::make_unique<TpaRequest>(sender, receiver, type));
     return getRequest(receiver.getRealName(), sender.getRealName());
 }
