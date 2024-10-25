@@ -238,7 +238,7 @@ void TprManager::showTprMenu(Player& player) {
     if (col.isCooldown("tpr", name)) {
         utils::mc::sendText<utils::mc::MsgLevel::Error>(
             player,
-            "TPR 冷却中，请稍后再试, 冷却时间: {0}"_tr(col.getCooldownString("tpa", name))
+            "TPR 冷却中，请稍后再试, 冷却时间: {0}"_tr(col.getCooldownString("tpr", name))
         );
         return;
     } else {
