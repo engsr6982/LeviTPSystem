@@ -8,7 +8,7 @@
 #include "permission/Permission.h"
 #include "pr/PrForm.h"
 #include "rule/RuleForm.h"
-#include "tpr/TprManager.h"
+#include "tpr/TprModule.h"
 
 
 namespace tps::command {
@@ -87,13 +87,12 @@ bool registerCommands() {
         cmd.overload().text("tpr").execute([](CommandOrigin const& origin, CommandOutput& output) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
             Player& player = *static_cast<Player*>(origin.getEntity());
-            auto&   tprMgr = tpr::TprManager::getInstance();
-            tprMgr.showTprMenu(player);
+            tpr::TprModule::getInstance().showTprMenu(player);
         });
 
 
     // Register All Commands
-    string name = Config::cfg.Command.Command;
+    string const& name = Config::cfg.Command.Command;
     registerCommandWithLevelDB(name);
     if (Config::cfg.Home.Enable) registerCommandWithHome(name);
     if (Config::cfg.Warp.Enable) registerCommandWithWarp(name);
