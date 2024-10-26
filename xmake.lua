@@ -44,7 +44,7 @@ target("LeviTPSystem")
     set_symbols("debug")
 
     if is_mode("debug") then
-        add_defines("DEBUG")
+        add_defines("DEBUG", "LL_I18N_COLLECT_STRINGS")
     end
 
     add_defines("PLUGIN_NAME=\"LeviTPSystem\"")
