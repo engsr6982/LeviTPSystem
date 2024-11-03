@@ -22,6 +22,8 @@ public:
         int         mDimension; // 维度
         Vec3        mBackup;    // 位置(传送前的位置)
         uint64_t    mTaskID;    // 任务ID
+
+        bool mGc{false};
     };
 
     std::vector<std::unique_ptr<TprTask>> mTasks; // 请求队列

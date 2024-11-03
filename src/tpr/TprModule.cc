@@ -52,7 +52,10 @@ bool TprModule::_deleteTask(const string& realName) {
     if (iter == mTasks.end()) {
         return false;
     }
-    GlobalRepeatScheduler.remove(iter->get()->mTaskID);
+    bool ok = GlobalRepeatScheduler.remove(iter->get()->mTaskID);
+    if (!ok) {
+        return false;
+    }
     mTasks.erase(iter);
     return true;
 }
@@ -128,35 +131,49 @@ void TprModule::_findSafePosition(TprModule::TprTask* task) {
 
 void TprModule::_runTask(TprModule::TprTask* task) {
     using ll::chrono_literals::operator""_tick;
-    task->mTaskID = GlobalRepeatScheduler
-                        .add<ll::schedule::RepeatTask>(
-                            20_tick,
-                            [task, this]() {
-                                auto&   logger = tps::entry::getInstance().getSelf().getLogger();
-                                Player* player = ll::service::getLevel()->getPlayer(task->mRealName);
-                                if (!player) {
-                                    _deleteTask(task->mRealName); // 玩家不在线，删除任务
-                                    logger.warn("玩家 {} 在随机传送期间离开服务器，将撤销该任务。"_tr(task->mRealName));
-                                    return;
-                                }
+    task->mTaskID =
+        GlobalRepeatScheduler
+            .add<ll::schedule::RepeatTask>(
+                20_tick,
+                [task, this]() {
+                    auto& logger = tps::entry::getInstance().getSelf().getLogger();
+                    if (!task) {
+                        logger.error("Task is null in {}", __FUNCTION__);
+                        return;
+                    }
+                    if (task->mGc) {
+                        bool ok = _deleteTask(task->mRealName); // 任务超时，删除任务
+                        logger.debug("Task {} is timeout, delete result: {}, l{}"_tr(task->mRealName, ok, __LINE__));
+                        return;
+                    }
 
-                                try {
-                                    BlockSource& bs = player->getDimensionBlockSource();
-                                    if (!bs.isChunkFullyLoaded(task->mChunkPos, bs.getChunkSource())) {
-                                        return;
-                                    }
+                    Player* player = ll::service::getLevel()->getPlayer(task->mRealName);
+                    if (!player) {
+                        logger.warn("玩家 {} 在随机传送期间离开服务器，将撤销该任务。"_tr(task->mRealName));
+                        bool ok = _deleteTask(task->mRealName); // 玩家不在线，删除任务
+                        logger.debug("Task {} is timeout, delete result: {}, l{}"_tr(task->mRealName, ok, __LINE__));
+                        task->mGc = true;
+                        return;
+                    }
 
-                                    sendText(player, "区块已加载，开始查找安全位置..."_tr());
-                                    _findSafePosition(task);      // 开始查找安全位置
-                                    _deleteTask(task->mRealName); // 任务完成，删除任务
-                                } catch (...) {
-                                    player->teleport(task->mBackup, task->mDimension); // 回退到备份位置
-                                    _deleteTask(task->mRealName);                      // 任务失败，删除任务
-                                    logger.error("Fail in {}", __FUNCTION__);
-                                }
-                            }
-                        )
-                        ->getId();
+                    try {
+                        BlockSource& bs = player->getDimensionBlockSource();
+                        if (!bs.isChunkFullyLoaded(task->mChunkPos, bs.getChunkSource())) {
+                            return;
+                        }
+
+                        sendText(player, "区块已加载，开始查找安全位置..."_tr());
+                        _findSafePosition(task);      // 开始查找安全位置
+                        _deleteTask(task->mRealName); // 任务完成，删除任务
+                    } catch (...) {
+                        task->mGc = true;
+                        player->teleport(task->mBackup, task->mDimension); // 回退到备份位置
+                        _deleteTask(task->mRealName);                      // 任务失败，删除任务
+                        logger.error("Fail in {}", __FUNCTION__);
+                    }
+                }
+            )
+            ->getId();
 }
 
 
