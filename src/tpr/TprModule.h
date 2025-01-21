@@ -16,12 +16,11 @@ namespace tps::tpr {
 class TprModule {
 public:
     struct TprTask {
-        std::string mRealName;          // 玩家真实名称
-        BlockPos    mBlockPos;          // 方块位置(要传送到的位置)
-        ChunkPos    mChunkPos;          // 块坐标(要传送到的位置)
-        int         mDimension;         // 维度
-        Vec3        mBackup;            // 位置(传送前的位置)
-        bool        mTaskCancle{false}; // 是否取消
+        std::string mRealName;  // 玩家真实名称
+        BlockPos    mBlockPos;  // 方块位置(要传送到的位置)
+        ChunkPos    mChunkPos;  // 块坐标(要传送到的位置)
+        int         mDimension; // 维度
+        Vec3        mBackup;    // 位置(传送前的位置)
     };
 
     std::vector<std::unique_ptr<TprTask>> mTasks; // 请求队列

@@ -9,8 +9,6 @@ namespace tps {
 
 class entry {
 public:
-    std::atomic<bool> mPluginRunning = false;
-
     static entry& getInstance();
 
     // entry(ll::mod::NativeMod& self) : mSelf(self) {}

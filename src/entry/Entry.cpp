@@ -51,11 +51,8 @@ bool entry::load() {
         tps::Permission::getInstance().save();
     }
 
-    this->mPluginRunning = true;
-
 #ifdef DEBUG
-    mSelf.getLogger().consoleLevel = 5; // 调试模式，开启所有日志
-    mSelf.getLogger().playerLevel  = 5;
+    mSelf.getLogger().setLevel(ll::io::LogLevel::Debug);
 #endif
 
     return true;
@@ -87,7 +84,6 @@ bool entry::enable() {
 }
 
 bool entry::disable() {
-    this->mPluginRunning = false;
     tps::Permission::getInstance().save();
     tps::event::unRegisterEvent();
 

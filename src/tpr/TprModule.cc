@@ -7,6 +7,7 @@
 #include "ll/api/form/ModalForm.h"
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/service/Bedrock.h"
+#include "ll/api/service/GamingStatus.h"
 #include "ll/api/thread/ServerThreadExecutor.h"
 #include "mc/deps/core/math/Vec3.h"
 #include "mc/world/level/BlockPos.h"
@@ -46,10 +47,8 @@ bool TprModule::_addTask(std::unique_ptr<TprModule::TprTask> task) {
 }
 bool TprModule::_deleteTask(const string& realName) {
     auto iter = std::find_if(mTasks.begin(), mTasks.end(), [&realName](auto& t) { return t->mRealName == realName; });
-    if (iter == mTasks.end()) {
-        return false;
-    }
-    iter->get()->mTaskCancle = true; // stop coroutine
+    if (iter == mTasks.end()) return false;
+
     mTasks.erase(iter);
     return true;
 }
@@ -82,14 +81,8 @@ std::pair<int, int> TprModule::_randomPosition(Player& player) {
 std::unique_ptr<TprModule::TprTask> TprModule::_prepareData(Player& player) {
     auto     pos = _randomPosition(player);
     BlockPos bpos{pos.first, 666, pos.second};
-    return (std::make_unique<TprTask>(
-        player.getRealName(),
-        bpos,
-        ChunkPos{bpos},
-        player.getDimensionId(),
-        player.getPosition(),
-        (uint64_t)-1
-    ));
+    return (std::make_unique<
+            TprTask>(player.getRealName(), bpos, ChunkPos{bpos}, player.getDimensionId(), player.getPosition()));
 }
 
 void TprModule::_findSafePosition(TprModule::TprTask* task) {
@@ -125,21 +118,16 @@ void TprModule::_findSafePosition(TprModule::TprTask* task) {
 
 void TprModule::_runTask(TprModule::TprTask* task) {
     using ll::chrono_literals::operator""_tick;
+    auto& logger = tps::entry::getInstance().getSelf().getLogger();
+
     ll::coro::keepThis([task, this]() -> ll::coro::CoroTask<> {
-        while (!task->mTaskCancle && entry::getInstance().mPluginRunning) {
+        while (ll::getGamingStatus() == ll::GamingStatus::Running) {
             co_await 20_tick;
-            auto& logger = tps::entry::getInstance().getSelf().getLogger();
-            if (!task) {
-                logger.error("Task is null in {}", __FUNCTION__);
-                continue;
-            }
+            if (!task) co_return;
 
             Player* player = ll::service::getLevel()->getPlayer(task->mRealName);
             if (!player) {
-                logger.warn("玩家 {} 在随机传送期间离开服务器，将撤销该任务。"_tr(task->mRealName));
-                task->mTaskCancle = true;
-                bool ok           = _deleteTask(task->mRealName); // 玩家不在线，删除任务
-                logger.debug("Task {} is timeout, delete result: {}, l{}"_tr(task->mRealName, ok, __LINE__));
+                _deleteTask(task->mRealName); // 玩家不在线，删除任务
                 co_return;
             }
 
@@ -152,14 +140,15 @@ void TprModule::_runTask(TprModule::TprTask* task) {
                 sendText(player, "区块已加载，开始查找安全位置..."_tr());
                 _findSafePosition(task);      // 开始查找安全位置
                 _deleteTask(task->mRealName); // 任务完成，删除任务
+                co_return;
             } catch (...) {
-                task->mTaskCancle = true;
                 player->teleport(task->mBackup, task->mDimension); // 回退到备份位置
                 _deleteTask(task->mRealName);                      // 任务失败，删除任务
-                logger.error("Fail in {}", __FUNCTION__);
+                co_return;
             }
         }
-    });
+        co_return;
+    }).launch(ll::thread::ServerThreadExecutor::getDefault());
 }
 
 

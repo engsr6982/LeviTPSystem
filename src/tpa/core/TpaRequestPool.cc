@@ -4,6 +4,7 @@
 #include "ll/api/chrono/GameChrono.h"
 #include "ll/api/coro/CoroTask.h"
 #include "ll/api/service/Bedrock.h"
+#include "ll/api/service/GamingStatus.h"
 #include "ll/api/thread/ServerThreadExecutor.h"
 #include "modules/Cooldown.h"
 #include "tpa/core/TpaRequest.h"
@@ -23,7 +24,7 @@ void TpaRequestPool::_initTask() {
     isInited = true;
 
     ll::coro::keepThis([this]() -> ll::coro::CoroTask<> {
-        while (entry::getInstance().mPluginRunning) {
+        while (ll::getGamingStatus() == ll::GamingStatus::Running) {
             co_await ll::chrono::ticks(Config::cfg.Tpa.CacehCheckFrequency * 20);
             try {
                 if (mPool.empty()) continue;
@@ -47,10 +48,6 @@ void TpaRequestPool::_initTask() {
 
                         // 添加额外的空指针检查
                         if (request.get() == nullptr) {
-                            entry::getInstance().getSelf().getLogger().error(
-                                "Null pointer detected for sender: {}",
-                                sender
-                            );
                             senderIt = senderPool.erase(senderIt);
                             continue;
                         }
@@ -70,12 +67,7 @@ void TpaRequestPool::_initTask() {
                             } else {
                                 ++senderIt;
                             }
-                        } catch (const std::exception& e) {
-                            entry::getInstance().getSelf().getLogger().error(
-                                "Exception in getAvailable for sender {}: {}",
-                                sender,
-                                e.what()
-                            );
+                        } catch (...) {
                             senderIt = senderPool.erase(senderIt);
                         }
                     }
@@ -86,14 +78,10 @@ void TpaRequestPool::_initTask() {
                         ++receiverIt;
                     }
                 }
-            } catch (const std::exception& e) {
-                entry::getInstance().getSelf().getLogger().error("Exception in {}: {}", __FUNCTION__, e.what());
-            } catch (...) {
-                entry::getInstance().getSelf().getLogger().error("Unknown exception in {}", __FUNCTION__);
-            }
+            } catch (...) {}
         }
         co_return;
-    });
+    }).launch(ll::thread::ServerThreadExecutor::getDefault());
 }
 
 
