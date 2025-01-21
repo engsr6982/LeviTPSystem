@@ -1,6 +1,8 @@
 #pragma once
 #include "data/Structure.h"
 #include "ll/api/Config.h"
+#include "ll/api/io/LogLevel.h"
+#include "ll/api/io/Logger.h"
 #include "modules/EconomySystem.h"
 #include "string"
 #include <vector>
@@ -12,8 +14,8 @@ using string            = std::string;
 using OpeningDimensions = std::vector<int>; // 开放维度 -1为不限制
 
 struct Config {
-    int version  = 5; // 配置文件版本
-    int logLevel = 4; // 日志等级
+    int              version  = 6;                      // 配置文件版本
+    ll::io::LogLevel logLevel = ll::io::LogLevel::Info; // 日志等级
 
     // 基础配置
     struct {

@@ -2,9 +2,9 @@
 #include "config/Config.h"
 #include "entry/Entry.h"
 #include "ll/api/chrono/GameChrono.h"
-#include "ll/api/schedule/Scheduler.h"
-#include "ll/api/schedule/Task.h"
+#include "ll/api/coro/CoroTask.h"
 #include "ll/api/service/Bedrock.h"
+#include "ll/api/thread/ServerThreadExecutor.h"
 #include "modules/Cooldown.h"
 #include "tpa/core/TpaRequest.h"
 #include "utils/Mc.h"
@@ -15,8 +15,6 @@
 #include <vector>
 
 
-ll::schedule::GameTickScheduler scheduler;
-
 namespace tps::tpa {
 
 void TpaRequestPool::_initTask() {
@@ -24,78 +22,77 @@ void TpaRequestPool::_initTask() {
     if (isInited) return;
     isInited = true;
 
-    scheduler.add<ll::schedule::RepeatTask>(ll::chrono::ticks(Config::cfg.Tpa.CacehCheckFrequency * 20), [this]() {
-        try {
-            if (mPool.empty()) {
-                return;
-            }
+    ll::coro::keepThis([this]() -> ll::coro::CoroTask<> {
+        while (entry::getInstance().mPluginRunning) {
+            co_await ll::chrono::ticks(Config::cfg.Tpa.CacehCheckFrequency * 20);
+            try {
+                if (mPool.empty()) continue;
 
-            auto level = ll::service::getLevel();
-            if (!level.has_value()) {
-                return;
-            }
+                auto level = ll::service::getLevel();
+                if (!level.has_value()) continue;
 
-            // 使用迭代器来安全地删除元素
-            for (auto receiverIt = mPool.begin(); receiverIt != mPool.end();) {
-                auto& [receiver, senderPool] = *receiverIt;
-                if (senderPool.empty()) {
-                    receiverIt = mPool.erase(receiverIt);
-                    continue;
-                }
-
-                for (auto senderIt = senderPool.begin(); senderIt != senderPool.end();) {
-                    auto& [sender, request] = *senderIt;
-                    if (!request) {
-                        senderIt = senderPool.erase(senderIt);
+                for (auto receiverIt = mPool.begin(); receiverIt != mPool.end();) {
+                    auto& [receiver, senderPool] = *receiverIt;
+                    if (senderPool.empty()) {
+                        receiverIt = mPool.erase(receiverIt);
                         continue;
                     }
 
-                    // 添加额外的空指针检查
-                    if (request.get() == nullptr) {
-                        entry::getInstance().getSelf().getLogger().error(
-                            "Null pointer detected for sender: {}",
-                            sender
-                        );
-                        senderIt = senderPool.erase(senderIt);
-                        continue;
-                    }
-
-                    try {
-                        auto avail = request->getAvailable();
-                        if (avail != Available::Available) {
-                            auto player = level->getPlayer(sender);
-                            if (player) {
-                                utils::mc::sendText<utils::mc::MsgLevel::Error>(
-                                    player,
-                                    "{0}",
-                                    TpaRequest::getAvailableDescription(avail)
-                                );
-                            }
+                    for (auto senderIt = senderPool.begin(); senderIt != senderPool.end();) {
+                        auto& [sender, request] = *senderIt;
+                        if (!request) {
                             senderIt = senderPool.erase(senderIt);
-                        } else {
-                            ++senderIt;
+                            continue;
                         }
-                    } catch (const std::exception& e) {
-                        entry::getInstance().getSelf().getLogger().error(
-                            "Exception in getAvailable for sender {}: {}",
-                            sender,
-                            e.what()
-                        );
-                        senderIt = senderPool.erase(senderIt);
+
+                        // 添加额外的空指针检查
+                        if (request.get() == nullptr) {
+                            entry::getInstance().getSelf().getLogger().error(
+                                "Null pointer detected for sender: {}",
+                                sender
+                            );
+                            senderIt = senderPool.erase(senderIt);
+                            continue;
+                        }
+
+                        try {
+                            auto avail = request->getAvailable();
+                            if (avail != Available::Available) {
+                                auto player = level->getPlayer(sender);
+                                if (player) {
+                                    utils::mc::sendText<utils::mc::MsgLevel::Error>(
+                                        player,
+                                        "{0}",
+                                        TpaRequest::getAvailableDescription(avail)
+                                    );
+                                }
+                                senderIt = senderPool.erase(senderIt);
+                            } else {
+                                ++senderIt;
+                            }
+                        } catch (const std::exception& e) {
+                            entry::getInstance().getSelf().getLogger().error(
+                                "Exception in getAvailable for sender {}: {}",
+                                sender,
+                                e.what()
+                            );
+                            senderIt = senderPool.erase(senderIt);
+                        }
+                    }
+
+                    if (senderPool.empty()) {
+                        receiverIt = mPool.erase(receiverIt);
+                    } else {
+                        ++receiverIt;
                     }
                 }
-
-                if (senderPool.empty()) {
-                    receiverIt = mPool.erase(receiverIt);
-                } else {
-                    ++receiverIt;
-                }
+            } catch (const std::exception& e) {
+                entry::getInstance().getSelf().getLogger().error("Exception in {}: {}", __FUNCTION__, e.what());
+            } catch (...) {
+                entry::getInstance().getSelf().getLogger().error("Unknown exception in {}", __FUNCTION__);
             }
-        } catch (const std::exception& e) {
-            entry::getInstance().getSelf().getLogger().error("Exception in {}: {}", __FUNCTION__, e.what());
-        } catch (...) {
-            entry::getInstance().getSelf().getLogger().error("Unknown exception in {}", __FUNCTION__);
         }
+        co_return;
     });
 }
 

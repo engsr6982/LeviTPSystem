@@ -2,26 +2,26 @@ add_rules("mode.debug", "mode.release")
 
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 
-add_requires(
-    "levilamina 0.13.5",
-    "permissioncore 0.10.1"
-)
-
+if is_config("target_type", "server") then
+    add_requires("levilamina 1.0.0-rc.3", {configs = {target_type = "server"}})
+else
+    add_requires("levilamina 1.0.0-rc.3", {configs = {target_type = "client"}})
+end
+add_requires("levibuildscript")
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
 end
 
-package("permissioncore")
-    set_urls("https://github.com/engsr6982/PermissionCore/releases/download/$(version)/SDK-PermissionCore.zip")
-    add_versions("v0.10.1", "c626fa4ff421e5e3a2b84986f9135fa6e1961c65746ca7147601993629e379fc")
-    add_includedirs("include/")
-    on_install(function (package)
-        os.cp("*", package:installdir())
-    end)
-
+option("target_type")
+    set_default("server")
+    set_showmenu(true)
+    set_values("server", "client")
+option_end()
 
 target("LeviTPSystem")
+    add_rules("@levibuildscript/linkrule")
+    add_rules("@levibuildscript/modpacker")
     add_cxflags(
         "/EHa",
         "/utf-8",
@@ -37,7 +37,6 @@ target("LeviTPSystem")
     add_files("src/**.cpp", "src/**.cc")
     add_includedirs("src")
     add_packages("levilamina")
-    add_shflags("/DELAYLOAD:bedrock_server.dll") -- To use symbols provided by SymbolProvider.
     set_exceptions("none") -- To avoid conflicts with /EHa.
     set_kind("shared")
     set_languages("c++20")
@@ -48,22 +47,10 @@ target("LeviTPSystem")
     end
 
     add_defines("PLUGIN_NAME=\"LeviTPSystem\"")
-    add_packages("permissioncore")
-
     after_build(function (target)
-        local plugin_packer = import("scripts.after_build")
-
-        local tag = os.iorun("git describe --tags --abbrev=0 --always")
-        local major, minor, patch, suffix = tag:match("v(%d+)%.(%d+)%.(%d+)(.*)")
-        if not major then
-            print("Failed to parse version tag, using 0.0.0")
-            major, minor, patch = 0, 0, 0
-        end
-        local plugin_define = {
-            pluginName = target:name(),
-            pluginFile = path.filename(target:targetfile()),
-            pluginVersion = major .. "." .. minor .. "." .. patch,
-        }
-        
-        plugin_packer.pack_plugin(target,plugin_define)
+        local bindir = path.join(os.projectdir(), "bin")
+        local outputdir = path.join(bindir, target:name())
+        -- copy data files
+        local datadir = path.join(os.projectdir(), "assets", "data")
+        os.cp(datadir, outputdir)
     end)

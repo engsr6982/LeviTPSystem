@@ -3,7 +3,6 @@
 #include "data/LevelDB.h"
 #include "entry/Entry.h"
 #include "ll/api/service/Bedrock.h"
-#include "mc/common/wrapper/optional_ref.h"
 #include "mc/deps/core/string/HashedString.h"
 #include "mc/nbt/CompoundTag.h"
 #include "mc/network/ServerNetworkHandler.h"
@@ -19,9 +18,9 @@
 #include "mc/world/level/dimension/Dimension.h"
 #include "utils/Mc.h"
 #include "utils/Utils.h"
-#include <PermissionCore/Group.h>
-#include <PermissionCore/PermissionCore.h>
-#include <PermissionCore/PermissionManager.h>
+// #include <PermissionCore/Group.h>
+// #include <PermissionCore/PermissionCore.h>
+// #include <PermissionCore/PermissionManager.h>
 #include <algorithm>
 #include <cmath>
 #include <ctime>
@@ -29,18 +28,17 @@
 #include <functional>
 #include <iostream>
 #include <list>
-#include <ll/api/Logger.h>
 #include <ll/api/command/Command.h>
 #include <ll/api/command/CommandHandle.h>
 #include <ll/api/command/CommandRegistrar.h>
 #include <ll/api/i18n/I18n.h>
+#include <ll/api/io/Logger.h>
 #include <ll/api/service/Bedrock.h>
 #include <ll/api/service/PlayerInfo.h>
 #include <ll/api/service/Service.h>
 #include <ll/api/utils/HashUtils.h>
 #include <map>
-#include <mc/entity/utilities/ActorType.h>
-#include <mc/enums/GameType.h>
+#include <mc/deps/core/utility/optional_ref.h>
 #include <mc/network/packet/LevelChunkPacket.h>
 #include <mc/network/packet/TextPacket.h>
 #include <mc/server/ServerLevel.h>
@@ -53,12 +51,15 @@
 #include <mc/server/commands/CommandRegistry.h>
 #include <mc/server/commands/CommandSelector.h>
 #include <mc/world/actor/Actor.h>
+#include <mc/world/actor/ActorType.h>
 #include <mc/world/actor/player/Player.h>
+#include <mc/world/level/GameType.h>
 #include <memory>
 #include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
 
 #include "magic_enum.hpp"
 
@@ -83,17 +84,17 @@ inline bool checkPlayerPermission(CommandOrigin const& origin, CommandOutput& ou
     if (origin.getOriginType() == CommandOriginType::DedicatedServer) return true;
     Actor* entity = origin.getEntity();
     if (entity) {
-        auto& player        = *static_cast<Player*>(entity);
-        bool  hasPermission = pmc::PermissionManager::getInstance()
-                                 .getPermissionCore(string(PLUGIN_NAME))
-                                 ->checkUserPermission(player.getUuid().asString().c_str(), permission);
-        if (!hasPermission) {
-            utils::mc::sendText<utils::mc::MsgLevel::Error>(
-                output,
-                "你没有权限执行此命令，此命令需要权限 {0}！"_tr(permission)
-            );
-        }
-        return hasPermission;
+        auto& player = *static_cast<Player*>(entity);
+        // bool  hasPermission = pmc::PermissionManager::getInstance()
+        //                          .getPermissionCore(string(PLUGIN_NAME))
+        //                          ->checkUserPermission(player.getUuid().asString().c_str(), permission);
+        // if (!hasPermission) {
+        //     utils::mc::sendText<utils::mc::MsgLevel::Error>(
+        //         output,
+        //         "你没有权限执行此命令，此命令需要权限 {0}！"_tr(permission)
+        //     );
+        // }
+        // return hasPermission;
     } else return false;
 }
 

@@ -1,5 +1,5 @@
 #include "ll/api/base/StdInt.h"
-#include "mc/math/Vec3.h"
+#include "mc/deps/core/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
 #include "mc/world/level/BlockPos.h"
 #include "mc/world/level/ChunkBlockPos.h"
@@ -16,14 +16,12 @@ namespace tps::tpr {
 class TprModule {
 public:
     struct TprTask {
-        std::string mRealName;  // 玩家真实名称
-        BlockPos    mBlockPos;  // 方块位置(要传送到的位置)
-        ChunkPos    mChunkPos;  // 块坐标(要传送到的位置)
-        int         mDimension; // 维度
-        Vec3        mBackup;    // 位置(传送前的位置)
-        uint64_t    mTaskID;    // 任务ID
-
-        bool mGc{false};
+        std::string mRealName;          // 玩家真实名称
+        BlockPos    mBlockPos;          // 方块位置(要传送到的位置)
+        ChunkPos    mChunkPos;          // 块坐标(要传送到的位置)
+        int         mDimension;         // 维度
+        Vec3        mBackup;            // 位置(传送前的位置)
+        bool        mTaskCancle{false}; // 是否取消
     };
 
     std::vector<std::unique_ptr<TprTask>> mTasks; // 请求队列

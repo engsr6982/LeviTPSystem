@@ -45,10 +45,9 @@ bool LevelDB::initKey() {
 
 std::vector<string> LevelDB::getAllKeys() {
     std::vector<string> keys;
-    mDB->iter([&keys](const std::string_view& key, const std::string_view&) {
+    for (auto const& [key, value] : mDB->iter()) {
         keys.push_back(string(key));
-        return true;
-    });
+    }
     return keys;
 }
 
@@ -158,10 +157,9 @@ bool LevelDB::importData(const string& fileName) {
 
 bool LevelDB::exportData() {
     json j;
-    mDB->iter([&j](const std::string_view& key, const std::string_view& value) {
+    for (auto const& [key, value] : mDB->iter()) {
         j[string(key)] = json::parse(string(value));
-        return true;
-    });
+    }
     // prepare export directory
     string fileName = tps::utils::Date{}.toString();
     std::replace(fileName.begin(), fileName.end(), ':', '-');

@@ -1,17 +1,20 @@
 #pragma once
 
 #include "ll/api/mod/NativeMod.h"
+#include <atomic>
 
 namespace tps {
 
 #define MSG_TITLE "§6[§a" PLUGIN_NAME "§6]§r "
 
 class entry {
-
 public:
+    std::atomic<bool> mPluginRunning = false;
+
     static entry& getInstance();
 
-    entry(ll::mod::NativeMod& self) : mSelf(self) {}
+    // entry(ll::mod::NativeMod& self) : mSelf(self) {}
+    entry() : mSelf(*ll::mod::NativeMod::current()) {}
 
     [[nodiscard]] ll::mod::NativeMod& getSelf() const { return mSelf; }
 

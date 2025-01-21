@@ -3,12 +3,12 @@
 #include "config/Config.h"
 #include "ll/api/base/StdInt.h"
 #include "ll/api/chrono/GameChrono.h"
+#include "ll/api/coro/CoroTask.h"
 #include "ll/api/form/ModalForm.h"
 #include "ll/api/i18n/I18n.h"
-#include "ll/api/schedule/Scheduler.h"
-#include "ll/api/schedule/Task.h"
 #include "ll/api/service/Bedrock.h"
-#include "mc/math/Vec3.h"
+#include "ll/api/thread/ServerThreadExecutor.h"
+#include "mc/deps/core/math/Vec3.h"
 #include "mc/world/level/BlockPos.h"
 #include "mc/world/level/BlockSource.h"
 #include "mc/world/level/ChunkPos.h"
@@ -29,10 +29,7 @@ using string = std::string;
 using namespace tps::utils::mc;
 using ll::i18n_literals::operator""_tr;
 
-
 namespace tps::tpr {
-
-ll::schedule::GameTickScheduler GlobalRepeatScheduler;
 
 TprModule& TprModule::getInstance() {
     static TprModule instance;
@@ -52,10 +49,7 @@ bool TprModule::_deleteTask(const string& realName) {
     if (iter == mTasks.end()) {
         return false;
     }
-    bool ok = GlobalRepeatScheduler.remove(iter->get()->mTaskID);
-    if (!ok) {
-        return false;
-    }
+    iter->get()->mTaskCancle = true; // stop coroutine
     mTasks.erase(iter);
     return true;
 }
@@ -131,49 +125,41 @@ void TprModule::_findSafePosition(TprModule::TprTask* task) {
 
 void TprModule::_runTask(TprModule::TprTask* task) {
     using ll::chrono_literals::operator""_tick;
-    task->mTaskID =
-        GlobalRepeatScheduler
-            .add<ll::schedule::RepeatTask>(
-                20_tick,
-                [task, this]() {
-                    auto& logger = tps::entry::getInstance().getSelf().getLogger();
-                    if (!task) {
-                        logger.error("Task is null in {}", __FUNCTION__);
-                        return;
-                    }
-                    if (task->mGc) {
-                        bool ok = _deleteTask(task->mRealName); // 任务超时，删除任务
-                        logger.debug("Task {} is timeout, delete result: {}, l{}"_tr(task->mRealName, ok, __LINE__));
-                        return;
-                    }
+    ll::coro::keepThis([task, this]() -> ll::coro::CoroTask<> {
+        while (!task->mTaskCancle && entry::getInstance().mPluginRunning) {
+            co_await 20_tick;
+            auto& logger = tps::entry::getInstance().getSelf().getLogger();
+            if (!task) {
+                logger.error("Task is null in {}", __FUNCTION__);
+                continue;
+            }
 
-                    Player* player = ll::service::getLevel()->getPlayer(task->mRealName);
-                    if (!player) {
-                        logger.warn("玩家 {} 在随机传送期间离开服务器，将撤销该任务。"_tr(task->mRealName));
-                        bool ok = _deleteTask(task->mRealName); // 玩家不在线，删除任务
-                        logger.debug("Task {} is timeout, delete result: {}, l{}"_tr(task->mRealName, ok, __LINE__));
-                        task->mGc = true;
-                        return;
-                    }
+            Player* player = ll::service::getLevel()->getPlayer(task->mRealName);
+            if (!player) {
+                logger.warn("玩家 {} 在随机传送期间离开服务器，将撤销该任务。"_tr(task->mRealName));
+                task->mTaskCancle = true;
+                bool ok           = _deleteTask(task->mRealName); // 玩家不在线，删除任务
+                logger.debug("Task {} is timeout, delete result: {}, l{}"_tr(task->mRealName, ok, __LINE__));
+                co_return;
+            }
 
-                    try {
-                        BlockSource& bs = player->getDimensionBlockSource();
-                        if (!bs.isChunkFullyLoaded(task->mChunkPos, bs.getChunkSource())) {
-                            return;
-                        }
-
-                        sendText(player, "区块已加载，开始查找安全位置..."_tr());
-                        _findSafePosition(task);      // 开始查找安全位置
-                        _deleteTask(task->mRealName); // 任务完成，删除任务
-                    } catch (...) {
-                        task->mGc = true;
-                        player->teleport(task->mBackup, task->mDimension); // 回退到备份位置
-                        _deleteTask(task->mRealName);                      // 任务失败，删除任务
-                        logger.error("Fail in {}", __FUNCTION__);
-                    }
+            try {
+                BlockSource& bs = player->getDimensionBlockSource();
+                if (!bs.isChunkFullyLoaded(task->mChunkPos, bs.getChunkSource())) {
+                    continue;
                 }
-            )
-            ->getId();
+
+                sendText(player, "区块已加载，开始查找安全位置..."_tr());
+                _findSafePosition(task);      // 开始查找安全位置
+                _deleteTask(task->mRealName); // 任务完成，删除任务
+            } catch (...) {
+                task->mTaskCancle = true;
+                player->teleport(task->mBackup, task->mDimension); // 回退到备份位置
+                _deleteTask(task->mRealName);                      // 任务失败，删除任务
+                logger.error("Fail in {}", __FUNCTION__);
+            }
+        }
+    });
 }
 
 

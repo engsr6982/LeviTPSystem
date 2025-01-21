@@ -2,7 +2,7 @@
 
 #include "config/Config.h"
 #include "data/LevelDB.h"
-#include "mc/math/Vec3.h"
+#include "mc/deps/core/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
 #include "modules/EconomySystem.h"
 #include <algorithm>

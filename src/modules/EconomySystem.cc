@@ -1,24 +1,47 @@
+#include "mc/nbt/CompoundTag.h"
+#include "mc\nbt\CompoundTagVariant.h"
+
+
 #include "EconomySystem.h"
 #include "fmt/core.h"
+#include "ll/api/memory/Hook.h"
 #include "ll/api/service/Bedrock.h"
-#include "mc/deps/core/mce/UUID.h"
-#include "mc/nbt/CompoundTag.h"
-#include "mc/world/actor/player/PlayerScoreSetFunction.h"
+#include "mc/common/CompactionStatus.h"
+#include "mc/deps/core/file/PathBuffer.h"
+#include "mc/deps/core/threading/IAsyncResult.h"
+#include "mc/deps/core/utility/NonOwnerPointer.h"
+#include "mc/nbt/ByteArrayTag.h"
+#include "mc/nbt/ByteTag.h"
+#include "mc/nbt/DoubleTag.h"
+#include "mc/nbt/EndTag.h"
+#include "mc/nbt/FloatTag.h"
+#include "mc/nbt/Int64Tag.h"
+#include "mc/nbt/IntArrayTag.h"
+#include "mc/nbt/IntTag.h"
+#include "mc/nbt/ListTag.h"
+#include "mc/nbt/ShortTag.h"
+#include "mc/nbt/StringTag.h"
+#include "mc/platform/UUID.h"
+#include "mc/platform/brstd/move_only_function.h"
 #include "mc/world/level/Level.h"
+#include "mc/world/level/storage/DBStorage.h"
+#include "mc/world/level/storage/LevelStorage.h"
+#include "mc/world/level/storage/StorageVersion.h"
+#include "mc/world/level/storage/db_helpers/Category.h"
+#include "mc/world/scores/PlayerScoreSetFunction.h"
 #include "mc/world/scores/ScoreInfo.h"
+#include "mc\nbt\Tag.h"
+#include "mc\world\level\storage\DBStorageConfig.h"
+#include "mc\world\scores\PlayerScoreboardId.h"
+#include <Windows.h>
 #include <ll/api/service/PlayerInfo.h>
 #include <mc/world/actor/player/Player.h>
 #include <mc/world/scores/Objective.h>
 #include <mc/world/scores/Scoreboard.h>
 #include <mc/world/scores/ScoreboardId.h>
 #include <stdexcept>
-
-#include "ll/api/memory/Hook.h"
-#include "mc/world/level/storage/DBStorage.h"
-
-
-#include <Windows.h>
 #include <winuser.h>
+
 
 namespace modules {
 
@@ -34,7 +57,7 @@ int ScoreBoard_Get_Online(Player& player, string const& scoreName) {
     if (!id.isValid()) {
         scoreboard.createScoreboardId(player);
     }
-    return obj->getPlayerScore(id).mScore;
+    return obj->getPlayerScore(id).mValue;
 }
 bool ScoreBoard_Set_Online(Player& player, int score, string const& scoreName) {
     Scoreboard& scoreboard = ll::service::getLevel()->getScoreboard();
@@ -88,13 +111,13 @@ LL_AUTO_TYPE_INSTANCE_HOOK(
     DBStorageHook,
     HookPriority::Normal,
     DBStorage,
-    "??0DBStorage@@QEAA@UDBStorageConfig@@V?$not_null@V?$NonOwnerPointer@VLevelDbEnv@@@Bedrock@@@gsl@@@Z",
-    DBStorage*,
-    struct DBStorageConfig&                        cfg,
-    Bedrock::NotNullNonOwnerPtr<class LevelDbEnv>& dbEnv
+    &DBStorage::$ctor,
+    void*,
+    DBStorageConfig                                 cfg,
+    ::Bedrock::NotNullNonOwnerPtr<class LevelDbEnv> dbEnv
 ) {
-    DBStorage* ori = origin(cfg, dbEnv);
-    MC_DBStorage   = ori;
+    auto ori     = origin(std::move(cfg), dbEnv);
+    MC_DBStorage = this;
     return ori;
 };
 
@@ -114,16 +137,16 @@ int ScoreBoard_Get_Offline(mce::UUID const& uuid, string const& scoreName) {
     if (serverId.empty() || !MC_DBStorage->hasKey(serverId, DBHelpers::Category::Player)) {
         return 0;
     }
-    std::unique_ptr<CompoundTag> serverIdTag = MC_DBStorage->getCompoundTag(serverId, DBHelpers::Category::Player);
+    auto serverIdTag = MC_DBStorage->getCompoundTag(serverId, DBHelpers::Category::Player);
     if (!serverIdTag || !serverIdTag->contains("UniqueID")) {
         return 0;
     }
-    int64        uniqueId = serverIdTag->at("UniqueID");
+    auto         uniqueId = (*serverIdTag)["UniqueID"];
     ScoreboardId sid      = scoreboard.getScoreboardId(PlayerScoreboardId(uniqueId));
     if (!sid.isValid() || !objective->hasScore(sid)) {
         return 0;
     }
-    return objective->getPlayerScore(sid).mScore;
+    return objective->getPlayerScore(sid).mValue;
 }
 bool ScoreBoard_Set_Offline(mce::UUID const& uuid, int score, string const& scoreName) {
     Scoreboard& scoreboard = ll::service::getLevel()->getScoreboard();

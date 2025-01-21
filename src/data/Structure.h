@@ -1,5 +1,6 @@
 #pragma once
 #include "Entry/Entry.h"
+#include "fmt/format.h"
 #include "ll/api/i18n/I18n.h"
 #include "nlohmann/json.hpp"
 #include <string>
@@ -7,7 +8,7 @@
 #include <vector>
 
 #include "ll/api/service/Bedrock.h"
-#include "mc/math/Vec3.h"
+#include "mc/deps/core/math/Vec3.h"
 #include "mc/world/level/Level.h"
 #include "mc/world/level/dimension/Dimension.h"
 #include "utils/Utils.h"
@@ -30,7 +31,7 @@ struct Vec4 : Axis {
 
     string toVec4String() const {
         try {
-            return utils::format("{0} ({1}, {2}, {3})", ll::service::getLevel()->getDimension(dimid)->mName, x, y, z);
+            return fmt::format("{0} ({1}, {2}, {3})", (string)ll::service::getLevel()->getDimension(dimid)->mName, x, y, z);
         } catch (...) {
             return "format vec4 failed";
         }
