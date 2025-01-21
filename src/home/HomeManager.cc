@@ -4,6 +4,7 @@
 #include "mc/deps/core/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
 #include "modules/EconomySystem.h"
+#include "permission/Permission.h"
 #include <memory>
 #include <utility>
 #include <vector>
@@ -144,12 +145,7 @@ bool HomeManager::createHome(const string& realName, const string& homeName, con
 
         // 限制最大家园数量
         bool UnLimited = false;
-        // TODO
-        // auto core      = pmc::PermissionManager::getInstance().getPermissionCore(PLUGIN_NAME);
-        // auto list      = core->getUserPermission(realName);
-        // if (list.has_value()) {
-        //     UnLimited = list->hasPermission(permission::PermList::HomeCoutUnlimited);
-        // }
+        UnLimited      = Permission::getInstance().hasPermission(realName, Permission::PermType::HomeCountUnlimited);
         if (static_cast<int>(pl_home_vec.size()) >= Config::cfg.Home.MaxHome && !UnLimited) {
             utils::mc::sendText<utils::mc::MsgLevel::Error>(
                 realName,

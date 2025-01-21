@@ -38,7 +38,12 @@ bool registerCommands() {
     cmd.overload().text("mgr").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
         Player& player = *static_cast<Player*>(origin.getEntity());
-        if (!checkPlayerPermission(origin, output, permission::PermList::ManagerPanel)) return;
+
+        if (!Permission::getInstance().hasPermission(player.getRealName(), Permission::PermType::ManagerPanel)) {
+            output.error("§c§l你没有权限使用此命令！");
+            return;
+        }
+
         manager::index(player);
     });
 
@@ -94,6 +99,7 @@ bool registerCommands() {
     // Register All Commands
     string const& name = Config::cfg.Command.Command;
     registerCommandWithLevelDB(name);
+    registerPermissionCommand(name);
     if (Config::cfg.Home.Enable) registerCommandWithHome(name);
     if (Config::cfg.Warp.Enable) registerCommandWithWarp(name);
     if (Config::cfg.Tpa.Enable) registerCommandWithTpa(name);

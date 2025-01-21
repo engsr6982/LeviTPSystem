@@ -57,7 +57,11 @@ void registerCommandWithWarp(const string& name) {
 
             switch (param.operation) {
             case OperationType::add: {
-                if (!checkPlayerPermission(origin, output, permission::PermList::AllowPlayerAddWarp)) return;
+                if (!Permission::getInstance().hasPermission(player.getRealName(), Permission::PermType::AddWarp)) {
+                    output.error("你没有权限创建Warp"_tr());
+                    return;
+                }
+
                 auto       pos = player.getPosition();
                 data::Vec4 vec3{pos.x, pos.y, pos.z, player.getDimensionId().id}; // McVec3 to MyVec3
                 bool       isSuccess = warpMgr.createWarp(param.warpName, vec3);
@@ -66,7 +70,11 @@ void registerCommandWithWarp(const string& name) {
                 break;
             }
             case OperationType::del: {
-                if (!checkPlayerPermission(origin, output, permission::PermList::AllowPlayerDelWarp)) return;
+                if (!Permission::getInstance().hasPermission(player.getRealName(), Permission::PermType::DeleteWarp)) {
+                    output.error("你没有权限删除Warp"_tr());
+                    return;
+                }
+
                 bool isSuccess = warpMgr.deleteWarp(param.warpName);
                 if (isSuccess) sendText(player, "删除Warp {} 成功！"_tr(param.warpName));
                 else sendText<MsgLevel::Error>(player, "删除Warp {} 失败！"_tr(param.warpName));

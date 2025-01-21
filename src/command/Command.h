@@ -75,29 +75,10 @@ void registerCommandWithHome(const string& name);
 void registerCommandWithWarp(const string& name);
 void registerCommandWithTpa(const string& name);
 void registerCommandWithLevelDB(const string& name);
+void registerPermissionCommand(const string& name);
 
 
 // ------------------------------ tools ----------------------------------
-
-// ! 检查玩家权限（此API已封装提示）
-inline bool checkPlayerPermission(CommandOrigin const& origin, CommandOutput& output, int const& permission) {
-    if (origin.getOriginType() == CommandOriginType::DedicatedServer) return true;
-    Actor* entity = origin.getEntity();
-    if (entity) {
-        auto& player = *static_cast<Player*>(entity);
-        // bool  hasPermission = pmc::PermissionManager::getInstance()
-        //                          .getPermissionCore(string(PLUGIN_NAME))
-        //                          ->checkUserPermission(player.getUuid().asString().c_str(), permission);
-        // if (!hasPermission) {
-        //     utils::mc::sendText<utils::mc::MsgLevel::Error>(
-        //         output,
-        //         "你没有权限执行此命令，此命令需要权限 {0}！"_tr(permission)
-        //     );
-        // }
-        // return hasPermission;
-    } else return false;
-}
-
 
 #define CHECK_COMMAND_TYPE(output, origin, ...)                                                                        \
     {                                                                                                                  \

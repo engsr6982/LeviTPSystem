@@ -47,6 +47,9 @@ bool entry::load() {
     mSelf.getLogger().setLevel(tps::Config::cfg.logLevel); // 设置日志等级
 
     tps::data::LevelDB::getInstance().loadDB(); // 加载leveldb数据
+    if (!tps::Permission::getInstance().load()) {
+        tps::Permission::getInstance().save();
+    }
 
     this->mPluginRunning = true;
 
@@ -61,8 +64,7 @@ bool entry::load() {
 bool entry::enable() {
     getSelf().getLogger().info("Enabling...");
 
-    tps::command::registerCommands();       // 注册命令
-    tps::permission::registerPermissions(); // 注册权限
+    tps::command::registerCommands(); // 注册命令
 
     // 注册菜单
     modules::Menu::rootDir   = mSelf.getDataDir();
@@ -86,6 +88,7 @@ bool entry::enable() {
 
 bool entry::disable() {
     this->mPluginRunning = false;
+    tps::Permission::getInstance().save();
     tps::event::unRegisterEvent();
 
     return true;
