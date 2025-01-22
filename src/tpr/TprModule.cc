@@ -92,7 +92,7 @@ void TprModule::_findSafePosition(TprModule::TprTask* task) {
             task->mBlockPos.x,
             task->mBlockPos.z,
             task->mDimension,
-            player.getDimensionConst().getHeight(),
+            player.getDimensionConst().getHeight() - 5,
             player.getDimensionConst().getMinHeight(),
             Config::cfg.Tpr.DangerousBlocks
         );
