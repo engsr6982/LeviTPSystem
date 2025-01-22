@@ -93,7 +93,20 @@ lip install github.com/engsr6982/LeviTPSystem
 
 `/tps tpr` 随机传送 GUI（玩家）
 
+`/tps perm add <realName: string> <permtype: PermType>` 添加一个权限（控制台）
+
+`/tps perm del <realName: string> <permtype: PermType>` 添加一个权限（控制台）
+
+`/tps perm list <realName: string>` 列出玩家拥有的权限（控制台）
+
 </details>
+
+`PermType` 权限类型
+- add_warp 添加公共传送点
+- delete_warp 删除公共传送点
+- edit_warp 编辑公共传送点(add_warp + delete_warp)
+- manager_panel 管理 GUI
+- home_count_unlimited 不限制家园数量
 
 ## 配置文件
 
@@ -144,13 +157,13 @@ lip install github.com/engsr6982/LeviTPSystem
     "Dimensions": [0, 1, 2], // 允许随机传送的维度
     "DangerousBlocks": ["minecraft:lava", "minecraft:flowing_lava"], // 危险方块列表，落脚点是这些方块则传送失败
     "RestrictedArea": {
-      // 限制传送范围(插件内置ZoneCheckV3不需要前置)
+      // 限制传送范围
       "Enable": false,
       "Type": "Circle", // 限制类型，支持 Circle、CenteredSquare
       "CenterX": 0, // 中心点X坐标
       "CenterZ": 0, // 中心点Z坐标
       "Radius": 100, // 半径
-      "UsePlayerPos": false // 是否使用玩家当前位置作为限制中心
+      "UsePlayerPos": false // 是否使用玩家当前位置作为限制中心(以玩家位置为中心进行随机传送)
     }
   },
   "Pr": {
@@ -164,7 +177,7 @@ lip install github.com/engsr6982/LeviTPSystem
     "allowTpa": true, // 玩家是否接受他人发起的 Tpa 请求
     "tpaPopup": true // Tpa 请求发起后是否弹出提示框
   },
-  "logLevel": 4, // 日志等级，0-5
+  "logLevel": "Info", // 日志等级，支持 Off / Fatal / Error / Warn / Info / Debug / Trace
   "version": 2 // 配置文件版本号，除非你知道你在做什么，否则不要修改
 }
 ```
