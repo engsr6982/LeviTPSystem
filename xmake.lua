@@ -51,6 +51,6 @@ target("LeviTPSystem")
         local bindir = path.join(os.projectdir(), "bin")
         local outputdir = path.join(bindir, target:name())
         -- copy data files
-        local datadir = path.join(os.projectdir(), "assets", "data")
-        os.cp(datadir, outputdir)
+        -- local datadir = path.join(os.projectdir(), "assets", "data")
+        -- os.cp(datadir, outputdir)
     end)
