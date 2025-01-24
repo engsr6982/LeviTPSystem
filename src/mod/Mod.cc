@@ -1,4 +1,5 @@
 #include "Mod.h"
+#include "core/database/Storage.h"
 
 namespace tps {
 
@@ -11,6 +12,14 @@ bool Mod::load() {
 #ifdef DEBUG
     mSelf.getLogger().setLevel(ll::io::LogLevel::Debug);
 #endif
+
+    auto& storage = tps::Storage::getInstance();
+    storage.connect();
+    if (!storage.isConnected()) {
+        mSelf.getLogger().error("Failed to connect to database");
+        return false;
+    }
+    storage.initialize();
 
     return true;
 }
