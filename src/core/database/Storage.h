@@ -1,5 +1,5 @@
 #pragma once
-#include "IStorage.h"
+#include "common/Global.h"
 #include "ll/api/data/KeyValueDB.h"
 #include <memory>
 
@@ -7,28 +7,28 @@
 namespace tps {
 
 
-class Storage : public IStorage {
+class Storage {
     std::unique_ptr<ll::data::KeyValueDB> mDB;
 
 public:
-    Storage()                          = default;
-    Storage(const Storage&)            = delete;
-    Storage& operator=(const Storage&) = delete;
-    Storage(Storage&&)                 = delete;
-    Storage& operator=(Storage&&)      = delete;
+    Storage() = default;
+    DISALLOW_COPY_AND_ASSIGN(Storage)
 
     static Storage& getInstance();
 
 public:
-    ll::data::KeyValueDB* getDB() override;
+    ll::data::KeyValueDB* getDB();
 
-    bool isConnected() override;
+    bool isConnected();
 
-    void connect() override;
+    void connect();
 
-    void disconnect() override;
+    void disconnect();
 
-    void initialize() override;
+    void initialize();
+
+public:
+    string const DIR_NAME = "storage";
 };
 
 

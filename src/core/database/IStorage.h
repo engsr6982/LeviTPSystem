@@ -18,8 +18,6 @@ public:
     virtual void disconnect();
 
     virtual void initialize();
-
-    string const DIR_NAME = "storage";
 };
 
 
