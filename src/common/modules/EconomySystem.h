@@ -1,12 +1,10 @@
 #pragma once
+#include "common/Global.h"
 #include "mc/platform/UUID.h"
 #include "mc/world/actor/player/Player.h"
 
 
-namespace modules {
-
-using string = std::string;
-
+namespace tps {
 
 class EconomySystem {
 public:
@@ -15,17 +13,16 @@ public:
         bool       enabled{false};               // 是否启用经济系统
         EconomyKit kit{EconomyKit::LegacyMoney}; // 经济系统类型
         string     currency{"money"};            // 货币名称
-        string     scoreboard{""};               // Scoreboard 经济系统使用的计分板名称
+        string     scoreboard{""};               // Scoreboard 使用的计分板名称
     };
 
-    Config const* mConfig; // 经济系统配置
+private:
+    Config const* mConfig;
 
-    EconomySystem()                                = default;
-    EconomySystem(const EconomySystem&)            = delete;
-    EconomySystem& operator=(const EconomySystem&) = delete;
-
+public:
     static EconomySystem& getInstance();
-    void                  update(Config const* config);
+
+    void update(Config* config);
 
     /**
      * @brief 是否装载经济前置LegacyMoney
@@ -74,7 +71,11 @@ public:
 
     static void sendErrorMessage(Player& player, string const& message);
     static void sendMessage(Player& player, string const& message, string const& prefix = "[EconomySystem] §b");
+
+public:
+    EconomySystem() = default;
+    DISALLOW_COPY_AND_ASSIGN(EconomySystem);
 };
 
 
-} // namespace modules
+} // namespace tps

@@ -1,5 +1,6 @@
 #pragma once
 #include "common/Global.h"
+#include "common/modules/EconomySystem.h"
 #include "ll/api/io/LogLevel.h"
 #include <vector>
 
@@ -16,9 +17,7 @@ struct Config {
         string commandDescription{"LeviTPSystem"};
     } command;
 
-    struct {
-        // TODO: Add more config options
-    } economySystem;
+    EconomySystem::Config economySystem;
 
     // 功能配置
     struct {

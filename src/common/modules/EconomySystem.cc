@@ -1,38 +1,19 @@
-#include "mc/nbt/CompoundTag.h"
-#include "mc\nbt\CompoundTagVariant.h"
-
-
 #include "EconomySystem.h"
 #include "fmt/core.h"
 #include "ll/api/memory/Hook.h"
 #include "ll/api/service/Bedrock.h"
-#include "mc/common/CompactionStatus.h"
-#include "mc/deps/core/file/PathBuffer.h"
-#include "mc/deps/core/threading/IAsyncResult.h"
-#include "mc/deps/core/utility/NonOwnerPointer.h"
-#include "mc/nbt/ByteArrayTag.h"
-#include "mc/nbt/ByteTag.h"
-#include "mc/nbt/DoubleTag.h"
-#include "mc/nbt/EndTag.h"
-#include "mc/nbt/FloatTag.h"
-#include "mc/nbt/Int64Tag.h"
-#include "mc/nbt/IntArrayTag.h"
-#include "mc/nbt/IntTag.h"
+#include "mc/nbt/CompoundTag.h"
+#include "mc/nbt/CompoundTagVariant.h"
 #include "mc/nbt/ListTag.h"
-#include "mc/nbt/ShortTag.h"
-#include "mc/nbt/StringTag.h"
 #include "mc/platform/UUID.h"
-#include "mc/platform/brstd/move_only_function.h"
 #include "mc/world/level/Level.h"
 #include "mc/world/level/storage/DBStorage.h"
+#include "mc/world/level/storage/DBStorageConfig.h"
 #include "mc/world/level/storage/LevelStorage.h"
-#include "mc/world/level/storage/StorageVersion.h"
 #include "mc/world/level/storage/db_helpers/Category.h"
 #include "mc/world/scores/PlayerScoreSetFunction.h"
+#include "mc/world/scores/PlayerScoreboardId.h"
 #include "mc/world/scores/ScoreInfo.h"
-#include "mc\nbt\Tag.h"
-#include "mc\world\level\storage\DBStorageConfig.h"
-#include "mc\world\scores\PlayerScoreboardId.h"
 #include <Windows.h>
 #include <ll/api/service/PlayerInfo.h>
 #include <mc/world/actor/player/Player.h>
@@ -43,9 +24,8 @@
 #include <winuser.h>
 
 
-namespace modules {
+namespace tps {
 
-// 在线计分板
 int ScoreBoard_Get_Online(Player& player, string const& scoreName) {
     Scoreboard& scoreboard = ll::service::getLevel()->getScoreboard();
     Objective*  obj        = scoreboard.getObjective(scoreName);
@@ -289,7 +269,7 @@ EconomySystem& EconomySystem::getInstance() {
     static EconomySystem instance;
     return instance;
 }
-void EconomySystem::update(Config const* Config) { this->mConfig = Config; }
+void EconomySystem::update(Config* Config) { this->mConfig = Config; }
 bool EconomySystem::isLegacyMoneyLoaded() const { return LegacyMoney_IsLoaded(); }
 
 void EconomySystem::sendMessage(Player& player, const string& message, string const& prefix) {
@@ -463,4 +443,4 @@ bool EconomySystem::transfer(mce::UUID const& uuid, mce::UUID const& target, llo
 }
 
 
-} // namespace modules
+} // namespace tps
