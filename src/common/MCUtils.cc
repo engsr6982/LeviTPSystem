@@ -1,4 +1,5 @@
-#pragma once
+#include "MCUtils.h"
+#include "common/Global.h"
 #include "fmt/format.h"
 #include "ll/api/service/Bedrock.h"
 #include "mc/_HeaderOutputPredefine.h"
@@ -42,19 +43,10 @@
 #include <memory>
 #include <string>
 
-using string = std::string;
 
-namespace tps::api {
+namespace tps {
 
-inline Block const& getBlock(BlockPos& bp, int dimid) {
-    return ll::service::getLevel()->getDimension(dimid)->getBlockSourceFromMainChunkSource().getBlock(bp);
-}
-inline Block const& getBlock(int y, BlockPos bp, int dimid) {
-    bp.y = y;
-    return getBlock(bp, dimid);
-}
-
-inline void executeCommand(const std::string& cmd, Player* player = nullptr) {
+void executeCommand(string const& cmd, Player* player) {
     if (player) {
         // player
         CommandContext ctx = CommandContext(
@@ -78,21 +70,22 @@ inline void executeCommand(const std::string& cmd, Player* player = nullptr) {
         ll::service::getMinecraft()->getCommands().executeCommand(ctx, true);
     }
 }
-inline std::pair<bool, std::string> executeCommandEx(const std::string& cmd) {
-    std::pair<bool, std::string> result;
-    auto                         origin =
+
+std::pair<bool, string> executeCommandEx(string const& cmd) {
+    std::pair<bool, string> result;
+    auto                    origin =
         ServerCommandOrigin("Server", ll::service::getLevel()->asServer(), CommandPermissionLevel::Internal, 0);
     auto command = ll::service::getMinecraft()->getCommands().compileCommand(
         cmd.c_str(),
         origin,
         (CurrentCmdVersion)CommandVersion::CurrentVersion(),
-        [&](std::string const& err) { result.second.append(err).append("\n"); }
+        [&](string const& err) { result.second.append(err).append("\n"); }
     );
     if (command) {
         CommandOutput output(CommandOutputType::AllOutput);
         command->run(origin, output);
         for (auto& msg : output.getMessages()) {
-            std::string temp;
+            string temp;
             getI18n().getCurrentLanguage()->get(msg.getMessageId(), temp, msg.getParams());
             result.second += temp.append("\n");
         }
@@ -109,4 +102,4 @@ inline std::pair<bool, std::string> executeCommandEx(const std::string& cmd) {
     return result;
 }
 
-} // namespace tps::api
+} // namespace tps
