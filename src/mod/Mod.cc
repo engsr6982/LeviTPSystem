@@ -1,5 +1,8 @@
 #include "Mod.h"
+
+#include "common/config/Config.h"
 #include "core/database/Storage.h"
+
 
 namespace tps {
 
@@ -12,6 +15,7 @@ bool Mod::load() {
 #ifdef DEBUG
     mSelf.getLogger().setLevel(ll::io::LogLevel::Debug);
 #endif
+    tps::Config::load();
 
     auto& storage = tps::Storage::getInstance();
     storage.connect();
