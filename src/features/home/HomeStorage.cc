@@ -1,28 +1,40 @@
 #include "HomeStorage.h"
 #include "common/Global.h"
+#include "common/utils/JsonUtils.h"
 #include "common/utils/Utils.h"
 #include "fmt/core.h"
+#include <optional>
 
 
 namespace tps {
 
-HomeStorage::Data::Data(string name, int x, int y, int z, int dimid)
-: x(x),
-  y(y),
-  z(z),
-  dimid(dimid),
-  name(std::move(name)),
-  createTime(""),
-  updateTime("") {}
-
-HomeStorage::Data::operator string() const { return fmt::format("{0}({1},{2},{3})", dimid2str(dimid), x, y, z); }
+string HomeStorage::Data::str() const { return fmt::format("{0}({1},{2},{3})", dimid2str(dimid), x, y, z); }
 
 
 // HomeStorage
-void HomeStorage::load() {};
-void HomeStorage::save() {};
+bool HomeStorage::load() {
+    auto db = this->getDB();
+    if (!db) return false;
 
-std::string HomeStorage::getPrefix() { return "home_"; };
+    auto data = db->get(getKey());
+    if (data.has_value()) {
+        auto json = JsonUtils::parse(data.value());
+        JsonUtils::json2struct(json, mCache);
+        return true;
+    }
+    return false;
+}
+
+bool HomeStorage::save() {
+    auto db = this->getDB();
+    if (!db) return false;
+
+    auto json = JsonUtils::struct2json(mCache);
+    db->set(getKey(), json.dump());
+    return true;
+}
+
+std::string HomeStorage::getKey() { return "home"; }
 
 
 HomeStorage& HomeStorage::getInstance() {
@@ -30,17 +42,44 @@ HomeStorage& HomeStorage::getInstance() {
     return instance;
 }
 
-HomeStorage::DataPtr HomeStorage::load(std::string_view key) { return nullptr; };
-void                 HomeStorage::save(std::string_view key, HomeStorage::DataPtr data) {};
 
+std::optional<HomeStorage::Data> HomeStorage::getHome(string const& realName, string const& name) const {
+    auto realNameIter = mCache.find(realName);
+    if (realNameIter == mCache.end()) return std::nullopt;
 
-HomeStorage::Data* HomeStorage::getHome(string const& name) { return nullptr; }
+    auto nameIter = realNameIter->second.find(name);
+    if (nameIter == realNameIter->second.end()) return std::nullopt;
 
-void HomeStorage::addHome(HomeStorage::DataPtr data) {}
+    return nameIter->second;
+}
 
-void HomeStorage::deleteHome(string const& name) {}
+bool HomeStorage::addHome(string const& realName, Data data) {
+    auto realNameIter = mCache.find(realName);
+    if (realNameIter == mCache.end()) {
+        mCache[string(realName)] = {
+            {data.name, std::move(data)}
+        };
+        return true;
+    }
+    realNameIter->second[data.name] = std::move(data);
+    return true;
+}
 
-void HomeStorage::updateHome(string const& name, HomeStorage::Data* data) {}
+bool HomeStorage::deleteHome(string const& realName, string const& name) {
+    auto realNameIter = mCache.find(realName);
+    if (realNameIter == mCache.end()) return false;
+
+    realNameIter->second.erase(name);
+    return true;
+}
+
+bool HomeStorage::updateHome(string const& realName, HomeStorage::Data data) {
+    auto realNameIter = mCache.find(realName);
+    if (realNameIter == mCache.end()) return false;
+
+    realNameIter->second[data.name] = std::move(data);
+    return true;
+}
 
 
 } // namespace tps

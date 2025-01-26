@@ -10,33 +10,32 @@ PermissionStorage& PermissionStorage::getInstance() {
     return instance;
 }
 
-void PermissionStorage::load() {
+bool PermissionStorage::load() {
     auto db = this->getDB();
-    if (!db) return;
+    if (!db) return false;
 
-    auto prefix = this->getPrefix();
+    auto prefix = this->getKey();
     auto data   = db->get(prefix);
-    if (!data) {
-        save(); // save default
-        return;
-    }
+    if (!data) return false;
 
     auto json = JsonUtils::parse(*data);
-    if (json.empty()) return;
+    if (json.empty()) return false;
 
     JsonUtils::json2struct_version_patch(json, mData);
+    return true;
 }
 
-void PermissionStorage::save() {
+bool PermissionStorage::save() {
     auto db = this->getDB();
-    if (!db) return;
+    if (!db) return false;
 
-    auto prefix = this->getPrefix();
+    auto prefix = this->getKey();
     auto data   = JsonUtils::struct2json(mData);
     db->set(prefix, data.dump());
+    return true;
 }
 
-std::string PermissionStorage::getPrefix() { return "permission"; }
+std::string PermissionStorage::getKey() { return "permission"; }
 
 
 void PermissionStorage::grantPermission(string realName, Permission perm) {

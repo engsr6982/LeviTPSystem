@@ -5,10 +5,10 @@ namespace tps {
 
 
 class ModuleStorage : public IStorage {
-    virtual void load() = 0;
-    virtual void save() = 0;
+    [[nodiscard]] virtual bool load() = 0;
+    [[nodiscard]] virtual bool save() = 0;
 
-    virtual std::string getPrefix() = 0;
+    [[nodiscard]] virtual string getKey() = 0;
 };
 
 

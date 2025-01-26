@@ -20,7 +20,7 @@ private:
     Config const* mConfig;
 
 public:
-    static EconomySystem& getInstance();
+    [[nodiscard]] static EconomySystem& getInstance();
 
     void update(Config* config);
 

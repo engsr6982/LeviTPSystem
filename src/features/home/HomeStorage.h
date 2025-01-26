@@ -1,6 +1,7 @@
 #pragma once
 #include "common/Global.h"
 #include "core/database/ModuleStorage.h"
+#include <optional>
 #include <unordered_map>
 
 namespace tps {
@@ -12,37 +13,28 @@ public:
         int    x, y, z, dimid;
         string name, createTime, updateTime;
 
-    public:
-        Data() = default;
-        Data(string name, int x, int y, int z, int dimid);
-
-        operator string() const;
+        [[nodiscard]] string str() const;
     };
 
-    using DataPtr = std::unique_ptr<Data>;
-
 private:
-    std::unordered_map<string, std::unordered_map<string, DataPtr>> mCache; // <realName, <name, data>>
+    std::unordered_map<string, std::unordered_map<string, Data>> mCache; // <realName, <name, data>>
 
 public:
-    void load() override;
-    void save() override;
+    [[nodiscard]] bool load() override;
+    [[nodiscard]] bool save() override;
 
-    std::string getPrefix() override;
+    std::string getKey() override;
 
 public:
-    static HomeStorage& getInstance();
+    [[nodiscard]] static HomeStorage& getInstance();
 
-    DataPtr load(std::string_view key);
-    void    save(std::string_view key, DataPtr data);
+    [[nodiscard]] std::optional<Data> getHome(string const& realName, string const& name) const;
 
-    Data* getHome(string const& name);
+    bool addHome(string const& realName, Data data);
 
-    void addHome(DataPtr data);
+    bool deleteHome(string const& realName, string const& name);
 
-    void deleteHome(string const& name);
-
-    void updateHome(string const& name, Data* data);
+    bool updateHome(string const& realName, Data data);
 
 public:
     HomeStorage() = default;

@@ -14,10 +14,10 @@ public:
     Storage() = default;
     DISALLOW_COPY_AND_ASSIGN(Storage)
 
-    static Storage& getInstance();
+    [[nodiscard]] static Storage& getInstance();
 
 public:
-    ll::data::KeyValueDB* getDB();
+    [[nodiscard]] ll::data::KeyValueDB* getDB();
 
     bool isConnected();
 

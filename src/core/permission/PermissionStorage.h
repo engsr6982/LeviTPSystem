@@ -25,13 +25,13 @@ public:
     } mData;
 
 public:
-    void load() override;
-    void save() override;
+    [[nodiscard]] bool load() override;
+    [[nodiscard]] bool save() override;
 
-    std::string getPrefix() override;
+    [[nodiscard]] std::string getKey() override;
 
 public:
-    static PermissionStorage& getInstance();
+    [[nodiscard]] static PermissionStorage& getInstance();
 
     void grantPermission(string realName, Permission perm); // use move semantics
 

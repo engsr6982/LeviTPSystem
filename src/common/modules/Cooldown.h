@@ -12,7 +12,7 @@ public:
     // <category, <realName, time_t>>
     std::unordered_map<std::string, std::unordered_map<std::string, std::time_t>> mCooldowns;
 
-    static Cooldown& getInstance();
+    [[nodiscard]] static Cooldown& getInstance();
 
     // 是否在冷却中
     bool isCooldown(string const& category, string const& realName) const;

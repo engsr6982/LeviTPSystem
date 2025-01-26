@@ -9,7 +9,7 @@ class IStorage {
 public:
     virtual ~IStorage() = default;
 
-    virtual ll::data::KeyValueDB* getDB();
+    [[nodiscard]] virtual ll::data::KeyValueDB* getDB();
 
     virtual bool isConnected();
 
