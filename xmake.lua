@@ -46,7 +46,11 @@ target("LeviTPSystem")
         add_defines("DEBUG", "LL_I18N_COLLECT_STRINGS")
     end
 
-    add_defines("PLUGIN_NAME=\"LeviTPSystem\"")
+    before_build(function (target) 
+        local project_name = target:name()
+        target:add("defines", "PROJECT_NAME=\"" .. project_name .. "\"")
+    end)
+
     after_build(function (target)
         local bindir = path.join(os.projectdir(), "bin")
         local outputdir = path.join(bindir, target:name())
