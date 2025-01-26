@@ -1,6 +1,6 @@
 #include "Mod.h"
 
-#include "common/config/Config.h"
+#include "core/config/Config.h"
 #include "core/database/Storage.h"
 
 
