@@ -2,6 +2,9 @@
 
 #include "core/config/Config.h"
 #include "core/database/Storage.h"
+#include "core/permission/PermissionStorage.h"
+#include "features/home/HomeCommand.h"
+#include "features/home/HomeStorage.h"
 
 
 namespace tps {
@@ -25,12 +28,24 @@ bool Mod::load() {
     }
     storage.initialize();
 
+    PermissionStorage::getInstance().load();
+    HomeStorage::getInstance().load();
+
     return true;
 }
 
-bool Mod::enable() { return true; }
+bool Mod::enable() {
+    HomeCommand::setup();
+    return true;
+}
 
-bool Mod::disable() { return true; }
+bool Mod::disable() {
+
+    HomeStorage::getInstance().save();
+    PermissionStorage::getInstance().save();
+
+    return true;
+}
 
 bool Mod::unload() { return true; }
 
