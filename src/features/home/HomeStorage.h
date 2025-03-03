@@ -30,6 +30,8 @@ public:
 
     [[nodiscard]] std::optional<Data> getHome(string const& realName, string const& name) const;
 
+    [[nodiscard]] std::vector<string> getHomeNames(string const& realName) const;
+
     bool addHome(string const& realName, Data data);
 
     bool deleteHome(string const& realName, string const& name);

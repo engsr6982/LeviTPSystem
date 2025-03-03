@@ -53,6 +53,17 @@ std::optional<HomeStorage::Data> HomeStorage::getHome(string const& realName, st
     return nameIter->second;
 }
 
+std::vector<string> HomeStorage::getHomeNames(string const& realName) const {
+    auto realNameIter = mCache.find(realName);
+    if (realNameIter == mCache.end()) return {};
+
+    std::vector<string> names;
+    for (auto& [name, _] : realNameIter->second) {
+        names.push_back(name);
+    }
+    return names;
+}
+
 bool HomeStorage::addHome(string const& realName, Data data) {
     auto realNameIter = mCache.find(realName);
     if (realNameIter == mCache.end()) {

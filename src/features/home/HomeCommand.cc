@@ -1,6 +1,9 @@
 #include "HomeCommand.h"
 #include "common/Global.h"
+#include "common/utils/MCUtils.h"
+#include "common/utils/Utils.h"
 #include "core/config/Config.h"
+#include "features/home/HomeStorage.h"
 #include "ll/api/command/CommandHandle.h"
 #include "ll/api/command/CommandRegistrar.h"
 #include "ll/api/command/Optional.h"
@@ -18,18 +21,62 @@ struct ActionParams {
     string home;
 };
 static const auto ActionCall = [](CommandOrigin const& origin, CommandOutput& output, ActionParams const& params) {
-    
+    if (origin.getOriginType() != CommandOriginType::Player) {
+        sendText<MessageLevel::Error>(output, "此命令只能由玩家执行"_tr());
+        return;
+    }
+    auto* player = static_cast<Player*>(origin.getEntity());
+
+    switch (params.action) {
+    case Action::add: {
+        
+        break;
+    }
+    case Action::del: {
+        break;
+    }
+    case Action::go: {
+        break;
+    }
+    }
 };
 
 struct ListParams {
     string home;
 };
 static const auto ListCall = [](CommandOrigin const& origin, CommandOutput& output, ListParams const& params) {
+    if (origin.getOriginType() != CommandOriginType::Player) {
+        sendText<MessageLevel::Error>(output, "此命令只能由玩家执行"_tr());
+        return;
+    }
+    auto* player = static_cast<Player*>(origin.getEntity());
 
+    if (params.home.empty()) {
+        auto names = HomeStorage::getInstance().getHomeNames(player->getRealName());
+        if (names.empty()) {
+            sendText(output, "你还没有设置任何家"_tr());
+            return;
+        }
+        sendText(output, "{}"_tr(join(names)));
+        return;
+    }
+
+    auto home = HomeStorage::getInstance().getHome(player->getRealName(), params.home);
+    if (!home) {
+        sendText(output, "找不到名为 {} 的家"_tr(params.home));
+        return;
+    }
+
+    sendText(output, "'{}': {}", home->name, home->str());
 };
 
 static const auto DefaultCall = [](CommandOrigin const& origin, CommandOutput& output) {
-
+    if (origin.getOriginType() != CommandOriginType::Player) {
+        sendText<MessageLevel::Error>(output, "此命令只能由玩家执行"_tr());
+        return;
+    }
+    auto* player = static_cast<Player*>(origin.getEntity());
+    // TODO: GUI
 };
 
 void HomeCommand::setup() {
