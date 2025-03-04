@@ -28,6 +28,7 @@
 #include "mc/world/level/storage/LevelStorage.h"
 #include "mc/world/level/storage/StorageVersion.h"
 #include "mc/world/level/storage/db_helpers/Category.h"
+#include "mc/world/scores/IdentityDictionary.h"
 #include "mc/world/scores/PlayerScoreSetFunction.h"
 #include "mc/world/scores/ScoreInfo.h"
 #include "mc\nbt\Tag.h"
@@ -54,7 +55,7 @@ int ScoreBoard_Get_Online(Player& player, string const& scoreName) {
         return 0;
     }
     ScoreboardId const& id = scoreboard.getScoreboardId(player);
-    if (!id.isValid()) {
+    if (id.mRawID == ScoreboardId::INVALID().mRawID) {
         scoreboard.createScoreboardId(player);
     }
     return obj->getPlayerScore(id).mValue;
@@ -67,7 +68,7 @@ bool ScoreBoard_Set_Online(Player& player, int score, string const& scoreName) {
         return false;
     }
     const ScoreboardId& id = scoreboard.getScoreboardId(player);
-    if (!id.isValid()) {
+    if (id.mRawID == ScoreboardId::INVALID().mRawID) {
         scoreboard.createScoreboardId(player);
     }
     bool isSuccess = false;
@@ -82,7 +83,7 @@ bool ScoreBoard_Add_Online(Player& player, int score, string const& scoreName) {
         return false;
     }
     const ScoreboardId& id = scoreboard.getScoreboardId(player);
-    if (!id.isValid()) {
+    if (id.mRawID == ScoreboardId::INVALID().mRawID) {
         scoreboard.createScoreboardId(player);
     }
     bool isSuccess = false;
@@ -97,7 +98,7 @@ bool ScoreBoard_Reduce_Online(Player& player, int score, string const& scoreName
         return false;
     }
     const ScoreboardId& id = scoreboard.getScoreboardId(player);
-    if (!id.isValid()) {
+    if (id.mRawID == ScoreboardId::INVALID().mRawID) {
         scoreboard.createScoreboardId(player);
     }
     bool isSuccess = false;
@@ -119,7 +120,17 @@ LL_AUTO_TYPE_INSTANCE_HOOK(
     auto ori     = origin(std::move(cfg), dbEnv);
     MC_DBStorage = this;
     return ori;
-};
+}
+
+ScoreboardId ScoreboardHelpergetId(Scoreboard const& scoreboard, PlayerScoreboardId const& playerId) {
+    auto& dict  = scoreboard.mIdentityDict->mPlayers;
+    auto  found = dict->find(playerId);
+    if (found != dict->end()) {
+        return found->second;
+    } else {
+        return ScoreboardId::INVALID();
+    }
+}
 
 int ScoreBoard_Get_Offline(mce::UUID const& uuid, string const& scoreName) {
     Scoreboard& scoreboard = ll::service::getLevel()->getScoreboard();
@@ -142,8 +153,8 @@ int ScoreBoard_Get_Offline(mce::UUID const& uuid, string const& scoreName) {
         return 0;
     }
     auto         uniqueId = (*serverIdTag)["UniqueID"];
-    ScoreboardId sid      = scoreboard.getScoreboardId(PlayerScoreboardId(uniqueId));
-    if (!sid.isValid() || !objective->hasScore(sid)) {
+    ScoreboardId sid      = ScoreboardHelpergetId(scoreboard, PlayerScoreboardId(uniqueId));
+    if (sid.mRawID == ScoreboardId::INVALID().mRawID || !objective->hasScore(sid)) {
         return 0;
     }
     return objective->getPlayerScore(sid).mValue;
@@ -169,8 +180,8 @@ bool ScoreBoard_Set_Offline(mce::UUID const& uuid, int score, string const& scor
         return false;
     }
     int64        uniqueId = serverIdTag->at("UniqueID");
-    ScoreboardId sid      = scoreboard.getScoreboardId(PlayerScoreboardId(uniqueId));
-    if (!sid.isValid()) {
+    ScoreboardId sid      = ScoreboardHelpergetId(scoreboard, PlayerScoreboardId(uniqueId));
+    if (sid.mRawID == ScoreboardId::INVALID().mRawID) {
         return false;
     }
     bool isSuccess = false;
@@ -198,8 +209,8 @@ bool ScoreBoard_Add_Offline(mce::UUID const& uuid, int score, string const& scor
         return false;
     }
     int64        uniqueId = serverIdTag->at("UniqueID");
-    ScoreboardId sid      = scoreboard.getScoreboardId(PlayerScoreboardId(uniqueId));
-    if (!sid.isValid()) {
+    ScoreboardId sid      = ScoreboardHelpergetId(scoreboard, PlayerScoreboardId(uniqueId));
+    if (sid.mRawID == ScoreboardId::INVALID().mRawID) {
         return false;
     }
     bool isSuccess = false;
@@ -227,8 +238,8 @@ bool ScoreBoard_Reduce_Offline(mce::UUID const& uuid, int score, string const& s
         return false;
     }
     int64        uniqueId = serverIdTag->at("UniqueID");
-    ScoreboardId sid      = scoreboard.getScoreboardId(PlayerScoreboardId(uniqueId));
-    if (!sid.isValid()) {
+    ScoreboardId sid      = ScoreboardHelpergetId(scoreboard, PlayerScoreboardId(uniqueId));
+    if (sid.mRawID == ScoreboardId::INVALID().mRawID) {
         return false;
     }
     bool isSuccess = false;

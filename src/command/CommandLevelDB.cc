@@ -59,7 +59,7 @@ void registerCommandWithLevelDB(const string& name) {
                     db.setJson(param.key1, json);
                     sendText(output, "键 {0} 的子键 {1} 已删除"_tr(param.key1, param.key2));
                 } else {
-                    sendText<MsgLevel::Error>(output, "键 {0} 的子键 {1} 不存在"_tr(param.key1, param.key2));
+                    sendText<LogLevel::Error>(output, "键 {0} 的子键 {1} 不存在"_tr(param.key1, param.key2));
                 }
             }
             db.initKey();
@@ -76,8 +76,8 @@ void registerCommandWithLevelDB(const string& name) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::DedicatedServer);
             sendText(output, "正在导入数据..."_tr());
             bool isSuccess = data::LevelDB::getInstance().importData(param.fileName);
-            if (isSuccess) sendText<MsgLevel::Success>(output, "导入成功!"_tr());
-            else sendText<MsgLevel::Error>(output, "导入失败!"_tr());
+            if (isSuccess) sendText<LogLevel::Success>(output, "导入成功!"_tr());
+            else sendText<LogLevel::Error>(output, "导入失败!"_tr());
             ll::event::EventBus::getInstance().publish(event::LevelDBIllegalOperationEvent()); // 触发事件
         });
 
@@ -85,8 +85,8 @@ void registerCommandWithLevelDB(const string& name) {
     cmd.overload().text("leveldb").text("export").execute([](CommandOrigin const& origin, CommandOutput& output) {
         CHECK_COMMAND_TYPE(output, origin, CommandOriginType::DedicatedServer);
         bool isSuccess = data::LevelDB::getInstance().exportData();
-        if (isSuccess) sendText<MsgLevel::Success>(output, "导出成功! "_tr());
-        else sendText<MsgLevel::Error>(output, "导出失败!"_tr());
+        if (isSuccess) sendText<LogLevel::Success>(output, "导出成功! "_tr());
+        else sendText<LogLevel::Error>(output, "导出失败!"_tr());
     });
 }
 

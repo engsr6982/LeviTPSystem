@@ -10,8 +10,7 @@
 #include "ll/api/i18n/I18n.h"
 #include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "utils/Mc.h"
-#include "utils/McAPI.h"
+#include "utils/McUtils.h"
 #include "utils/Utils.h"
 #include <string>
 #include <tuple>
@@ -20,7 +19,7 @@
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
-using namespace tps::utils::mc;
+using namespace mc_utils;
 
 
 namespace tps::rule::form {

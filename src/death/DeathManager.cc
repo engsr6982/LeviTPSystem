@@ -6,7 +6,7 @@
 #include "mc/deps/core/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
 #include "modules/EconomySystem.h"
-#include "utils/Mc.h"
+#include "utils/McUtils.h"
 #include <memory>
 #include <vector>
 
@@ -50,12 +50,12 @@ bool DeathManager::hasDeathInfo(const string& realName) { return mDeath->find(re
 
 bool DeathManager::teleport(Player& player, const int& index) {
     if (!hasDeathInfo(player.getRealName())) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "您还没有死亡点信息!");
+        mc_utils::sendText<mc_utils::LogLevel::Error>(player, "您还没有死亡点信息!");
         return false;
     }
     auto fin = mDeath->find(player.getRealName());
     if (fin->second.size() == 0) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "您还没有死亡点信息!");
+        mc_utils::sendText<mc_utils::LogLevel::Error>(player, "您还没有死亡点信息!");
         return false;
     }
     if (modules::EconomySystem::getInstance().reduce(player, Config::cfg.Death.GoDeathMoney)) {

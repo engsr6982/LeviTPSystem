@@ -8,8 +8,7 @@
 #include "ll/api/thread/ServerThreadExecutor.h"
 #include "modules/Cooldown.h"
 #include "tpa/core/TpaRequest.h"
-#include "utils/Mc.h"
-#include "utils/McAPI.h"
+#include "utils/McUtils.h"
 #include <cstddef>
 #include <memory>
 #include <unordered_map>
@@ -57,7 +56,7 @@ void TpaRequestPool::_initTask() {
                             if (avail != Available::Available) {
                                 auto player = level->getPlayer(sender);
                                 if (player) {
-                                    utils::mc::sendText<utils::mc::MsgLevel::Error>(
+                                    mc_utils::sendText<mc_utils::LogLevel::Error>(
                                         player,
                                         "{0}",
                                         TpaRequest::getAvailableDescription(avail)
@@ -166,7 +165,7 @@ TpaRequest* TpaRequestPool::makeRequest(Player& sender, Player& receiver, TpaTyp
     // 检查是否可以发送TPA请求
     auto& col = Cooldown::getInstance();
     if (col.isCooldown("tpa", sender.getRealName())) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(
+        mc_utils::sendText<mc_utils::LogLevel::Error>(
             sender.getRealName(),
             "TPA 请求冷却中，请稍后再试, 冷却时间: {0}"_tr(col.getCooldownString("tpa", sender.getRealName()))
         );

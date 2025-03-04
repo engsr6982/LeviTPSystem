@@ -1,8 +1,7 @@
 #include "Menu.h"
 #include "entry/Entry.h"
 #include "ll/api/form/SimpleForm.h"
-#include "utils/Mc.h"
-#include "utils/McAPI.h"
+#include "utils/McUtils.h"
 #include <functional>
 #include <memory>
 #include <optional>
@@ -70,7 +69,7 @@ std::unique_ptr<Menu> Menu::fromJsonFile(const string fileName) {
 void Menu::fromJsonFile(Player& player) {
     auto me = fromJsonFile("index.json");
     if (me) me->sendTo(player);
-    else tps::utils::mc::sendText<tps::utils::mc::MsgLevel::Error>(player, "Menu file not found");
+    else mc_utils::sendText<mc_utils::LogLevel::Error>(player, "Menu file not found");
 }
 
 bool Menu::hasFunction(const string name) { return Menu::functions.find(name) != Menu::functions.end(); }
@@ -92,7 +91,7 @@ void Menu::sendTo(Player& player) {
                         Menu::functions[bt.callbackRun](p);
                     } else logger.error("Fail in Menu::sendTo, function not found {}", bt.callbackRun);
                 } else if (bt.callbackType == "cmd") {
-                    tps::api::executeCommand(bt.callbackRun, &p);
+                    mc_utils::executeCommand(bt.callbackRun, &p);
                 } else if (bt.callbackType == "subform") {
                     auto sub = Menu::fromJsonFile(bt.callbackRun);
                     if (sub) sub->sendTo(p);

@@ -23,6 +23,7 @@ using string = std::string;
 using ll::i18n_literals::operator""_tr;
 namespace tps {
 
+std::atomic<bool> GlobalRepeatCoroTaskRunning = true;
 
 entry& entry::getInstance() {
     static entry instance;
@@ -84,6 +85,8 @@ bool entry::enable() {
 }
 
 bool entry::disable() {
+    GlobalRepeatCoroTaskRunning = false;
+
     tps::Permission::getInstance().save();
     tps::event::unRegisterEvent();
 

@@ -92,7 +92,7 @@ bool registerCommands() {
         cmd.overload().text("tpr").execute([](CommandOrigin const& origin, CommandOutput& output) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
             Player& player = *static_cast<Player*>(origin.getEntity());
-            tpr::TprModule::getInstance().showTprMenu(player);
+            tpr::ShowTprMenu(player);
         });
 
 

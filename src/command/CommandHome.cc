@@ -36,14 +36,14 @@ void registerCommandWithHome(const string& name) {
         auto& homeMgr = home::HomeManager::getInstance();
         auto  homes   = homeMgr.getPlayerHomes(player.getRealName());
         if (homes.empty()) {
-            sendText<MsgLevel::Error>(player, "您还没有家园传送点！"_tr());
+            sendText<LogLevel::Error>(player, "您还没有家园传送点！"_tr());
             return;
         }
         string homeList = "您有以下家园传送点:\n"_tr();
         for (auto const& home : homes) {
             homeList += "[H] " + home.name + "\n";
         }
-        sendText<MsgLevel::Info>(player, homeList);
+        sendText<LogLevel::Info>(player, homeList);
     });
 
     // tps home <add|del|go> <homeName>
@@ -56,7 +56,7 @@ void registerCommandWithHome(const string& name) {
             auto& player  = *static_cast<Player*>(origin.getEntity());
             auto& homeMgr = home::HomeManager::getInstance();
             if (param.homeName.empty() || param.homeName == "")
-                return sendText<MsgLevel::Error>(player, "请输入家园名称！"_tr());
+                return sendText<LogLevel::Error>(player, "请输入家园名称！"_tr());
 
             switch (param.operation) {
             case OperationType::add: {
@@ -65,29 +65,29 @@ void registerCommandWithHome(const string& name) {
                 if (homeMgr.createHome(player, param.homeName, vec3)) {
                     sendText(player, "创建家园 {} 成功！"_tr(param.homeName));
                 } else {
-                    sendText<MsgLevel::Error>(player, "创建家园 {} 失败！"_tr(param.homeName));
+                    sendText<LogLevel::Error>(player, "创建家园 {} 失败！"_tr(param.homeName));
                 }
                 break;
             }
             case OperationType::del: {
                 bool isSuccess = homeMgr.deleteHome(player, param.homeName);
                 if (isSuccess) sendText(player, "删除家园 {} 成功！"_tr(param.homeName));
-                else sendText<MsgLevel::Error>(player, "删除家园 {} 失败！"_tr(param.homeName));
+                else sendText<LogLevel::Error>(player, "删除家园 {} 失败！"_tr(param.homeName));
                 break;
             }
             case OperationType::go: {
                 if (player.isSleeping()) {
-                    sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
+                    sendText<LogLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
                     return;
                 }
                 if (!Config::checkOpeningDimensions(Config::cfg.Home.OpenDimensions, player.getDimensionId())) {
-                    utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+                    mc_utils::sendText<mc_utils::LogLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
                     return;
                 }
 
                 bool isSuccess = homeMgr.teleportToHome(player, param.homeName);
                 if (isSuccess) sendText(player, "传送到家园 {} 成功！"_tr(param.homeName));
-                else sendText<MsgLevel::Error>(player, "传送到家园 {} 失败！"_tr(param.homeName));
+                else sendText<LogLevel::Error>(player, "传送到家园 {} 失败！"_tr(param.homeName));
 
                 break;
             }

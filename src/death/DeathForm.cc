@@ -10,8 +10,7 @@
 #include "ll/api/i18n/I18n.h"
 #include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "utils/Mc.h"
-#include "utils/McAPI.h"
+#include "utils/McUtils.h"
 #include "utils/Utils.h"
 #include <string>
 #include <tuple>
@@ -20,7 +19,7 @@
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
-using namespace tps::utils::mc;
+using namespace mc_utils;
 
 
 namespace tps::death::form {
@@ -28,11 +27,11 @@ namespace tps::death::form {
 
 void sendGoDeathGUI(Player& player) {
     if (!Config::cfg.Death.Enable) {
-        sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
+        sendText<LogLevel::Error>(player, "此功能已关闭"_tr());
         return;
     }
     if (!Config::checkOpeningDimensions(Config::cfg.Death.OpenDimensions, player.getDimensionId())) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+        mc_utils::sendText<mc_utils::LogLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
         return;
     }
 
@@ -41,7 +40,7 @@ void sendGoDeathGUI(Player& player) {
 
     auto deaths = DeathManager::getInstance().getPlayerDeaths(player.getRealName());
     if (deaths.empty()) {
-        sendText<MsgLevel::Error>(player, "你还没有死亡记录"_tr());
+        sendText<LogLevel::Error>(player, "你还没有死亡记录"_tr());
         return;
     }
     auto d = deaths[0]; // 默认显示第一个死亡记录
@@ -74,7 +73,7 @@ void sendGoDeathGUI(Player& player) {
 void sendQueryGUI(Player& player) {
     auto deaths = DeathManager::getInstance().getPlayerDeaths(player.getRealName());
     if (deaths.empty()) {
-        sendText<MsgLevel::Error>(player, "你还没有死亡记录"_tr());
+        sendText<LogLevel::Error>(player, "你还没有死亡记录"_tr());
         return;
     }
 

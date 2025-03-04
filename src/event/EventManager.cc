@@ -15,7 +15,7 @@
 #include "mc/world/actor/player/Player.h"
 #include "pr/PrManager.h"
 #include "rule/RuleManager.h"
-#include "utils/Mc.h"
+#include "utils/McUtils.h"
 #include "warp/WarpManager.h"
 #include <iostream>
 
@@ -55,7 +55,7 @@ void registerEvent() {
             auto receiver = ll::service::getLevel()->getPlayer(req->getReceiver()); // 获取接收者
 
             if (sender) {
-                utils::mc::sendText(
+                mc_utils::sendText(
                     sender,
                     "已向 {} 发起 {} 请求."_tr(
                         receiver->getRealName(),
@@ -65,7 +65,7 @@ void registerEvent() {
             }
 
             if (receiver) {
-                utils::mc::sendText(
+                mc_utils::sendText(
                     receiver,
                     "收到来自 {} 的 {} 请求."_tr(
                         sender->getRealName(),
@@ -85,9 +85,8 @@ void registerEvent() {
             auto& ruleInstance = rule::RuleManager::getInstance();
             if (!ruleInstance.hasPlayerRule(realName)) {
                 bool isSuccess = rule::RuleManager::getInstance().initPlayerRule(realName);
-                if (isSuccess)
-                    utils::mc::sendText<utils::mc::MsgLevel::Success>(logger, "初始化玩家 {0} 的规则成功"_tr(realName));
-                else utils::mc::sendText<utils::mc::MsgLevel::Error>(logger, "无法初始化玩家 {0} 的规则"_tr(realName));
+                if (isSuccess) logger.info("初始化玩家 {0} 的规则成功"_tr(realName));
+                else logger.error("无法初始化玩家 {0} 的规则"_tr(realName));
             }
         });
 
@@ -119,7 +118,7 @@ void registerEvent() {
                 auto&           pos = ev.self().getPosition();
                 data::DeathItem deathInfo{pos.x, pos.y, pos.z, ev.self().getDimensionId().id, utils::Date{}.toString()};
                 death::DeathManager::getInstance().addDeathInfo(ev.self().getRealName(), deathInfo);
-                utils::mc::sendText(ev.self(), "已记录本次死亡信息: {0}"_tr(deathInfo.toVec4String()));
+                mc_utils::sendText(ev.self(), "已记录本次死亡信息: {0}"_tr(deathInfo.toVec4String()));
             });
     }
 }

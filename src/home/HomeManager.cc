@@ -147,7 +147,7 @@ bool HomeManager::createHome(const string& realName, const string& homeName, con
         bool UnLimited = false;
         UnLimited      = Permission::getInstance().hasPermission(realName, Permission::PermType::HomeCountUnlimited);
         if (static_cast<int>(pl_home_vec.size()) >= Config::cfg.Home.MaxHome && !UnLimited) {
-            utils::mc::sendText<utils::mc::MsgLevel::Error>(
+            mc_utils::sendText<mc_utils::LogLevel::Error>(
                 realName,
                 "创建家园传送点\"{}\"失败！\n最大家园数量：{}"_tr(homeName, Config::cfg.Home.MaxHome)
             );

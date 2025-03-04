@@ -32,14 +32,14 @@ void registerCommandWithWarp(const string& name) {
         auto& warpMgr = warp::WarpManager::getInstance();
         auto  warps   = warpMgr.getWarps();
         if (warps.empty()) {
-            sendText<MsgLevel::Error>(player, "当前服务器还没有Warp传送点！"_tr());
+            sendText<LogLevel::Error>(player, "当前服务器还没有Warp传送点！"_tr());
             return;
         }
         string warpList = "当前服务器的Warp传送点有: "_tr();
         for (auto const& warp : warps) {
             warpList += warp.name + ", ";
         }
-        sendText<MsgLevel::Info>(player, warpList);
+        sendText<LogLevel::Info>(player, warpList);
     });
 
     // tps warp <add|del|go> <warpName>
@@ -52,7 +52,7 @@ void registerCommandWithWarp(const string& name) {
             auto& player  = *static_cast<Player*>(origin.getEntity());
             auto& warpMgr = warp::WarpManager::getInstance();
             if (param.warpName.empty() || param.warpName == "") {
-                return sendText<MsgLevel::Error>(player, "请输入正确的Warp名称！"_tr());
+                return sendText<LogLevel::Error>(player, "请输入正确的Warp名称！"_tr());
             }
 
             switch (param.operation) {
@@ -66,7 +66,7 @@ void registerCommandWithWarp(const string& name) {
                 data::Vec4 vec3{pos.x, pos.y, pos.z, player.getDimensionId().id}; // McVec3 to MyVec3
                 bool       isSuccess = warpMgr.createWarp(param.warpName, vec3);
                 if (isSuccess) sendText(player, "创建Warp {} 成功！"_tr(param.warpName));
-                else sendText<MsgLevel::Error>(player, "创建Warp {} 失败！"_tr(param.warpName));
+                else sendText<LogLevel::Error>(player, "创建Warp {} 失败！"_tr(param.warpName));
                 break;
             }
             case OperationType::del: {
@@ -77,23 +77,23 @@ void registerCommandWithWarp(const string& name) {
 
                 bool isSuccess = warpMgr.deleteWarp(param.warpName);
                 if (isSuccess) sendText(player, "删除Warp {} 成功！"_tr(param.warpName));
-                else sendText<MsgLevel::Error>(player, "删除Warp {} 失败！"_tr(param.warpName));
+                else sendText<LogLevel::Error>(player, "删除Warp {} 失败！"_tr(param.warpName));
                 break;
             }
             case OperationType::go: {
                 if (player.isSleeping()) {
-                    sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
+                    sendText<LogLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
                     return;
                 }
                 if (!Config::checkOpeningDimensions(Config::cfg.Warp.OpenDimensions, player.getDimensionId())) {
-                    utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+                    mc_utils::sendText<mc_utils::LogLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
                     return;
                 }
 
 
                 bool isSuccess = warpMgr.teleportToWarp(player, param.warpName);
                 if (isSuccess) sendText(player, "传送到Warp {} 成功！"_tr(param.warpName));
-                else sendText<MsgLevel::Error>(player, "传送到Warp {} 失败！"_tr(param.warpName));
+                else sendText<LogLevel::Error>(player, "传送到Warp {} 失败！"_tr(param.warpName));
                 break;
             }
             }

@@ -8,9 +8,10 @@
 #include "mc/world/level/Level.h"
 #include "modules/EconomySystem.h"
 #include "rule/RuleManager.h"
-#include "utils/Mc.h"
+#include "utils/McUtils.h"
 
 #include "modules/Cooldown.h"
+#include "utils/McUtils.h"
 
 namespace tps::tpa {
 
@@ -63,12 +64,12 @@ bool TpaRequest::isOutdated() const {
 
 
 using namespace ll::service;
-using namespace tps::utils::mc;
+using namespace mc_utils;
 void TpaRequest::_accept() const {
     Available avail = getAvailable();
     if (avail != Available::Available) {
         if (avail != Available::SenderOffline) {
-            sendText<MsgLevel::Error>(mSender, "{}", getAvailableDescription(avail));
+            sendText<LogLevel::Error>(mSender, "{}", getAvailableDescription(avail));
         }
         return;
     }
@@ -82,18 +83,24 @@ void TpaRequest::_accept() const {
     }
 
     if (mType == TpaType::Tpa) {
-        senderPlayer
-            ->teleport(receiverPlayer->getPosition(), receiverPlayer->getDimensionId(), senderPlayer->getRotation());
+        senderPlayer->teleport(
+            receiverPlayer->getPosition(),
+            receiverPlayer->getDimensionId(),
+            mc_utils::GetRotation(*senderPlayer)
+        );
     } else if (mType == TpaType::TpaHere) {
-        receiverPlayer
-            ->teleport(senderPlayer->getPosition(), senderPlayer->getDimensionId(), receiverPlayer->getRotation());
+        receiverPlayer->teleport(
+            senderPlayer->getPosition(),
+            senderPlayer->getDimensionId(),
+            mc_utils::GetRotation(*receiverPlayer)
+        );
     }
 
     // 扣除经济
     modules::EconomySystem::getInstance().reduce(*senderPlayer, Config::cfg.Tpa.Money);
 
-    sendText<MsgLevel::Success>(senderPlayer, "'{0}' 接受了您的 '{1}' 请求。"_tr(mReceiver, tpaTypeToString(mType)));
-    sendText<MsgLevel::Success>(
+    sendText<LogLevel::Success>(senderPlayer, "'{0}' 接受了您的 '{1}' 请求。"_tr(mReceiver, tpaTypeToString(mType)));
+    sendText<LogLevel::Success>(
         receiverPlayer,
         "您接受了来自 '{0}' 的 '{1}' 请求。"_tr(mSender, tpaTypeToString(mType))
     );
@@ -102,8 +109,8 @@ void TpaRequest::_accept() const {
 }
 
 void TpaRequest::_deny() const {
-    sendText<MsgLevel::Error>(mSender, "'{0}' 拒绝了您的 '{1}' 请求。"_tr(mReceiver, tpaTypeToString(mType)));
-    sendText<MsgLevel::Error>(mReceiver, "您拒绝了来自 '{0}' 的 '{1}' 请求。"_tr(mSender, tpaTypeToString(mType)));
+    sendText<LogLevel::Error>(mSender, "'{0}' 拒绝了您的 '{1}' 请求。"_tr(mReceiver, tpaTypeToString(mType)));
+    sendText<LogLevel::Error>(mReceiver, "您拒绝了来自 '{0}' 的 '{1}' 请求。"_tr(mSender, tpaTypeToString(mType)));
 
     destroy(); // 销毁请求
 }
@@ -113,7 +120,7 @@ Available TpaRequest::sendAskForm() {
     Available avail = getAvailable();
     if (avail != Available::Available) {
         if (avail != Available::SenderOffline) {
-            sendText<MsgLevel::Error>(mSender, "{}", getAvailableDescription(avail));
+            sendText<LogLevel::Error>(mSender, "{}", getAvailableDescription(avail));
         }
         return avail;
     }

@@ -31,7 +31,9 @@ struct Vec4 : Axis {
 
     string toVec4String() const {
         try {
-            return fmt::format("{0} ({1}, {2}, {3})", (string)ll::service::getLevel()->getDimension(dimid)->mName, x, y, z);
+            auto dim  = ll::service::getLevel()->getDimension(dimid);
+            auto name = dim.lock() ? dim.lock()->mName : "unknown";
+            return fmt::format("{0} ({1}, {2}, {3})", (string)name, x, y, z);
         } catch (...) {
             return "format vec4 failed";
         }

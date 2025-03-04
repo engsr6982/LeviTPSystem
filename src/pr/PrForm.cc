@@ -12,8 +12,7 @@
 #include "ll/api/i18n/I18n.h"
 #include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "utils/Mc.h"
-#include "utils/McAPI.h"
+#include "utils/McUtils.h"
 #include "utils/Utils.h"
 #include <string>
 #include <tuple>
@@ -22,7 +21,7 @@
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
-using namespace tps::utils::mc;
+using namespace mc_utils;
 
 
 namespace tps::pr::form {
@@ -30,7 +29,7 @@ namespace tps::pr::form {
 
 void index(Player& player) {
     if (!Config::cfg.Pr.Enable) {
-        sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
+        sendText<LogLevel::Error>(player, "此功能已关闭"_tr());
         return;
     }
 
@@ -67,7 +66,7 @@ void _createPr(Player& player) {
             fm.setLowerButton("返回"_tr());
             fm.sendTo(p, [home](Player& c, ModalFormResult const& val, FormCancelReason) {
                 if (!val) {
-                    sendText<MsgLevel::Error>(c, "表单已放弃"_tr());
+                    sendText<LogLevel::Error>(c, "表单已放弃"_tr());
                     return;
                 }
                 if ((bool)val.value()) {
@@ -78,8 +77,8 @@ void _createPr(Player& player) {
                     sub.z          = home.z;
                     sub.dimid      = home.dimid;
                     bool isSuccess = PrManager::getInstance().addPr(c.getRealName(), sub);
-                    if (isSuccess) sendText<MsgLevel::Success>(c, "创建成功"_tr());
-                    else sendText<MsgLevel::Error>(c, "创建失败"_tr());
+                    if (isSuccess) sendText<LogLevel::Success>(c, "创建成功"_tr());
+                    else sendText<LogLevel::Error>(c, "创建失败"_tr());
                 } else {
                     _createPr(c);
                 }
@@ -113,13 +112,13 @@ void _deletePr(Player& player) {
             string guid = pr.guid;
             fm.sendTo(p, [guid](Player& c, ModalFormResult const& val, FormCancelReason) {
                 if (!val) {
-                    sendText<MsgLevel::Error>(c, "表单已放弃"_tr());
+                    sendText<LogLevel::Error>(c, "表单已放弃"_tr());
                     return;
                 }
                 if ((bool)val.value()) {
                     bool isSuccess = PrManager::getInstance().deletePr(guid);
-                    if (isSuccess) sendText<MsgLevel::Success>(c, "删除成功"_tr());
-                    else sendText<MsgLevel::Error>(c, "删除失败"_tr());
+                    if (isSuccess) sendText<LogLevel::Success>(c, "删除成功"_tr());
+                    else sendText<LogLevel::Error>(c, "删除失败"_tr());
                 } else {
                     _deletePr(c);
                 }

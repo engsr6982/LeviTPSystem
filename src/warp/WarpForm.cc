@@ -8,8 +8,7 @@
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
 #include "modules/Menu.h"
-#include "utils/Mc.h"
-#include "utils/McAPI.h"
+#include "utils/McUtils.h"
 #include "utils/Utils.h"
 #include <string>
 #include <tuple>
@@ -18,18 +17,18 @@
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
-using namespace tps::utils::mc;
+using namespace mc_utils;
 
 namespace tps::warp::form {
 
 
 void index(Player& player) {
     if (!Config::cfg.Warp.Enable) {
-        sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
+        sendText<LogLevel::Error>(player, "此功能已关闭"_tr());
         return;
     }
     if (!Config::checkOpeningDimensions(Config::cfg.Warp.OpenDimensions, player.getDimensionId())) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+        mc_utils::sendText<mc_utils::LogLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
         return;
     }
 
@@ -57,21 +56,21 @@ void _createWarp(Player& player) {
 
     fm.sendTo(player, [](Player& p, CustomFormResult const& dt, FormCancelReason) {
         if (!dt) {
-            sendText<MsgLevel::Error>(p, "表单已放弃"_tr());
+            sendText<LogLevel::Error>(p, "表单已放弃"_tr());
             return;
         }
         string name = std::get<string>(dt->at("name"));
         if (name.empty()) {
-            sendText<MsgLevel::Error>(p, "名称不能为空"_tr());
+            sendText<LogLevel::Error>(p, "名称不能为空"_tr());
             return;
         }
-        api::executeCommand(utils::format("{} warp add \"{}\"", Config::cfg.Command.Command, name), &p);
+        mc_utils::executeCommand(utils::format("{} warp add \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 
 void ListValue(Player& player, std::vector<data::WarpItem> warps) {
     if (warps.empty()) {
-        sendText<MsgLevel::Error>(player, "没有找到匹配的传送点"_tr());
+        sendText<LogLevel::Error>(player, "没有找到匹配的传送点"_tr());
         return;
     }
     SimpleForm fm;
@@ -82,7 +81,7 @@ void ListValue(Player& player, std::vector<data::WarpItem> warps) {
     for (auto const& w : warps) {
         string name = w.name;
         fm.appendButton(name + "\n" + w.toVec4String(), [name](Player& p) {
-            api::executeCommand(utils::format("{} warp go \"{}\"", Config::cfg.Command.Command, name), &p);
+            mc_utils::executeCommand(utils::format("{} warp go \"{}\"", Config::cfg.Command.Command, name), &p);
         });
     }
     fm.sendTo(player);
@@ -95,12 +94,12 @@ void SerarchWarp(Player& player) {
 
     fm.sendTo(player, [](Player& p, CustomFormResult const& dt, FormCancelReason) {
         if (!dt) {
-            sendText<MsgLevel::Error>(p, "表单已放弃");
+            sendText<LogLevel::Error>(p, "表单已放弃");
             return;
         }
         string name = std::get<string>(dt->at("name"));
         if (name.empty()) {
-            sendText<MsgLevel::Error>(p, "名称不能为空");
+            sendText<LogLevel::Error>(p, "名称不能为空");
             return;
         }
         ListValue(p, WarpManager::getInstance().queryWarps(name));
@@ -126,13 +125,13 @@ void _selectWarp(Player& player, CallBack call) {
 
 void _deleteWarp(Player& player) {
     _selectWarp(player, [](Player& p, const string& name) {
-        api::executeCommand(utils::format("{} warp del \"{}\"", Config::cfg.Command.Command, name), &p);
+        mc_utils::executeCommand(utils::format("{} warp del \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 
 void _goWarp(Player& player) {
     _selectWarp(player, [](Player& p, const string& name) {
-        api::executeCommand(utils::format("{} warp go \"{}\"", Config::cfg.Command.Command, name), &p);
+        mc_utils::executeCommand(utils::format("{} warp go \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 

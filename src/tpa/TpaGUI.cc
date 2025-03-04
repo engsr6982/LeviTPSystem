@@ -5,7 +5,7 @@
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
 #include "tpa/core/TpaRequestPool.h"
-#include "utils/Mc.h"
+#include "utils/McUtils.h"
 #include <ll/api/mod/ModManagerRegistry.h>
 
 
@@ -14,11 +14,11 @@ using ll::i18n_literals::operator""_tr;
 
 void TpaGUI::TpaEntryGUI(Player& player) {
     if (!Config::cfg.Tpa.Enable) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "此功能未启用。"_tr());
+        mc_utils::sendText<mc_utils::LogLevel::Error>(player, "此功能未启用。"_tr());
         return;
     }
     if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, player.getDimensionId())) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+        mc_utils::sendText<mc_utils::LogLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
         return;
     }
     ChooseTpaTypeGUI(player);
@@ -35,7 +35,7 @@ void TpaGUI::ChooseTpaTypeGUI(Player& player) {
 void TpaGUI::ChooseTpaPlayerGUI(Player& player, TpaType type) {
     auto level = ll::service::getLevel();
     if (!level.has_value()) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "获取 Level 指针失败"_tr());
+        mc_utils::sendText<mc_utils::LogLevel::Error>(player, "获取 Level 指针失败"_tr());
         throw std::runtime_error("TpaForm::constructor::level is null");
         return;
     }
@@ -59,7 +59,7 @@ void TpaGUI::ChooseTpaPlayerGUI(Player& player, TpaType type) {
                 tpa::Available avail = req->sendAskForm();
 
                 if (avail != tpa::Available::Available) {
-                    tps::utils::mc::sendText(sender, "{}", TpaRequest::getAvailableDescription(avail));
+                    mc_utils::sendText(sender, "{}", TpaRequest::getAvailableDescription(avail));
                 }
 
                 // Tpa 请求发送事件

@@ -12,8 +12,7 @@
 #include "mc/world/actor/player/Player.h"
 #include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "utils/Mc.h"
-#include "utils/McAPI.h"
+#include "utils/McUtils.h"
 #include "utils/Utils.h"
 #include <sstream>
 #include <string>
@@ -23,7 +22,7 @@
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
-using namespace tps::utils::mc;
+using namespace mc_utils;
 
 namespace tps::manager::warp {
 
@@ -112,7 +111,7 @@ void _createWarp(Player& player) {
             std::istringstream iss(posStr);
             char               delim;
             if (!(iss >> v4.x >> delim >> v4.y >> delim >> v4.z) || delim != ',') {
-                sendText<MsgLevel::Error>(player, "输入的坐标格式错误"_tr());
+                sendText<LogLevel::Error>(player, "输入的坐标格式错误"_tr());
                 return;
             }
 
@@ -134,7 +133,7 @@ void _createWarp(Player& player) {
             if (isSuccess) sendText(player, "创建成功!"_tr());
             else sendText(player, "创建失败!"_tr());
         } catch (...) {
-            sendText<MsgLevel::Fatal>(player, "表单解析错误"_tr());
+            sendText<LogLevel::Fatal>(player, "表单解析错误"_tr());
         }
     });
 }
@@ -179,7 +178,7 @@ void _editWarp(Player& player, const string& targetWarpName) {
             std::istringstream iss(posStr);
             char               delim;
             if (!(iss >> v4.x >> delim >> v4.y >> delim >> v4.z) || delim != ',') {
-                sendText<MsgLevel::Error>(player, "输入的坐标格式错误"_tr());
+                sendText<LogLevel::Error>(player, "输入的坐标格式错误"_tr());
                 return;
             }
 
@@ -201,7 +200,7 @@ void _editWarp(Player& player, const string& targetWarpName) {
             if (isSuccess) sendText(player, "修改成功!"_tr());
             else sendText(player, "修改失败!"_tr());
         } catch (...) {
-            sendText<MsgLevel::Fatal>(player, "表单解析错误"_tr());
+            sendText<LogLevel::Fatal>(player, "表单解析错误"_tr());
         }
     });
 }

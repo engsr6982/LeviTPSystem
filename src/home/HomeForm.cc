@@ -9,8 +9,7 @@
 #include "ll/api/i18n/I18n.h"
 #include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "utils/Mc.h"
-#include "utils/McAPI.h"
+#include "utils/McUtils.h"
 #include "utils/Utils.h"
 #include <string>
 #include <tuple>
@@ -19,7 +18,7 @@
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
-using namespace tps::utils::mc;
+using namespace mc_utils;
 
 
 namespace tps::home::form {
@@ -27,11 +26,11 @@ namespace tps::home::form {
 
 void index(Player& player) {
     if (!Config::cfg.Home.Enable) {
-        sendText<MsgLevel::Error>(player, "此功能已关闭"_tr());
+        sendText<LogLevel::Error>(player, "此功能已关闭"_tr());
         return;
     }
     if (!Config::checkOpeningDimensions(Config::cfg.Home.OpenDimensions, player.getDimensionId())) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+        mc_utils::sendText<mc_utils::LogLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
         return;
     }
 
@@ -68,10 +67,10 @@ void _createHome(Player& player) {
         }
         string name = std::get<string>(dt->at("name"));
         if (name.empty()) {
-            sendText<MsgLevel::Error>(p, "请输入家的名称！"_tr());
+            sendText<LogLevel::Error>(p, "请输入家的名称！"_tr());
             return;
         }
-        api::executeCommand(utils::format("{} home add \"{}\"", Config::cfg.Command.Command, name), &p);
+        mc_utils::executeCommand(utils::format("{} home add \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 
@@ -93,7 +92,7 @@ void _selectHome(Player& player, Callback callback) {
 
 void _goHome(Player& player) {
     _selectHome(player, [](Player& p, string name) {
-        api::executeCommand(utils::format("{} home go \"{}\"", Config::cfg.Command.Command, name), &p);
+        mc_utils::executeCommand(utils::format("{} home go \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 
@@ -115,8 +114,8 @@ void _editHome(Player& player) {
             newHome.modifiedTime = utils::Date{}.toString();
             // 更新数据库
             bool isSuccess = homeInstance.updatePlayerHomeData(p.getRealName(), newHome.name, newHome);
-            if (isSuccess) utils::mc::sendText(p, "更新坐标成功！"_tr());
-            else utils::mc::sendText<MsgLevel::Error>(p, "更新坐标失败！"_tr());
+            if (isSuccess) mc_utils::sendText(p, "更新坐标成功！"_tr());
+            else mc_utils::sendText<LogLevel::Error>(p, "更新坐标失败！"_tr());
         });
         fm.appendButton("编辑家名称"_tr(), "textures/ui/book_edit_default", "path", [name](Player& p) {
             _inputNewHomeName(p, name);
@@ -140,12 +139,12 @@ void _inputNewHomeName(Player& player, string homeName) {
         }
         string newHomeName = std::get<string>(dt->at("name"));
         if (newHomeName.empty()) {
-            sendText<MsgLevel::Error>(p, "请输入新的名称！"_tr());
+            sendText<LogLevel::Error>(p, "请输入新的名称！"_tr());
             return;
         }
         // 新名称和旧名称相同，操作无意义，直接返回
         if (newHomeName == oldHomeName) {
-            sendText<MsgLevel::Error>(p, "新名称与旧名称相同！"_tr());
+            sendText<LogLevel::Error>(p, "新名称与旧名称相同！"_tr());
             return;
         }
         auto& homeInstance = HomeManager::getInstance();
@@ -155,13 +154,13 @@ void _inputNewHomeName(Player& player, string homeName) {
         home.modifiedTime = utils::Date{}.toString();
         bool isSuccess    = homeInstance.updatePlayerHomeData(p.getRealName(), oldHomeName, home);
         if (isSuccess) sendText(p, "修改成功！"_tr());
-        else sendText<MsgLevel::Error>(p, "修改失败！"_tr());
+        else sendText<LogLevel::Error>(p, "修改失败！"_tr());
     });
 }
 
 void _deleteHome(Player& player) {
     _selectHome(player, [](Player& p, string name) {
-        api::executeCommand(utils::format("{} home del \"{}\"", Config::cfg.Command.Command, name), &p);
+        mc_utils::executeCommand(utils::format("{} home del \"{}\"", Config::cfg.Command.Command, name), &p);
     });
 }
 

@@ -12,8 +12,7 @@
 #include "mc/world/actor/player/Player.h"
 #include "modules/EconomySystem.h"
 #include "modules/Menu.h"
-#include "utils/Mc.h"
-#include "utils/McAPI.h"
+#include "utils/McUtils.h"
 #include "utils/Utils.h"
 #include <string>
 #include <tuple>
@@ -22,7 +21,7 @@
 using string = std::string;
 using namespace ll::form;
 using ll::i18n_literals::operator""_tr;
-using namespace tps::utils::mc;
+using namespace mc_utils;
 
 
 namespace tps::manager::home {
@@ -105,7 +104,7 @@ void _operationPanel(Player& player, const string& targetPlayerName, const strin
         [targetPlayerName, targetHomeName](Player& player) {
             bool isSuccess = tps::home::HomeManager::getInstance().deleteHome(targetPlayerName, targetHomeName);
             if (isSuccess) sendText(player, "删除成功"_tr());
-            else sendText<MsgLevel::Error>(player, "删除失败"_tr());
+            else sendText<LogLevel::Error>(player, "删除失败"_tr());
         }
     );
 
@@ -137,7 +136,7 @@ void _createHome(Player& player, const string& targetPlayerName) {
             string dimStr = std::get<string>(dt->at("dim"));
 
             if (name.empty() || posStr.empty() || dimStr.empty()) {
-                sendText<MsgLevel::Error>(p, "输入内容不能为空"_tr());
+                sendText<LogLevel::Error>(p, "输入内容不能为空"_tr());
                 return;
             }
 
@@ -145,7 +144,7 @@ void _createHome(Player& player, const string& targetPlayerName) {
             std::istringstream iss(posStr);
             char               delim;
             if (!(iss >> v4.x >> delim >> v4.y >> delim >> v4.z) || delim != ',') {
-                sendText<MsgLevel::Error>(p, "输入的坐标格式错误"_tr());
+                sendText<LogLevel::Error>(p, "输入的坐标格式错误"_tr());
                 return;
             }
 
@@ -165,9 +164,9 @@ void _createHome(Player& player, const string& targetPlayerName) {
 
             bool isSuccess = tps::home::HomeManager::getInstance().createHome(targetPlayerName, name, v4);
             if (isSuccess) sendText(p, "创建成功"_tr());
-            else sendText<MsgLevel::Error>(p, "创建失败"_tr());
+            else sendText<LogLevel::Error>(p, "创建失败"_tr());
         } catch (...) {
-            sendText<MsgLevel::Fatal>(p, "解析错误，请检查输入内容"_tr());
+            sendText<LogLevel::Fatal>(p, "解析错误，请检查输入内容"_tr());
         }
     });
 }
@@ -198,7 +197,7 @@ void _editHome(Player& player, const string& targetPlayerName, const string& tar
                 string dimStr = std::get<string>(dt->at("dim"));
 
                 if (name.empty() || posStr.empty() || dimStr.empty()) {
-                    sendText<MsgLevel::Error>(p, "输入内容不能为空"_tr());
+                    sendText<LogLevel::Error>(p, "输入内容不能为空"_tr());
                     return;
                 }
 
@@ -210,7 +209,7 @@ void _editHome(Player& player, const string& targetPlayerName, const string& tar
                 std::istringstream iss(posStr);
                 char               delim;
                 if (!(iss >> v4.x >> delim >> v4.y >> delim >> v4.z) || delim != ',') {
-                    sendText<MsgLevel::Error>(p, "输入的坐标格式错误"_tr());
+                    sendText<LogLevel::Error>(p, "输入的坐标格式错误"_tr());
                     return;
                 }
                 // 解析维度
@@ -232,9 +231,9 @@ void _editHome(Player& player, const string& targetPlayerName, const string& tar
                 bool isSuccess =
                     tps::home::HomeManager::getInstance().updatePlayerHomeData(targetPlayerName, targetHomeName, v4);
                 if (isSuccess) sendText(p, "修改成功"_tr());
-                else sendText<MsgLevel::Error>(p, "修改失败"_tr());
+                else sendText<LogLevel::Error>(p, "修改失败"_tr());
             } catch (...) {
-                sendText<MsgLevel::Fatal>(p, "解析错误，请检查输入内容"_tr());
+                sendText<LogLevel::Fatal>(p, "解析错误，请检查输入内容"_tr());
             }
         }
     );

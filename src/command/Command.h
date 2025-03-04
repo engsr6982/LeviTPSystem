@@ -16,7 +16,7 @@
 #include "mc/world/level/block/actor/BlockActor.h"
 #include "mc/world/level/chunk/LevelChunk.h"
 #include "mc/world/level/dimension/Dimension.h"
-#include "utils/Mc.h"
+#include "utils/McUtils.h"
 #include "utils/Utils.h"
 // #include <PermissionCore/Group.h>
 // #include <PermissionCore/PermissionCore.h>
@@ -67,7 +67,7 @@ namespace tps ::command {
 
 using string = std::string;
 using ll::i18n_literals::operator""_tr;
-using namespace tps::utils::mc;
+using namespace mc_utils;
 using namespace tps::utils;
 
 bool registerCommands();

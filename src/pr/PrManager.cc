@@ -5,7 +5,7 @@
 #include "mc/deps/core/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
 #include "modules/EconomySystem.h"
-#include "utils/Mc.h"
+#include "utils/McUtils.h"
 #include <memory>
 #include <random>
 #include <sstream>

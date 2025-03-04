@@ -40,11 +40,11 @@ void registerCommandWithTpa(const string& _commandName) {
             auto& receiver = *static_cast<Player*>(origin.getEntity()); // 获取玩家实体
 
             if (receiver.isSleeping()) {
-                sendText<MsgLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
+                sendText<LogLevel::Error>(output, "无法在睡觉中执行此操作!"_tr());
                 return;
             }
             if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, receiver.getDimensionId())) {
-                sendText<MsgLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
+                sendText<LogLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
                 return;
             }
 
@@ -53,7 +53,7 @@ void registerCommandWithTpa(const string& _commandName) {
             auto senders = pool->getSenderList(receiver.getRealName()); // 获取发起者列表
 
             if (senders.empty()) { // 没有请求
-                sendText<MsgLevel::Error>(output, "你没有收到任何TPA请求！"_tr());
+                sendText<LogLevel::Error>(output, "你没有收到任何TPA请求！"_tr());
                 return;
 
             } else if (senders.size() == 1) { // 只有一个请求
@@ -83,17 +83,17 @@ void registerCommandWithTpa(const string& _commandName) {
             CHECK_COMMAND_TYPE(output, origin, CommandOriginType::Player);
             auto& sender = *static_cast<Player*>(origin.getEntity());
             if (!Config::checkOpeningDimensions(Config::cfg.Tpa.OpenDimensions, sender.getDimensionId())) {
-                sendText<MsgLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
+                sendText<LogLevel::Error>(output, "当前维度不允许使用此功能!"_tr());
                 return;
             }
 
 
             auto li = param.target.results(origin);
             if (li.empty()) {
-                sendText<MsgLevel::Error>(output, "请至少选择一位玩家！"_tr());
+                sendText<LogLevel::Error>(output, "请至少选择一位玩家！"_tr());
                 return;
             } else if (li.size() > 1) {
-                sendText<MsgLevel::Error>(output, "仅支持对一位玩家发起TPA！"_tr());
+                sendText<LogLevel::Error>(output, "仅支持对一位玩家发起TPA！"_tr());
                 return;
             }
 
@@ -105,7 +105,7 @@ void registerCommandWithTpa(const string& _commandName) {
             tpa::Available avail = request->sendAskForm(); // 发送请求
 
             if (avail != tpa::Available::Available) {
-                sendText<MsgLevel::Error>(sender, "{}"_tr(tpa::TpaRequest::getAvailableDescription(avail)));
+                sendText<LogLevel::Error>(sender, "{}"_tr(tpa::TpaRequest::getAvailableDescription(avail)));
             }
 
             // Tpa 请求发送事件

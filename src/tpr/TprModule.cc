@@ -1,201 +1,78 @@
 #include "TprModule.h"
-#include "TprUtil.h"
 #include "config/Config.h"
-#include "ll/api/base/StdInt.h"
-#include "ll/api/chrono/GameChrono.h"
-#include "ll/api/coro/CoroTask.h"
 #include "ll/api/form/ModalForm.h"
 #include "ll/api/i18n/I18n.h"
-#include "ll/api/service/Bedrock.h"
-#include "ll/api/service/GamingStatus.h"
-#include "ll/api/thread/ServerThreadExecutor.h"
 #include "mc/deps/core/math/Vec3.h"
 #include "mc/world/level/BlockPos.h"
 #include "mc/world/level/BlockSource.h"
 #include "mc/world/level/ChunkPos.h"
-#include "mc/world/level/chunk/ChunkSource.h"
 #include "modules/Cooldown.h"
 #include "modules/EconomySystem.h"
 #include "string"
-#include "utils/Mc.h"
+#include "tpr/SafeTeleport.h"
+#include "utils/McUtils.h"
 #include <algorithm>
-#include <cstdint>
 #include <functional>
-#include <memory>
-#include <utility>
 #include <vector>
 
 
-using string = std::string;
-using namespace tps::utils::mc;
-using ll::i18n_literals::operator""_tr;
-
 namespace tps::tpr {
+using ll::operator""_tr;
+using string = std::string;
 
-TprModule& TprModule::getInstance() {
-    static TprModule instance;
-    return instance;
+[[nodiscard]] inline int RandomNumber(int min, int max) {
+    std::random_device rd;
+    auto               seed_data = rd()
+                   ^ (std::hash<long long>()(std::chrono::high_resolution_clock::now().time_since_epoch().count())
+                      + std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    std::mt19937_64                    mt(seed_data);
+    std::uniform_int_distribution<int> dist(min, max);
+    return dist(mt);
 }
 
-bool TprModule::_hasTask(const string& realName) { return _getTask(realName) != nullptr; }
-bool TprModule::_addTask(std::unique_ptr<TprModule::TprTask> task) {
-    if (_hasTask(task->mRealName)) {
-        return false;
+[[nodiscard]] inline std::pair<int, int> RandomVec2Point(int centerX, int centerZ, int radius, bool isCircle = true) {
+    int minX = centerX - radius;
+    int maxX = centerX + radius;
+    int minZ = centerZ - radius;
+    int maxZ = centerZ + radius;
+    if (!isCircle) {
+        if (minX > maxX) std::swap(minX, maxX);
+        if (minZ > maxZ) std::swap(minZ, maxZ);
     }
-    mTasks.push_back(std::move(task));
-    return true;
-}
-bool TprModule::_deleteTask(const string& realName) {
-    auto iter = std::find_if(mTasks.begin(), mTasks.end(), [&realName](auto& t) { return t->mRealName == realName; });
-    if (iter == mTasks.end()) return false;
-
-    mTasks.erase(iter);
-    return true;
-}
-TprModule::TprTask* TprModule::_getTask(const string& realName) {
-    auto iter = std::find_if(mTasks.begin(), mTasks.end(), [&realName](auto& t) { return t->mRealName == realName; });
-    if (iter == mTasks.end()) {
-        return nullptr;
-    }
-    return iter->get();
+    return {RandomNumber(minX, maxX), RandomNumber(minZ, maxZ)};
 }
 
-
-std::pair<int, int> TprModule::_randomPosition(Player& player) {
+std::pair<int, int> GetRandomPosition(Player& player) {
     auto& tpr = Config::cfg.Tpr;
 
     if (tpr.RestrictedArea.Enable) {
         auto& pvec = player.getPosition();
-        int   x    = tpr.RestrictedArea.UsePlayerPos ? pvec.x : tpr.RestrictedArea.CenterX;
-        int   z    = tpr.RestrictedArea.UsePlayerPos ? pvec.z : tpr.RestrictedArea.CenterZ;
+        int   x    = tpr.RestrictedArea.UsePlayerPos ? static_cast<int>(pvec.x) : tpr.RestrictedArea.CenterX;
+        int   z    = tpr.RestrictedArea.UsePlayerPos ? static_cast<int>(pvec.z) : tpr.RestrictedArea.CenterZ;
 
-        return TprUtil::randomPoint(x, z, tpr.RestrictedArea.Radius, tpr.RestrictedArea.Type == "Circle");
+        return RandomVec2Point(x, z, tpr.RestrictedArea.Radius, tpr.RestrictedArea.Type == "Circle");
     }
 
-    return {
-        TprUtil::randomNumber(tpr.RandomRangeMin, tpr.RandomRangeMax),
-        TprUtil::randomNumber(tpr.RandomRangeMin, tpr.RandomRangeMax)
-    };
-}
-
-std::unique_ptr<TprModule::TprTask> TprModule::_prepareData(Player& player) {
-    auto     pos = _randomPosition(player);
-    BlockPos bpos{pos.first, 666, pos.second};
-    return (std::make_unique<
-            TprTask>(player.getRealName(), bpos, ChunkPos{bpos}, player.getDimensionId(), player.getPosition()));
-}
-
-void TprModule::_findSafePosition(TprModule::TprTask* task) {
-    try {
-        Player& player  = *ll::service::getLevel()->getPlayer(task->mRealName);
-        auto    safePos = TprUtil::findSafePos(
-            task->mBlockPos.x,
-            task->mBlockPos.z,
-            task->mDimension,
-            player.getDimensionConst().getHeight() - 5,
-            player.getDimensionConst().getMinHeight(),
-            Config::cfg.Tpr.DangerousBlocks
-        );
-        if (!safePos.second) {
-            sendText<MsgLevel::Error>(player, "传送失败，找不到安全位置。"_tr());
-            player.teleport(task->mBackup, task->mDimension); // 回退到备份位置
-            return;
-        }
-
-        if (modules::EconomySystem::getInstance().reduce(player, Config::cfg.Tpr.Money)) {
-            player.teleport(safePos.first, task->mDimension);
-            sendText<MsgLevel::Success>(player, "传送成功！"_tr());
-            return;
-        }
-
-        // 经济不足
-        player.teleport(task->mBackup, task->mDimension); // 回退到备份位置
-        sendText<MsgLevel::Error>(player, "传送失败，经济不足。"_tr());
-    } catch (...) {
-        tps::entry::getInstance().getSelf().getLogger().error("Fail in {}", __FUNCTION__);
-    }
-}
-
-void TprModule::_runTask(TprModule::TprTask* task) {
-    using ll::chrono_literals::operator""_tick;
-    auto& logger = tps::entry::getInstance().getSelf().getLogger();
-
-    ll::coro::keepThis([task, this]() -> ll::coro::CoroTask<> {
-        while (ll::getGamingStatus() == ll::GamingStatus::Running) {
-            co_await 20_tick;
-            if (!task) co_return;
-
-            Player* player = ll::service::getLevel()->getPlayer(task->mRealName);
-            if (!player) {
-                _deleteTask(task->mRealName); // 玩家不在线，删除任务
-                co_return;
-            }
-
-            try {
-                BlockSource& bs = player->getDimensionBlockSource();
-                if (!bs.isChunkFullyLoaded(task->mChunkPos, bs.getChunkSource())) {
-                    continue;
-                }
-
-                sendText(player, "区块已加载，开始查找安全位置..."_tr());
-                _findSafePosition(task);      // 开始查找安全位置
-                _deleteTask(task->mRealName); // 任务完成，删除任务
-                co_return;
-            } catch (...) {
-                player->teleport(task->mBackup, task->mDimension); // 回退到备份位置
-                _deleteTask(task->mRealName);                      // 任务失败，删除任务
-                co_return;
-            }
-        }
-        co_return;
-    }).launch(ll::thread::ServerThreadExecutor::getDefault());
+    return {RandomNumber(tpr.RandomRangeMin, tpr.RandomRangeMax), RandomNumber(tpr.RandomRangeMin, tpr.RandomRangeMax)};
 }
 
 
-void TprModule::requestTeleport(Player& player) {
-    auto& moneyInstance = modules::EconomySystem::getInstance();
-    if (moneyInstance.get(player) < Config::cfg.Tpr.Money) {
-        moneyInstance.sendNotEnoughMessage(player, Config::cfg.Tpr.Money);
-        return;
-    }
-
-    sendText(player, "准备传送所需数据..."_tr());
-    std::unique_ptr<TprModule::TprTask> task = _prepareData(player);
-    sendText<MsgLevel::Success>(player, "数据准备完毕，检查目标区块状态..."_tr());
-
-    auto& blockSource = player.getDimension().getBlockSourceFromMainChunkSource();
-    if (!blockSource.isChunkFullyLoaded(task->mChunkPos, blockSource.getChunkSource())) {
-        sendText<MsgLevel::Warn>(player, "目标区块未加载，将传送至目标区块..."_tr());
-        _addTask(std::move(task));
-        auto ptr = _getTask(player.getRealName());
-        _runTask(ptr); // 进入任务队列
-
-        player.teleport(Vec3{ptr->mBlockPos.x, 666, ptr->mBlockPos.z}, player.getDimensionId());
-        return;
-    }
-
-    sendText(player, "查找安全坐标..."_tr());
-    _findSafePosition(task.get());
-}
-
-
-void TprModule::showTprMenu(Player& player) {
-    if (!Config::cfg.Tpr.Enable) return sendText<MsgLevel::Error>(player, "此功能未启用。"_tr());
+void ShowTprMenu(Player& player) {
+    if (!Config::cfg.Tpr.Enable) return mc_utils::sendText<mc_utils::LogLevel::Error>(player, "此功能未启用。"_tr());
     if (!Config::checkOpeningDimensions(Config::cfg.Tpr.OpenDimensions, player.getDimensionId())) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
+        mc_utils::sendText<mc_utils::LogLevel::Error>(player, "当前维度不允许使用此功能!"_tr());
         return;
     }
 
     string const& name = player.getRealName();
     auto&         col  = Cooldown::getInstance();
     if (col.isCooldown("tpr", name)) {
-        utils::mc::sendText<utils::mc::MsgLevel::Error>(
+        mc_utils::sendText<mc_utils::LogLevel::Error>(
             player,
             "TPR 冷却中，请稍后再试, 冷却时间: {0}"_tr(col.getCooldownString("tpr", name))
         );
         return;
     }
-
 
     using namespace ll::form;
     ModalForm fm;
@@ -205,12 +82,19 @@ void TprModule::showTprMenu(Player& player) {
     fm.setLowerButton("取消"_tr());
     fm.sendTo(player, [](Player& p, ModalFormResult const& dt, FormCancelReason) {
         if (!dt) {
-            sendText(p, "表单已放弃"_tr());
+            mc_utils::sendText(p, "表单已放弃"_tr());
             return;
         }
+        auto& moneyInstance = modules::EconomySystem::getInstance();
+        if (moneyInstance.get(p) < Config::cfg.Tpr.Money) {
+            moneyInstance.sendNotEnoughMessage(p, Config::cfg.Tpr.Money);
+            return;
+        }
+
         auto val = dt.value();
         if ((bool)val) {
-            TprModule::getInstance().requestTeleport(p);
+            auto [x, z] = GetRandomPosition(p);
+            SafeTeleport::getInstance().teleportTo(p, Vec3{x, 666, z}, p.getDimensionId().id);
             Cooldown::getInstance().setCooldown("tpr", p.getRealName(), Config::cfg.Tpr.CooldownTime);
         }
     });

@@ -7,6 +7,8 @@ namespace tps {
 
 #define MSG_TITLE "§6[§a" PLUGIN_NAME "§6]§r "
 
+extern std::atomic<bool> GlobalRepeatCoroTaskRunning;
+
 class entry {
 public:
     static entry& getInstance();
