@@ -8,7 +8,7 @@ else
     add_requires("levilamina 1.0.0-rc.3", {configs = {target_type = "client"}})
 end
 add_requires("levibuildscript")
-add_requires("sqlitecpp 3.3.2")
+add_requires("sqlitecpp 3.2.1")
 
 
 if not has_config("vs_runtime") then
