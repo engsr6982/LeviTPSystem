@@ -42,7 +42,7 @@ target("LeviTPSystem")
     set_languages("c++20")
     add_includedirs("src")
     add_defines("NOMINMAX", "UNICODE")
-    add_files("src/**.cpp", "src/**.cc")
+    add_files("src/**.cc")
     add_packages("levilamina", "sqlitecpp")
     set_exceptions("none") -- To avoid conflicts with /EHa.
 
@@ -52,9 +52,9 @@ target("LeviTPSystem")
 
     add_defines("PLUGIN_NAME=\"LeviTPSystem\"")
     after_build(function (target)
-        local bindir = path.join(os.projectdir(), "bin")
-        local outputdir = path.join(bindir, target:name())
-        -- copy data files
-        local datadir = path.join(os.projectdir(), "assets", "data")
-        os.cp(datadir, outputdir)
+        -- local bindir = path.join(os.projectdir(), "bin")
+        -- local outputdir = path.join(bindir, target:name())
+        -- -- copy data files
+        -- local datadir = path.join(os.projectdir(), "assets", "data")
+        -- os.cp(datadir, outputdir)
     end)

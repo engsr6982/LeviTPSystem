@@ -1,20 +1,14 @@
 #pragma once
 
 #include "ll/api/mod/NativeMod.h"
-#include <atomic>
 
 namespace tps {
 
-#define MSG_TITLE "§6[§a" PLUGIN_NAME "§6]§r "
-
-extern std::atomic<bool> GlobalRepeatCoroTaskRunning;
-
-class entry {
+class ModEntry {
 public:
-    static entry& getInstance();
+    static ModEntry& getInstance();
 
-    // entry(ll::mod::NativeMod& self) : mSelf(self) {}
-    entry() : mSelf(*ll::mod::NativeMod::current()) {}
+    ModEntry() : mSelf(*ll::mod::NativeMod::current()) {}
 
     [[nodiscard]] ll::mod::NativeMod& getSelf() const { return mSelf; }
 
@@ -27,9 +21,8 @@ public:
     /// @return True if the plugin is disabled successfully.
     bool disable();
 
-    // TODO: Implement this method if you need to unload the plugin.
-    // /// @return True if the plugin is unloaded successfully.
-    // bool unload();
+    /// @return True if the plugin is unloaded successfully.
+    bool unload();
 
 private:
     ll::mod::NativeMod& mSelf;
