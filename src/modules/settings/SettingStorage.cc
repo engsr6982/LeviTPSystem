@@ -1,6 +1,7 @@
 #include "levitpsystem/modules/settings/SettingStorage.h"
 #include "SQLiteCpp/Statement.h"
 #include "levitpsystem/database/LeviTPSystemStorage.h"
+#include <optional>
 
 
 namespace tps {
@@ -90,5 +91,30 @@ void SettingStorage::setSettingData(Player& player, SettingData const& data) con
     query.exec();
 }
 
+std::optional<std::string> SettingStorage::getPlayerLanguage(Player& player) const {
+    auto const id = getMainStorage().getPlayerId(player);
+    if (id == -1) {
+        return std::nullopt;
+    }
+
+    SQLite::Statement query(getDatabase(), "SELECT language FROM settings WHERE player_id = ?;");
+    query.bind(1, id);
+    if (query.executeStep()) {
+        return query.getColumn(0).getText();
+    }
+    return std::nullopt;
+}
+
+void SettingStorage::setPlayerLanguage(Player& player, std::string const& language) const {
+    auto const id = getMainStorage().getPlayerId(player);
+    if (id == -1) {
+        return;
+    }
+
+    SQLite::Statement query(getDatabase(), "UPDATE settings SET language = ? WHERE player_id = ?;");
+    query.bind(1, language);
+    query.bind(2, id);
+    query.exec();
+}
 
 } // namespace tps

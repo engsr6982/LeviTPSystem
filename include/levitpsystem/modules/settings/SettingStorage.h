@@ -13,10 +13,10 @@ namespace tps {
 
 
 struct SettingData {
-    bool        deathPopup{false}; // 是否启用死亡弹窗
-    bool        allowTpa{false};   // 是否允许接收传送请求
-    bool        tpaPopup{false};   // 是否显示传送请求弹窗
-    std::string language;          // 玩家语言
+    bool        deathPopup{false};
+    bool        allowTpa{false};
+    bool        tpaPopup{false};
+    std::string language;
 };
 
 
@@ -46,6 +46,16 @@ public:
      * @brief Set the player settings in the database.
      */
     TPSAPI void setSettingData(Player& player, SettingData const& data) const;
+
+    /**
+     * @brief Get the player language from the database.
+     */
+    TPSNDAPI std::optional<std::string> getPlayerLanguage(Player& player) const;
+
+    /**
+     * @brief Set the player language in the database.
+     */
+    TPSAPI void setPlayerLanguage(Player& player, std::string const& language) const;
 };
 
 
