@@ -40,17 +40,24 @@ target("LeviTPSystem")
     set_kind("shared")
     set_symbols("debug")
     set_languages("c++20")
-    add_includedirs("src")
-    add_defines("NOMINMAX", "UNICODE")
+    add_includedirs(
+        "src",
+        "include"
+    )
+    add_defines(
+        "NOMINMAX",
+        "UNICODE",
+        "_HAS_CXX23=1",
+        "TPS_EXPORTS"
+    )
     add_files("src/**.cc")
     add_packages("levilamina", "sqlitecpp")
     set_exceptions("none") -- To avoid conflicts with /EHa.
 
     if is_mode("debug") then
-        add_defines("DEBUG", "LL_I18N_COLLECT_STRINGS")
+        add_defines("DEBUG"--[[ , "LL_I18N_COLLECT_STRINGS" ]])
     end
 
-    add_defines("PLUGIN_NAME=\"LeviTPSystem\"")
     after_build(function (target)
         -- local bindir = path.join(os.projectdir(), "bin")
         -- local outputdir = path.join(bindir, target:name())

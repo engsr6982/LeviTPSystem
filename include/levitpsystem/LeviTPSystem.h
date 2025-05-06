@@ -4,11 +4,11 @@
 
 namespace tps {
 
-class ModEntry {
+class LeviTPSystem {
 public:
-    static ModEntry& getInstance();
+    static LeviTPSystem& getInstance();
 
-    ModEntry() : mSelf(*ll::mod::NativeMod::current()) {}
+    LeviTPSystem() : mSelf(*ll::mod::NativeMod::current()) {}
 
     [[nodiscard]] ll::mod::NativeMod& getSelf() const { return mSelf; }
 
