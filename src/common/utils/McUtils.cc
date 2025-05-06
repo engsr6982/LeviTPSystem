@@ -43,7 +43,7 @@
 #include <string>
 
 
-namespace tps {
+namespace tps::mc_utils {
 
 BlockPos face2Pos(BlockPos const& sour, uchar face) {
     BlockPos dest = sour;
@@ -119,4 +119,4 @@ bool canDestroySpecial(ItemStackBase const& item, Block const& block) {
 }
 
 
-} // namespace tps
+} // namespace tps::mc_utils

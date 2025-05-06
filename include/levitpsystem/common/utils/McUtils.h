@@ -21,7 +21,7 @@ class BlockSource;
 class ItemStackBase;
 class DimensionHeightRange;
 
-namespace mc_utils {
+namespace tps::mc_utils {
 
 TPSNDAPI BlockPos face2Pos(BlockPos const& sour, uchar face);
 
@@ -84,4 +84,4 @@ inline void sendText(CommandOutput& output, std::string_view fmt, Args&&... args
     }
 }
 
-} // namespace mc_utils
+} // namespace tps::mc_utils
