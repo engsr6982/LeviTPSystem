@@ -24,7 +24,7 @@ void SettingStorage::init() {
                 death_popup   INTEGER NOT NULL CHECK (death_popup IN (0, 1)),   -- 是否启用死亡弹窗（布尔）
                 allow_tpa     INTEGER NOT NULL CHECK (allow_tpa IN (0, 1)),     -- 是否允许接收传送请求
                 tpa_popup     INTEGER NOT NULL CHECK (tpa_popup IN (0, 1)),     -- 是否显示传送请求弹窗
-                language      TEXT NOT NULL,                                    -- 玩家语言
+                language      TEXT    NOT NULL,                                 -- 玩家语言
                 FOREIGN KEY (player_id) REFERENCES player(player_id)
             )
         )"
