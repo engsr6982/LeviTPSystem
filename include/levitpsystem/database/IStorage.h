@@ -14,7 +14,7 @@ public:
 
     virtual ~IStorage() = default;
 
-    virtual void init() = 0;
+    virtual void initStorage() = 0;
 };
 
 } // namespace tps

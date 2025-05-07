@@ -58,6 +58,7 @@ target("LeviTPSystem")
         add_defines("DEBUG"--[[ , "LL_I18N_COLLECT_STRINGS" ]])
     end
 
+    add_defines("MOD_NAME=\"LeviTPSystem\"")
     after_build(function (target)
         -- local bindir = path.join(os.projectdir(), "bin")
         -- local outputdir = path.join(bindir, target:name())

@@ -1,19 +1,17 @@
-#include "levitpsystem/modules/settings/SettingStorage.h"
+#include "levitpsystem/modules/settings/SettingModule.h"
 #include "SQLiteCpp/Statement.h"
 #include "levitpsystem/database/LeviTPSystemStorage.h"
+#include "nlohmann/json.hpp"
+#include "nlohmann/json_fwd.hpp"
 #include <optional>
 
 
 namespace tps {
 
-SettingStorage::SettingStorage() = default;
+SettingModule::SettingModule() = default;
 
-SettingStorage& SettingStorage::getInstance() {
-    static SettingStorage instance;
-    return instance;
-}
-
-void SettingStorage::init() {
+// IStorage
+void SettingModule::initStorage() {
     auto& database = getDatabase();
 
     // Create the settings table if it doesn't exist
@@ -31,7 +29,21 @@ void SettingStorage::init() {
     );
 }
 
-void SettingStorage::initPlayer(PlayerID id) const {
+// IModule
+std::vector<std::string> SettingModule::getDependencies() const { return {}; }
+
+void SettingModule::loadConfig(nlohmann::json const&) {}
+
+std::optional<nlohmann::json> SettingModule::saveConfig() { return std::nullopt; }
+
+void SettingModule::init() {}
+
+void SettingModule::enable() {}
+
+void SettingModule::disable() {}
+
+
+void SettingModule::initPlayer(PlayerID id) const {
     if (id == -1) {
         return;
     }
@@ -48,10 +60,10 @@ void SettingStorage::initPlayer(PlayerID id) const {
     query.bind(5, "en_US");
     query.exec();
 }
-void SettingStorage::initPlayer(Player& player) const { initPlayer(getMainStorage().getPlayerId(player)); }
+void SettingModule::initPlayer(Player& player) const { initPlayer(getMainStorage().getPlayerId(player)); }
 
 
-std::optional<SettingData> SettingStorage::getSettingData(Player& player) const {
+std::optional<SettingData> SettingModule::getSettingData(Player& player) const {
     auto const id = getMainStorage().getPlayerId(player);
     if (id == -1) {
         return std::nullopt;
@@ -73,7 +85,7 @@ std::optional<SettingData> SettingStorage::getSettingData(Player& player) const 
     return std::nullopt;
 }
 
-void SettingStorage::setSettingData(Player& player, SettingData const& data) const {
+void SettingModule::setSettingData(Player& player, SettingData const& data) const {
     auto const id = getMainStorage().getPlayerId(player);
     if (id == -1) {
         return;
@@ -91,7 +103,7 @@ void SettingStorage::setSettingData(Player& player, SettingData const& data) con
     query.exec();
 }
 
-std::optional<std::string> SettingStorage::getPlayerLanguage(Player& player) const {
+std::optional<std::string> SettingModule::getPlayerLanguage(Player& player) const {
     auto const id = getMainStorage().getPlayerId(player);
     if (id == -1) {
         return std::nullopt;
@@ -105,7 +117,7 @@ std::optional<std::string> SettingStorage::getPlayerLanguage(Player& player) con
     return std::nullopt;
 }
 
-void SettingStorage::setPlayerLanguage(Player& player, std::string const& language) const {
+void SettingModule::setPlayerLanguage(Player& player, std::string const& language) const {
     auto const id = getMainStorage().getPlayerId(player);
     if (id == -1) {
         return;

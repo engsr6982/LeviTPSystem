@@ -1,87 +1,251 @@
+#include "levitpsystem/common/modules/EconomySystem.h"
+#include "levitpsystem/common/utils/JsonUtls.h"
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/service/Bedrock.h"
-
-#include "levitpsystem/common/modules/EconomySystem.h"
+#include "ll/api/service/PlayerInfo.h"
+#include "mc/world/actor/player/Player.h"
+#include <memory>
 #include <stdexcept>
+#include <string>
 
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 namespace tps {
 
-std::shared_ptr<EconomySystem> GlobalEconomySystem = nullptr;
-std::mutex                     EconomySystem::mInstanceMutex;
 
-std::shared_ptr<EconomySystem> createEconomySystem(EconomySystem::EconomyConfig config) {
-    switch (config.kit) {
-    case tps::EconomySystem::EconomyKit::LegacyMoney: {
-        return std::make_shared<internals::LegacyMoneyEconomySystem>(std::move(config));
+std::shared_ptr<EconomySystem> EconomySystemManager::createEconomySystem() const {
+    switch (mConfig.kit) {
+    case tps::EconomySystem::Kit::LegacyMoney: {
+        return std::make_shared<internals::LegacyMoneyEconomySystem>();
     }
 
-    case tps::EconomySystem::EconomyKit::ScoreBoard: {
+    case tps::EconomySystem::Kit::ScoreBoard: {
         throw std::runtime_error("ScoreBoard Economy System not implemented yet.");
     }
     }
 }
 
-void EconomySystem::init(EconomyConfig config) {
-    std::lock_guard<std::mutex> lock(mInstanceMutex);
-    if (GlobalEconomySystem) {
-        throw std::runtime_error("EconomySystem already initialized.");
-    }
-    GlobalEconomySystem = createEconomySystem(std::move(config));
+EconomySystemManager& EconomySystemManager::getInstance() {
+    static EconomySystemManager instance;
+    return instance;
 }
 
-void EconomySystem::reload(EconomyConfig config) {
+std::shared_ptr<EconomySystem> EconomySystemManager::getEconomySystem() const {
     std::lock_guard<std::mutex> lock(mInstanceMutex);
-    if (!GlobalEconomySystem) {
+    if (!mEconomySystem) {
         throw std::runtime_error("EconomySystem not initialized.");
     }
-    if (GlobalEconomySystem->mConfig.kit == config.kit) {
-        GlobalEconomySystem->mConfig = std::move(config);
+    return mEconomySystem;
+}
+
+EconomySystem::Config const& EconomySystemManager::getConfig() const { return mConfig; }
+
+void EconomySystemManager::loadConfig(nlohmann::json const& config) {
+    std::lock_guard<std::mutex> lock(mInstanceMutex);
+
+    // If not initialized, load config and create economy system
+    if (!mEconomySystem) {
+        json_utils::json2structTryPatch(mConfig, config);
+        mEconomySystem = createEconomySystem();
         return;
     }
-    GlobalEconomySystem = createEconomySystem(std::move(config));
-}
 
-std::shared_ptr<EconomySystem> EconomySystem::getInstance() {
-    std::lock_guard<std::mutex> lock(mInstanceMutex);
-    if (!GlobalEconomySystem) {
-        throw std::runtime_error("EconomySystem not initialized.");
+    // If initialized, reload config and create economy system if kit changed
+    EconomySystem::Config newConfig;
+    json_utils::json2structTryPatch(newConfig, config);
+    if (newConfig.kit == mConfig.kit) {
+        mConfig = std::move(newConfig);
+        return;
     }
-    return GlobalEconomySystem;
+
+    // Reload config and create economy system
+    mConfig        = std::move(newConfig);
+    mEconomySystem = createEconomySystem();
 }
 
-EconomySystem::EconomySystem(EconomyConfig config) : mConfig(std::move(config)) {}
+std::optional<nlohmann::json> EconomySystemManager::saveConfig() { return json_utils::struct2json(mConfig); }
 
-std::string EconomySystem::getCostMessage(Player& player, long long amount) const {
-    using namespace ll::i18n_literals;
-    // using ll::operator""_trl;
-    // TODO: Implement this
-    return "abc"_trl("");
-    // return std::string{ll::i18n::getInstance().get("abc", "")};
+EconomySystemManager::EconomySystemManager() = default;
+std::shared_ptr<EconomySystem> EconomySystemManager::operator->() const { return mEconomySystem; }
+EconomySystem::EconomySystem() = default;
+
+std::string EconomySystem::getCostMessage(Player& player, long long amount, std::string const& localeCode) const {
+    using ll::i18n_literals::operator""_trl;
+
+    auto&                    config = EconomySystemManager::getInstance().getConfig();
+    static const std::string prefix = "\n[Tip] ";
+
+    if (config.enabled) {
+        llong currentMoney = get(player);
+        bool  isEnough     = currentMoney >= amount;
+
+        return "\n[Tip] Operation cost: {0} {1} | Current balance: {2} | Remaining: {3} | {4}"_trl(
+            localeCode,
+            amount,
+            config.economyName,
+            currentMoney,
+            currentMoney - amount,
+            isEnough ? "Sufficient balance"_trl(localeCode) : "Insufficient balance"_trl(localeCode)
+        );
+    }
+    return "\n[Tip] The economy system is not enabled, this operation does not consume {0}"_trl(
+        localeCode,
+        config.economyName
+    );
 }
 
-void EconomySystem::sendNotEnoughMoneyMessage(Player& player, long long amount) const {}
+void EconomySystem::sendNotEnoughMoneyMessage(Player& player, long long amount, std::string const& localeCode) const {
+    auto& config = EconomySystemManager::getInstance().getConfig();
+
+    using ll::operator""_trl;
+    player.sendMessage("§c[EconomySystem] Operation failed, requires {0} {1}, current balance {2}"_trl(
+        localeCode,
+        amount,
+        config.economyName,
+        get(player)
+    ));
+}
 
 namespace internals {
 
-LegacyMoneyEconomySystem::LegacyMoneyEconomySystem(EconomyConfig config) : EconomySystem(std::move(config)) {}
+#ifdef _WIN32
+static const wchar_t* LEGACY_MONEY_MODULE_NAME = L"LegacyMoney.dll";
+#define THROW_LEGACY_MONEY_NOT_LOADED() throw std::runtime_error("LegacyMoney not loaded.");
 
-long long LegacyMoneyEconomySystem::get(Player& player) const { return 0; }
-long long LegacyMoneyEconomySystem::get(mce::UUID const& uuid) const { return 0; }
+// c function pointer
+using LLMoney_Get_Func    = llong (*)(std::string);
+using LLMoney_Set_Func    = bool (*)(std::string, llong);
+using LLMoney_Add_Func    = bool (*)(std::string, llong);
+using LLMoney_Reduce_Func = bool (*)(std::string, llong);
+using LLMoney_Trans_Func  = bool (*)(std::string from, std::string to, llong val, const std::string& note);
 
-bool LegacyMoneyEconomySystem::set(Player& player, long long amount) const { return 0; }
-bool LegacyMoneyEconomySystem::set(mce::UUID const& uuid, long long amount) const { return 0; }
+LegacyMoneyEconomySystem::LegacyMoneyEconomySystem() : EconomySystem() {}
 
-bool LegacyMoneyEconomySystem::add(Player& player, long long amount) const { return 0; }
-bool LegacyMoneyEconomySystem::add(mce::UUID const& uuid, long long amount) const { return 0; }
-
-bool LegacyMoneyEconomySystem::reduce(Player& player, long long amount) const { return 0; }
-bool LegacyMoneyEconomySystem::reduce(mce::UUID const& uuid, long long amount) const { return 0; }
-
-bool LegacyMoneyEconomySystem::transfer(Player& from, Player& to, long long amount) const { return 0; }
-bool LegacyMoneyEconomySystem::transfer(mce::UUID const& from, mce::UUID const& to, long long amount) const {
-    return 0;
+std::optional<std::string> LegacyMoneyEconomySystem::getXuidFromPlayerInfo(mce::UUID const& uuid) const {
+    auto info = ll::service::PlayerInfo::getInstance().fromUuid(uuid);
+    if (!info) {
+        return std::nullopt;
+    }
+    return info->xuid;
 }
+
+bool LegacyMoneyEconomySystem::isLegacyMoneyLoaded() const {
+    return GetModuleHandle(LEGACY_MONEY_MODULE_NAME) != nullptr;
+}
+
+long long LegacyMoneyEconomySystem::get(Player& player) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+
+    auto func = (LLMoney_Get_Func)GetProcAddress(GetModuleHandle(LEGACY_MONEY_MODULE_NAME), "LLMoney_Get");
+    if (!func) {
+        throw std::runtime_error("Dynamic call to LLMoney_Get failed.");
+    }
+    return func(player.getXuid());
+}
+long long LegacyMoneyEconomySystem::get(mce::UUID const& uuid) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+    auto xuid = getXuidFromPlayerInfo(uuid);
+    if (!xuid) {
+        return 0;
+    }
+    return get(*xuid);
+}
+
+bool LegacyMoneyEconomySystem::set(Player& player, long long amount) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+    auto func = (LLMoney_Set_Func)GetProcAddress(GetModuleHandle(LEGACY_MONEY_MODULE_NAME), "LLMoney_Set");
+    if (!func) {
+        throw std::runtime_error("Dynamic call to LLMoney_Set failed.");
+    }
+    return func(player.getXuid(), amount);
+}
+bool LegacyMoneyEconomySystem::set(mce::UUID const& uuid, long long amount) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+    auto xuid = getXuidFromPlayerInfo(uuid);
+    if (!xuid) {
+        return false;
+    }
+    return set(*xuid, amount);
+}
+
+bool LegacyMoneyEconomySystem::add(Player& player, long long amount) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+    auto func = (LLMoney_Add_Func)GetProcAddress(GetModuleHandle(LEGACY_MONEY_MODULE_NAME), "LLMoney_Add");
+    if (!func) {
+        throw std::runtime_error("Dynamic call to LLMoney_Add failed.");
+    }
+    return func(player.getXuid(), amount);
+}
+bool LegacyMoneyEconomySystem::add(mce::UUID const& uuid, long long amount) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+    auto xuid = getXuidFromPlayerInfo(uuid);
+    if (!xuid) {
+        return false;
+    }
+    return add(*xuid, amount);
+}
+
+bool LegacyMoneyEconomySystem::reduce(Player& player, long long amount) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+    auto func = (LLMoney_Reduce_Func)GetProcAddress(GetModuleHandle(LEGACY_MONEY_MODULE_NAME), "LLMoney_Reduce");
+    if (!func) {
+        throw std::runtime_error("Dynamic call to LLMoney_Reduce failed.");
+    }
+    return func(player.getXuid(), amount);
+}
+bool LegacyMoneyEconomySystem::reduce(mce::UUID const& uuid, long long amount) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+    auto xuid = getXuidFromPlayerInfo(uuid);
+    if (!xuid) {
+        return false;
+    }
+    return reduce(*xuid, amount);
+}
+
+bool LegacyMoneyEconomySystem::transfer(Player& from, Player& to, long long amount) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+    auto func = (LLMoney_Trans_Func)GetProcAddress(GetModuleHandle(LEGACY_MONEY_MODULE_NAME), "LLMoney_Trans");
+    if (!func) {
+        throw std::runtime_error("Dynamic call to LLMoney_Trans failed.");
+    }
+    return func(from.getXuid(), to.getXuid(), amount, "LeviTPSystem Transfer");
+}
+bool LegacyMoneyEconomySystem::transfer(mce::UUID const& from, mce::UUID const& to, long long amount) const {
+    if (!isLegacyMoneyLoaded()) {
+        THROW_LEGACY_MONEY_NOT_LOADED()
+    }
+    auto fromXuid = getXuidFromPlayerInfo(from);
+    if (!fromXuid) {
+        return false;
+    }
+    auto toXuid = getXuidFromPlayerInfo(to);
+    if (!toXuid) {
+        return false;
+    }
+    return transfer(*fromXuid, *toXuid, amount);
+}
+#endif
 
 
 } // namespace internals

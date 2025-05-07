@@ -1,8 +1,10 @@
 #pragma once
 #include "levitpsystem/Global.h"
+#include "levitpsystem/common/modules/IConfigurator.h"
 #include "ll/api/base/StdInt.h"
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 
 
@@ -16,30 +18,21 @@ namespace tps {
 
 class EconomySystem {
 public:
-    enum class EconomyKit { LegacyMoney, ScoreBoard };
+    enum class Kit { LegacyMoney, ScoreBoard };
 
-    struct EconomyConfig {
+    struct Config {
         bool        enabled        = false;
-        EconomyKit  kit            = EconomyKit::LegacyMoney;
+        Kit         kit            = Kit::LegacyMoney;
         std::string scoreboardName = "Scoreboard";
         std::string economyName    = "Coin";
     };
-
-protected:
-    EconomyConfig     mConfig;
-    static std::mutex mInstanceMutex;
-
-    TPSNDAPI explicit EconomySystem(EconomyConfig config);
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(EconomySystem);
 
     TPSAPI virtual ~EconomySystem() = default;
 
-    TPSAPI static void init(EconomyConfig config);
-    TPSAPI static void reload(EconomyConfig config);
-
-    TPSNDAPI static std::shared_ptr<EconomySystem> getInstance();
+    TPSAPI explicit EconomySystem();
 
 public:
     TPSNDAPI virtual llong get(Player& player) const        = 0;
@@ -58,18 +51,54 @@ public:
     TPSNDAPI virtual bool transfer(mce::UUID const& from, mce::UUID const& to, llong amount) const = 0;
 
 public:
-    TPSNDAPI virtual std::string getCostMessage(Player& player, llong amount) const;
+    TPSNDAPI virtual std::string getCostMessage(Player& player, llong amount, std::string const& localeCode) const;
 
-    TPSAPI virtual void sendNotEnoughMoneyMessage(Player& player, llong amount) const;
+    TPSAPI virtual void sendNotEnoughMoneyMessage(Player& player, llong amount, std::string const& localeCode) const;
+};
+
+
+class EconomySystemManager final : public IConfigurator {
+    std::shared_ptr<EconomySystem> mEconomySystem;
+    EconomySystem::Config          mConfig;
+    mutable std::mutex             mInstanceMutex;
+
+    explicit EconomySystemManager();
+
+    friend class EconomySystem;
+
+public:
+    TPS_DISALLOW_COPY_AND_MOVE(EconomySystemManager);
+
+    TPSNDAPI static EconomySystemManager& getInstance();
+
+    TPSNDAPI std::shared_ptr<EconomySystem> getEconomySystem() const;
+
+    TPSNDAPI EconomySystem::Config const& getConfig() const;
+
+    TPSNDAPI std::shared_ptr<EconomySystem> operator->() const;
+
+public:
+    TPSAPI void loadConfig(nlohmann::json const& config) override;
+
+    TPSAPI std::optional<nlohmann::json> saveConfig() override;
+
+private:
+    std::shared_ptr<EconomySystem> createEconomySystem() const;
 };
 
 
 namespace internals {
 
+#ifdef _WIN32
 class LegacyMoneyEconomySystem final : public EconomySystem {
 public:
-    TPSNDAPI explicit LegacyMoneyEconomySystem(EconomyConfig config);
+    TPSNDAPI explicit LegacyMoneyEconomySystem();
 
+    TPSNDAPI bool isLegacyMoneyLoaded() const;
+
+    TPSNDAPI std::optional<std::string> getXuidFromPlayerInfo(mce::UUID const& uuid) const; // get xuid from player info
+
+public: // override
     TPSNDAPI llong get(Player& player) const override;
     TPSNDAPI llong get(mce::UUID const& uuid) const override;
 
@@ -85,6 +114,7 @@ public:
     TPSNDAPI bool transfer(Player& from, Player& to, llong amount) const override;
     TPSNDAPI bool transfer(mce::UUID const& from, mce::UUID const& to, llong amount) const override;
 };
+#endif
 
 // class ScoreBoardEconomySystem final : public EconomySystem {};
 

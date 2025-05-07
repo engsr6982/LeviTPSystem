@@ -1,16 +1,10 @@
 #pragma once
 #include "levitpsystem/Global.h"
 #include "levitpsystem/database/IStorage.h"
-#include "levitpsystem/database/LeviTPSystemStorage.h"
-#include <optional>
+#include "levitpsystem/modules/IModule.h"
 
-class Player;
-namespace mce {
-class UUID;
-}
 
 namespace tps {
-
 
 struct SettingData {
     bool        deathPopup{false};
@@ -19,16 +13,31 @@ struct SettingData {
     std::string language;
 };
 
+class SettingModule final : public IStorage, public IModule {
+public:
+    TPS_DISALLOW_COPY_AND_MOVE(SettingModule);
 
-class SettingStorage final : public IStorage {
-    explicit SettingStorage();
+    explicit SettingModule();
 
 public:
-    TPS_DISALLOW_COPY_AND_MOVE(SettingStorage);
+    // IStorage
+    TPSAPI void initStorage() override;
 
-    TPSNDAPI static SettingStorage& getInstance();
+    // IModule
+    inline static std::string name = "SettingModule";
+    TPSNDAPI std::string getModuleName() const override { return name; }
+
+    TPSNDAPI std::vector<std::string> getDependencies() const override;
+
+    TPSAPI void loadConfig(nlohmann::json const& config) override;
+
+    TPSAPI std::optional<nlohmann::json> saveConfig() override;
 
     TPSAPI void init() override;
+
+    TPSAPI void enable() override;
+
+    TPSAPI void disable() override;
 
 public:
     /**

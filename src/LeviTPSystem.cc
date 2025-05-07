@@ -1,9 +1,12 @@
 #include "levitpsystem/LeviTPSystem.h"
-#include "levitpsystem/modules/settings/SettingStorage.h"
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/mod/RegisterHelper.h"
 
 #include "levitpsystem/database/LeviTPSystemStorage.h"
+#include "levitpsystem/modules/ModuleManager.h"
+
+#include "levitpsystem/modules/settings/SettingModule.h"
+#include <memory>
 
 namespace tps {
 
@@ -23,17 +26,40 @@ bool LeviTPSystem::load() {
     logger.info("Loading database...");
     LeviTPSystemStorage::getInstance().init();
 
+    auto& manager = ModuleManager::getInstance();
+
+    logger.info("Registering modules...");
+    manager.registerModule(std::make_unique<SettingModule>());
+    // TODO: add more modules here
+
     logger.info("initializing modules...");
-    SettingStorage::getInstance().init();
+    manager.initModules();
 
     return true;
 }
 
-bool LeviTPSystem::enable() { return true; }
+bool LeviTPSystem::enable() {
+    auto& logger = mSelf.getLogger();
 
-bool LeviTPSystem::disable() { return true; }
+    logger.info("Enabling modules...");
+    ModuleManager::getInstance().enableModules();
 
-bool LeviTPSystem::unload() { return true; }
+    return true;
+}
+
+bool LeviTPSystem::disable() {
+    auto& logger = mSelf.getLogger();
+
+    logger.info("Disabling modules...");
+    ModuleManager::getInstance().disableModules();
+
+    return true;
+}
+
+bool LeviTPSystem::unload() {
+    // TODO: Implement unload
+    return true;
+}
 
 } // namespace tps
 
