@@ -36,11 +36,11 @@ void SettingModule::loadConfig(nlohmann::json const&) {}
 
 std::optional<nlohmann::json> SettingModule::saveConfig() { return std::nullopt; }
 
-void SettingModule::init() {}
+bool SettingModule::init() { return true; }
 
-void SettingModule::enable() {}
+bool SettingModule::enable() { return true; }
 
-void SettingModule::disable() {}
+bool SettingModule::disable() { return true; }
 
 
 void SettingModule::initPlayer(PlayerID id) const {

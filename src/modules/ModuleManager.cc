@@ -89,8 +89,9 @@ void ModuleManager::initModules() {
     for (auto& module : mModules) {
         auto const name = module->getModuleName();
         try {
-            module->init();
-            LeviTPSystem::getInstance().getSelf().getLogger().info("Initialized module {}", name);
+            if (!module->init()) {
+                LeviTPSystem::getInstance().getSelf().getLogger().error("Failed to initialize module {}", name);
+            }
         } catch (std::exception const& e) {
             LeviTPSystem::getInstance().getSelf().getLogger().error(
                 "Failed to initialize module {}: {}",
@@ -104,7 +105,12 @@ void ModuleManager::initModules() {
 void ModuleManager::enableModules() {
     for (auto& module : mModules) {
         try {
-            module->enable();
+            if (!module->enable()) {
+                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                    "Failed to enable module {}",
+                    module->getModuleName()
+                );
+            }
         } catch (std::exception const& e) {
             LeviTPSystem::getInstance().getSelf().getLogger().error(
                 "Failed to enable module {}: {}",
@@ -118,7 +124,12 @@ void ModuleManager::enableModules() {
 void ModuleManager::disableModules() {
     for (auto& module : mModules) {
         try {
-            module->disable();
+            if (!module->disable()) {
+                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                    "Failed to disable module {}",
+                    module->getModuleName()
+                );
+            }
         } catch (std::exception const& e) {
             LeviTPSystem::getInstance().getSelf().getLogger().error(
                 "Failed to disable module {}: {}",

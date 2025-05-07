@@ -33,11 +33,11 @@ public:
 
     TPSAPI std::optional<nlohmann::json> saveConfig() override;
 
-    TPSAPI void init() override;
+    TPSAPI bool init() override;
 
-    TPSAPI void enable() override;
+    TPSAPI bool enable() override;
 
-    TPSAPI void disable() override;
+    TPSAPI bool disable() override;
 
 public:
     /**
