@@ -26,6 +26,7 @@ std::shared_ptr<EconomySystem> EconomySystemManager::createEconomySystem() const
         throw std::runtime_error("ScoreBoard Economy System not implemented yet.");
     }
     }
+    throw std::runtime_error("Unknown EconomySystem Kit.");
 }
 
 EconomySystemManager& EconomySystemManager::getInstance() {
