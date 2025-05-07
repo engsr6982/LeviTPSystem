@@ -1,11 +1,11 @@
 #pragma once
 #include "levitpsystem/Global.h"
 #include "levitpsystem/modules/IModule.h"
+#include <memory>
 #include <vector>
 
 
 namespace tps {
-
 
 class ModuleManager final {
     std::vector<std::unique_ptr<IModule>> mModules;
@@ -22,9 +22,9 @@ public:
 
     TPSAPI void registerModule(std::unique_ptr<IModule> module);
 
-    TPSAPI void loadConfigs();
+    TPSAPI void loadModuleConfigs();
 
-    TPSAPI void saveConfigs(); // colection of all modules' configs
+    TPSAPI void saveModuleConfigs();
 
     TPSAPI void initModules(); // init all modules
 

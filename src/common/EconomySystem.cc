@@ -1,5 +1,6 @@
-#include "levitpsystem/common/modules/EconomySystem.h"
-#include "levitpsystem/common/utils/JsonUtls.h"
+#include "levitpsystem/common/EconomySystem.h"
+#include "levitpsystem/config/Config.h"
+#include "levitpsystem/utils/JsonUtls.h"
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/service/Bedrock.h"
 #include "ll/api/service/PlayerInfo.h"
@@ -17,11 +18,11 @@ namespace tps {
 
 
 std::shared_ptr<EconomySystem> EconomySystemManager::createEconomySystem() const {
-    switch (mConfig.kit) {
+    auto& cfg = getConfig();
+    switch (cfg.kit) {
     case tps::EconomySystem::Kit::LegacyMoney: {
         return std::make_shared<internals::LegacyMoneyEconomySystem>();
     }
-
     case tps::EconomySystem::Kit::ScoreBoard: {
         throw std::runtime_error("ScoreBoard Economy System not implemented yet.");
     }
@@ -42,32 +43,20 @@ std::shared_ptr<EconomySystem> EconomySystemManager::getEconomySystem() const {
     return mEconomySystem;
 }
 
-EconomySystem::Config const& EconomySystemManager::getConfig() const { return mConfig; }
+EconomySystem::Config& EconomySystemManager::getConfig() const { return config::getConfig().economySystem; }
 
-void EconomySystemManager::loadConfig(nlohmann::json const& config) {
+void EconomySystemManager::initEconomySystem() {
     std::lock_guard<std::mutex> lock(mInstanceMutex);
-
-    // If not initialized, load config and create economy system
     if (!mEconomySystem) {
-        json_utils::json2structTryPatch(mConfig, config);
         mEconomySystem = createEconomySystem();
         return;
     }
-
-    // If initialized, reload config and create economy system if kit changed
-    EconomySystem::Config newConfig;
-    json_utils::json2structTryPatch(newConfig, config);
-    if (newConfig.kit == mConfig.kit) {
-        mConfig = std::move(newConfig);
-        return;
-    }
-
-    // Reload config and create economy system
-    mConfig        = std::move(newConfig);
+}
+void EconomySystemManager::reloadEconomySystem() {
+    std::lock_guard<std::mutex> lock(mInstanceMutex);
     mEconomySystem = createEconomySystem();
 }
 
-std::optional<nlohmann::json> EconomySystemManager::saveConfig() { return json_utils::struct2json(mConfig); }
 
 EconomySystemManager::EconomySystemManager() = default;
 std::shared_ptr<EconomySystem> EconomySystemManager::operator->() const { return mEconomySystem; }

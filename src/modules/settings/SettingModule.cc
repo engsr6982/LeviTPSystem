@@ -32,10 +32,6 @@ void SettingModule::initStorage() {
 // IModule
 std::vector<std::string> SettingModule::getDependencies() const { return {}; }
 
-void SettingModule::loadConfig(nlohmann::json const&) {}
-
-std::optional<nlohmann::json> SettingModule::saveConfig() { return std::nullopt; }
-
 bool SettingModule::init() { return true; }
 
 bool SettingModule::enable() { return true; }

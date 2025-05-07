@@ -1,10 +1,12 @@
 #pragma once
-#include "levitpsystem/common/modules/IConfigurator.h"
+#include <string>
+#include <vector>
+
 
 namespace tps {
 
 
-class IModule : public IConfigurator {
+class IModule {
 public:
     virtual ~IModule() = default;
 

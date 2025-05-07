@@ -29,10 +29,6 @@ public:
 
     TPSNDAPI std::vector<std::string> getDependencies() const override;
 
-    TPSAPI void loadConfig(nlohmann::json const& config) override;
-
-    TPSAPI std::optional<nlohmann::json> saveConfig() override;
-
     TPSAPI bool init() override;
 
     TPSAPI bool enable() override;

@@ -1,4 +1,5 @@
 #include "levitpsystem/LeviTPSystem.h"
+#include "levitpsystem/config/Config.h"
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/mod/RegisterHelper.h"
 
@@ -22,6 +23,9 @@ bool LeviTPSystem::load() {
     mSelf.getLogger().setLevel(ll::io::LogLevel::Debug);
 #endif
     auto& logger = mSelf.getLogger();
+
+    logger.info("Loading config...");
+    loadConfig();
 
     logger.info("Loading database...");
     LeviTPSystemStorage::getInstance().init();

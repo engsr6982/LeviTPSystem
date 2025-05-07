@@ -1,6 +1,5 @@
 #pragma once
 #include "levitpsystem/Global.h"
-#include "levitpsystem/common/modules/IConfigurator.h"
 #include "ll/api/base/StdInt.h"
 #include <memory>
 #include <mutex>
@@ -57,14 +56,17 @@ public:
 };
 
 
-class EconomySystemManager final : public IConfigurator {
+class EconomySystemManager final {
     std::shared_ptr<EconomySystem> mEconomySystem;
-    EconomySystem::Config          mConfig;
     mutable std::mutex             mInstanceMutex;
 
     explicit EconomySystemManager();
 
+    void initEconomySystem();   // initialize economy system
+    void reloadEconomySystem(); // reload economy system if kit changed
+
     friend class EconomySystem;
+    friend class LeviTPSystem;
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(EconomySystemManager);
@@ -73,14 +75,9 @@ public:
 
     TPSNDAPI std::shared_ptr<EconomySystem> getEconomySystem() const;
 
-    TPSNDAPI EconomySystem::Config const& getConfig() const;
+    TPSNDAPI EconomySystem::Config& getConfig() const;
 
     TPSNDAPI std::shared_ptr<EconomySystem> operator->() const;
-
-public:
-    TPSAPI void loadConfig(nlohmann::json const& config) override;
-
-    TPSAPI std::optional<nlohmann::json> saveConfig() override;
 
 private:
     std::shared_ptr<EconomySystem> createEconomySystem() const;
