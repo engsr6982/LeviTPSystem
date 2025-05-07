@@ -69,7 +69,20 @@ void ModuleManager::loadConfigs() {
 }
 
 void ModuleManager::saveConfigs() {
-    // TODO: save all modules' configs
+    nlohmann::json config;
+    for (auto& module : mModules) {
+        auto const name = module->getModuleName();
+        if (auto cfg = module->saveConfig(); cfg) {
+            config[name] = std::move(*cfg);
+        }
+    }
+
+    namespace fs  = std::filesystem;
+    fs::path path = LeviTPSystem::getInstance().getSelf().getConfigDir() / "config.json";
+    if (!fs::exists(path)) {
+        fs::create_directories(path.parent_path());
+    }
+    ll::file_utils::writeFile(path, config.dump(4));
 }
 
 void ModuleManager::initModules() {
