@@ -32,6 +32,8 @@ public:
 
     TPSAPI void disableModules(); // disable all modules
 
+    TPSAPI std::vector<IModule*> sortModulesByDependency();
+
     template <typename T>
     T* getModule() {
         for (auto& module : mModules) {
