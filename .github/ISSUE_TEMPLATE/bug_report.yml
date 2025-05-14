@@ -1,55 +1,63 @@
-name: Bug Report
-description: Create a report to help us improve
+name: Bug Report | Bug 反馈
+description: Create a report to help us improve | 创建一个报告来帮助我们改进
 title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: textarea
     attributes:
-      label: Describe the bug
-      description: A clear and concise description of what the bug is.
+      label: Describe the bug | 描述错误
+      description: A clear and concise description of what the bug is. | 清晰简洁地描述错误是什么。
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: To Reproduce
-      description: Steps to reproduce the behavior.
+      label: To Reproduce | 重现步骤
+      description: Steps to reproduce the behavior. | 重现该行为的步骤。
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: Expected behavior
-      description: A clear and concise description of what you expected to happen.
+      label: Expected behavior | 预期行为
+      description: A clear and concise description of what you expected to happen. | 清晰简洁地描述您期望发生的事情。
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: Screenshots
-      description: If applicable, add screenshots to help explain your problem.
-    
-  - type: input
-    attributes:
-      label: Platform
-      description: The platform you are using. (e.g. Windows 10)
+      label: Screenshots | 截图
+      description: If applicable, add screenshots to help explain your problem. | 如果适用，请添加屏幕截图以帮助解释您的问题。
 
   - type: input
     attributes:
-      label: BDS Version
-      description: The version of BDS you are using. (e.g. 1.20.32.1)
+      label: Platform | 平台
+      description: The platform you are using. (e.g. Windows 10) | 您使用的平台。
+    validations:
+      required: true
 
   - type: input
     attributes:
-      label: LeviLamina Version
-      description: The version of LeviLamina you are using. (e.g. 1.0.0)
+      label: BDS Version | BDS版本
+      description: The version of BDS you are using. (e.g. 1.20.32.1) | 您使用的BDS版本。
+    validations:
+      required: true
 
   - type: input
     attributes:
-      label: Version
-      description: The version of the plugin you are using. (e.g. 1.0.0)
+      label: LeviLamina Version | LeviLamina版本
+      description: The version of LeviLamina you are using. (e.g. 1.0.0) | 您使用的LeviLamina版本。
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Version | 版本
+      description: The version of the LeviTPSystem you are using. (e.g. 1.0.0) | 您使用的 LeviTPSystem 版本。
+    validations:
+      required: true
 
   - type: textarea
     attributes:
-      label: Additional context
-      description: Add any other context about the problem here.
+      label: Additional context | 其他上下文
+      description: Add any other context about the problem here. | 在此处添加有关问题的任何其他上下文。
