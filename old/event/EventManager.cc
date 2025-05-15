@@ -34,48 +34,6 @@ namespace tps::event {
 
 void registerEvent() {
 
-    auto& eventBus = ll::event::EventBus::getInstance();
-    // 数据库操作非法事件
-    mLeveldbIllegalOperationListener =
-        eventBus.emplaceListener<LevelDBIllegalOperationEvent>([](LevelDBIllegalOperationEvent) {
-            tps::home::HomeManager::getInstance().syncFromLevelDB();
-            tps::warp::WarpManager::getInstance().syncFromLevelDB();
-            tps::rule::RuleManager::getInstance().syncFromLevelDB();
-            tps::death::DeathManager::getInstance().syncFromLevelDB();
-            tps::pr::PrManager::getInstance().syncFromLevelDB();
-            tps::entry::getInstance().getSelf().getLogger().warn("检测到非法的数据库操作，已主动同步数据。"_tr());
-        });
-
-    // 发送tpa请求事件
-    if (Config::cfg.Tpa.Enable) {
-        mTpaRequestSendListener = eventBus.emplaceListener<TpaRequestSendEvent>([](TpaRequestSendEvent& ev) {
-            auto req = ev.getRequest();
-
-            auto sender   = ll::service::getLevel()->getPlayer(req->getSender());   // 获取发送者
-            auto receiver = ll::service::getLevel()->getPlayer(req->getReceiver()); // 获取接收者
-
-            if (sender) {
-                mc_utils::sendText(
-                    sender,
-                    "已向 {} 发起 {} 请求."_tr(
-                        receiver->getRealName(),
-                        tpa::TpaRequest::tpaTypeToString(req->getType())
-                    )
-                );
-            }
-
-            if (receiver) {
-                mc_utils::sendText(
-                    receiver,
-                    "收到来自 {} 的 {} 请求."_tr(
-                        sender->getRealName(),
-                        tpa::TpaRequest::tpaTypeToString(req->getType())
-                    )
-                );
-            }
-        });
-    }
-
     // 玩家加入事件
     mPlayerJoinListener =
         eventBus.emplaceListener<ll::event::player::PlayerJoinEvent>([](ll::event::player::PlayerJoinEvent const& ev) {
@@ -121,16 +79,6 @@ void registerEvent() {
                 mc_utils::sendText(ev.self(), "已记录本次死亡信息: {0}"_tr(deathInfo.toVec4String()));
             });
     }
-}
-
-
-void unRegisterEvent() {
-    auto& eventBus = ll::event::EventBus::getInstance();
-    eventBus.removeListener(mLeveldbIllegalOperationListener);
-    eventBus.removeListener(mTpaRequestSendListener);
-    eventBus.removeListener(mPlayerJoinListener);
-    eventBus.removeListener(mPlayerRespawnListener);
-    eventBus.removeListener(mPlayerDieListener);
 }
 
 

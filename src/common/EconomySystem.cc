@@ -1,5 +1,5 @@
 #include "levitpsystem/common/EconomySystem.h"
-#include "levitpsystem/config/Config.h"
+#include "levitpsystem/base/Config.h"
 #include "levitpsystem/utils/JsonUtls.h"
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/service/Bedrock.h"
@@ -62,6 +62,9 @@ EconomySystemManager::EconomySystemManager() = default;
 std::shared_ptr<EconomySystem> EconomySystemManager::operator->() const { return mEconomySystem; }
 EconomySystem::EconomySystem() = default;
 
+bool EconomySystem::has(Player& player, llong amount) const { return get(player) >= amount; }
+bool EconomySystem::has(mce::UUID const& uuid, llong amount) const { return get(uuid) >= amount; }
+
 std::string EconomySystem::getCostMessage(Player& player, long long amount, std::string const& localeCode) const {
     using ll::i18n_literals::operator""_trl;
 
@@ -90,7 +93,6 @@ std::string EconomySystem::getCostMessage(Player& player, long long amount, std:
 void EconomySystem::sendNotEnoughMoneyMessage(Player& player, long long amount, std::string const& localeCode) const {
     auto& config = EconomySystemManager::getInstance().getConfig();
 
-    using ll::operator""_trl;
     player.sendMessage("§c[EconomySystem] Operation failed, requires {0} {1}, current balance {2}"_trl(
         localeCode,
         amount,

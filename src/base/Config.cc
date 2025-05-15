@@ -1,4 +1,4 @@
-#include "levitpsystem/config/Config.h"
+#include "levitpsystem/base/Config.h"
 #include "levitpsystem/LeviTPSystem.h"
 #include "ll/api/Config.h"
 #include <filesystem>
@@ -33,7 +33,7 @@ void saveConfig() {
 
     namespace fs = std::filesystem;
     if (!fs::exists(path)) {
-        fs::create_directories(path);
+        fs::create_directories(path.parent_path());
     }
 
     if (!ll::config::saveConfig(getConfig(), path)) {

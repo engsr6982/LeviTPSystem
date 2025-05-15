@@ -49,6 +49,9 @@ public:
     TPSNDAPI virtual bool transfer(Player& from, Player& to, llong amount) const                   = 0;
     TPSNDAPI virtual bool transfer(mce::UUID const& from, mce::UUID const& to, llong amount) const = 0;
 
+    TPSNDAPI virtual bool has(Player& player, llong amount) const;
+    TPSNDAPI virtual bool has(mce::UUID const& uuid, llong amount) const;
+
 public:
     TPSNDAPI virtual std::string getCostMessage(Player& player, llong amount, std::string const& localeCode) const;
 
@@ -62,8 +65,8 @@ class EconomySystemManager final {
 
     explicit EconomySystemManager();
 
-    void initEconomySystem();   // initialize economy system
-    void reloadEconomySystem(); // reload economy system if kit changed
+    void initEconomySystem();   // 初始化经济系统
+    void reloadEconomySystem(); // 重载经济系统（当 kit 改变时）
 
     friend class EconomySystem;
     friend class LeviTPSystem;
@@ -89,11 +92,11 @@ namespace internals {
 #ifdef _WIN32
 class LegacyMoneyEconomySystem final : public EconomySystem {
 public:
-    TPSNDAPI explicit LegacyMoneyEconomySystem();
+    TPSAPI explicit LegacyMoneyEconomySystem();
 
     TPSNDAPI bool isLegacyMoneyLoaded() const;
 
-    TPSNDAPI std::optional<std::string> getXuidFromPlayerInfo(mce::UUID const& uuid) const; // get xuid from player info
+    TPSNDAPI std::optional<std::string> getXuidFromPlayerInfo(mce::UUID const& uuid) const; // 从 PlayerInfo 获取 Xuid
 
 public: // override
     TPSNDAPI llong get(Player& player) const override;

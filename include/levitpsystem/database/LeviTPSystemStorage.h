@@ -34,21 +34,25 @@ public:
 
 public:
     /**
-     * @brief Initialize the player information in the database.
+     * @brief 初始化玩家信息
      */
     TPSAPI void initPlayer(Player& player) const;
 
     /**
-     * @brief Check and update the player information in the database.
+     * @brief 检查并更新玩家信息
      */
     TPSAPI void checkAndUpdatePlayer(Player& player) const;
 
     /**
-     * @brief Get the player id, if not found, return -1.
+     * @brief 获取玩家ID，此ID为数据库中唯一标识（如果返回-1则代表不存在）
      */
     TPSNDAPI PlayerID getPlayerId(std::string const& realName) const;
     TPSNDAPI PlayerID getPlayerId(mce::UUID const& uuid) const;
     TPSNDAPI PlayerID getPlayerId(Player& player) const;
+
+    // 辅助接口，这里的信息来自数据库
+    TPSNDAPI std::optional<std::string> queryRealName(mce::UUID const& uuid) const;
+    TPSNDAPI std::optional<mce::UUID> queryUUID(std::string const& realName) const;
 };
 
 

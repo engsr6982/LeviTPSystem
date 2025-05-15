@@ -1,15 +1,26 @@
 #include "levitpsystem/LeviTPSystem.h"
-#include "levitpsystem/config/Config.h"
+#include "levitpsystem/base/BaseEventListen.h"
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/mod/RegisterHelper.h"
 
-#include "levitpsystem/database/LeviTPSystemStorage.h"
-#include "levitpsystem/modules/ModuleManager.h"
 
-#include "levitpsystem/modules/settings/SettingModule.h"
-#include <memory>
+#include "levitpsystem/base/BaseCommand.h"
+#include "levitpsystem/base/Config.h"
+#include "levitpsystem/common/EconomySystem.h"
+#include "levitpsystem/database/LeviTPSystemStorage.h"
+#include "levitpsystem/database/PlayerSettingStorage.h"
+#include "levitpsystem/modules/ModuleManager.h"
+#include "levitpsystem/modules/tpa/TpaModule.h"
+
 
 namespace tps {
+
+
+#ifdef TPS_TEST
+namespace test {
+extern void Test_Main();
+}
+#endif
 
 
 LeviTPSystem& LeviTPSystem::getInstance() {
@@ -19,49 +30,54 @@ LeviTPSystem& LeviTPSystem::getInstance() {
 
 
 bool LeviTPSystem::load() {
-#ifdef DEBUG
-    mSelf.getLogger().setLevel(ll::io::LogLevel::Debug);
-#endif
     auto& logger = mSelf.getLogger();
+    logger.info("Version: ", LEVITPSYSTEM_VERSION);
+#ifdef TPS_DEBUG
+    logger.setLevel(ll::io::LogLevel::Debug);
+    logger.warn("LeviTPSystem is running in debug mode!");
+#endif
+#ifdef TPS_TEST
+    logger.warn("LeviTPSystem is running in test mode!");
+#endif
 
-    logger.info("Loading config...");
     loadConfig();
 
-    logger.info("Loading database...");
+    EconomySystemManager::getInstance().initEconomySystem();
+
     LeviTPSystemStorage::getInstance().init();
+    PlayerSettingStorage::getInstance().initStorage();
 
     auto& manager = ModuleManager::getInstance();
+    manager.registerModule(std::make_unique<TpaModule>());
 
-    logger.info("Registering modules...");
-    manager.registerModule(std::make_unique<SettingModule>());
-    // TODO: add more modules here
 
-    logger.info("initializing modules...");
     manager.initModules();
-
     return true;
 }
 
 bool LeviTPSystem::enable() {
-    auto& logger = mSelf.getLogger();
+    BaseCommand::setup();     // 基础命令
+    BaseEventListen::setup(); // 基础事件监听
 
-    logger.info("Enabling modules...");
+    // 启用模块
     ModuleManager::getInstance().enableModules();
+
+#ifdef TPS_TEST
+    test::Test_Main();
+#endif
 
     return true;
 }
 
 bool LeviTPSystem::disable() {
-    auto& logger = mSelf.getLogger();
+    BaseEventListen::release(); // 释放监听器
 
-    logger.info("Disabling modules...");
     ModuleManager::getInstance().disableModules();
-
     return true;
 }
 
 bool LeviTPSystem::unload() {
-    // TODO: Implement unload
+    // TODO: 卸载插件
     return true;
 }
 

@@ -72,15 +72,15 @@ inline auto formatWithModNameAndLevel(MessageLevel level, std::string_view fmt, 
 
 template <MessageLevel level = Info, typename... Args>
 inline void sendText(Player& player, std::string_view fmt, Args&&... args) {
-    player.sendMessage(internals::formatWithModNameAndLevel(fmt, args...));
+    player.sendMessage(internals::formatWithModNameAndLevel(level, fmt, args...));
 }
 
 template <MessageLevel level = Info, typename... Args>
 inline void sendText(CommandOutput& output, std::string_view fmt, Args&&... args) {
     if constexpr (level == Error || level == Fatal) {
-        output.error(internals::formatWithModNameAndLevel(fmt, args...));
+        output.error(internals::formatWithModNameAndLevel(level, fmt, args...));
     } else {
-        output.success(internals::formatWithModNameAndLevel(fmt, args...));
+        output.success(internals::formatWithModNameAndLevel(level, fmt, args...));
     }
 }
 
