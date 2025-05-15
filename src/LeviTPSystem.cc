@@ -48,7 +48,7 @@ bool LeviTPSystem::load() {
     PlayerSettingStorage::getInstance().initStorage();
 
     auto& manager = ModuleManager::getInstance();
-    manager.registerModule(std::make_unique<TpaModule>());
+    manager.registerModule<TpaModule>();
 
 
     manager.initModules();

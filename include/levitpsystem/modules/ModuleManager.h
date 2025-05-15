@@ -17,6 +17,8 @@ class ModuleManager final {
 
     explicit ModuleManager();
 
+    void registerModule(std::unique_ptr<IModule> module);
+
 public:
     TPS_DISALLOW_COPY_AND_MOVE(ModuleManager);
 
@@ -26,12 +28,6 @@ public:
     TPSNDAPI static ModuleManager& getInstance();
 
     TPSNDAPI ll::thread::ThreadPoolExecutor& getThreadPool();
-
-    TPSAPI void registerModule(std::unique_ptr<IModule> module);
-
-    TPSAPI void loadModuleConfigs();
-
-    TPSAPI void saveModuleConfigs();
 
     // 检查模块是否在配置中启用
     TPSNDAPI bool isModuleEnabled(const std::string& moduleName) const;
@@ -47,8 +43,15 @@ public:
 
     TPSAPI std::vector<IModule*> sortModulesByDependency();
 
+    template <typename T, typename... Args>
+        requires std::derived_from<T, IModule> && std::is_final_v<T>
+    void registerModule(Args&&... args) {
+        registerModule(std::make_unique<T>(std::forward<Args>(args)...));
+    }
+
     template <typename T>
-    T* getModule(std::string const& moduleName) {
+        requires std::derived_from<T, IModule> && std::is_final_v<T>
+    [[nodiscard]] T* getModule(std::string const& moduleName) {
         if (!mModules.contains(moduleName)) {
             return nullptr;
         }
