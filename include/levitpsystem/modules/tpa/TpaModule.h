@@ -18,6 +18,8 @@ class TpaModule final : public IModule {
     std::vector<ll::event::ListenerPtr> mListeners;
 
 public:
+    TPS_DISALLOW_COPY(TpaModule);
+
     TPSAPI explicit TpaModule();
 
     inline static std::string name = "TpaModule";
