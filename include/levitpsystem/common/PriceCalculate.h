@@ -49,11 +49,13 @@ public:
 
     TPSAPI void setOptions(InternalFuncOptions options);
 
-    TPSNDAPI std::expected<double, std::string> eval() const;
+    TPSNDAPI Result<double> eval() const;
 
 public:
     template <typename T>
-    TPSNDAPI decltype(auto) operator[](T&& key);
+    TPSNDAPI decltype(auto) operator[](T&& key) {
+        return mVariables[std::forward<T>(key)];
+    }
 
 private:
     Impl                mVariables;

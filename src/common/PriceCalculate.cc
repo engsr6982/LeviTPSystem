@@ -58,7 +58,7 @@ parseInternalFuncOptions(exprtk::symbol_table<double>& symbolTable, PriceCalcula
     }
 }
 
-std::expected<double, std::string> PriceCalculate::eval() const {
+Result<double> PriceCalculate::eval() const {
     exprtk::symbol_table<double> symbolTable;
 
     parseInternalFuncOptions(symbolTable, mOptions);
@@ -78,11 +78,6 @@ std::expected<double, std::string> PriceCalculate::eval() const {
     return expression.value();
 }
 
-
-template <typename T>
-decltype(auto) PriceCalculate::operator[](T&& key) {
-    return mVariables[std::forward<T>(key)];
-}
 
 namespace internals {
 
