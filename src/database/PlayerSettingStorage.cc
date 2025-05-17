@@ -1,4 +1,5 @@
 #include "levitpsystem/database/PlayerSettingStorage.h"
+#include "SQLiteCpp/Database.h"
 #include "SQLiteCpp/Statement.h"
 #include "levitpsystem/LeviTPSystem.h"
 #include "levitpsystem/database/LeviTPSystemStorage.h"

@@ -1,5 +1,4 @@
 #pragma once
-#include "SQLiteCpp/Database.h"
 #include "levitpsystem/Global.h"
 #include <memory>
 
@@ -8,6 +7,9 @@ namespace mce {
 class UUID;
 }
 
+namespace SQLite {
+class Database;
+}
 
 namespace tps {
 

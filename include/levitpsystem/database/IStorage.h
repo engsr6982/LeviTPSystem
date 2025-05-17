@@ -1,6 +1,9 @@
 #pragma once
 #include "levitpsystem/Global.h"
-#include "levitpsystem/database/LeviTPSystemStorage.h"
+
+namespace SQLite {
+class Database;
+}
 
 
 namespace tps {
