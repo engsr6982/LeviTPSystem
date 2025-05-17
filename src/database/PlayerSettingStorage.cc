@@ -9,11 +9,6 @@ namespace tps {
 
 PlayerSettingStorage::PlayerSettingStorage() = default;
 
-PlayerSettingStorage& PlayerSettingStorage::getInstance() {
-    static PlayerSettingStorage instance;
-    return instance;
-}
-
 // IStorage
 void PlayerSettingStorage::initStorage() {
     auto& database = getDatabase();

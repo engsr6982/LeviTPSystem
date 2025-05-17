@@ -1,6 +1,7 @@
 #include "levitpsystem/base/BaseEventListen.h"
 #include "levitpsystem/database/LeviTPSystemStorage.h"
 #include "levitpsystem/database/PlayerSettingStorage.h"
+#include "levitpsystem/database/StorageManager.h"
 #include "ll/api/event/EventBus.h"
 #include "ll/api/event/ListenerBase.h"
 #include "ll/api/event/player/PlayerDisconnectEvent.h"
@@ -17,7 +18,7 @@ void BaseEventListen::setup() {
 
     mListeners.emplace_back(bus.emplaceListener<ll::event::PlayerJoinEvent>([](ll::event::PlayerJoinEvent& ev) {
         LeviTPSystemStorage::getInstance().checkAndUpdatePlayer(ev.self());
-        PlayerSettingStorage::getInstance().initPlayer(ev.self());
+        StorageManager::getInstance().getStorage<PlayerSettingStorage>()->initPlayer(ev.self());
     }));
 }
 

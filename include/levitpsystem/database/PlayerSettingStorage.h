@@ -12,14 +12,12 @@ struct SettingData {
 };
 
 class PlayerSettingStorage final : public IStorage {
-    PlayerSettingStorage();
-
 public:
     TPS_DISALLOW_COPY_AND_MOVE(PlayerSettingStorage);
 
-    TPSAPI void initStorage() override;
+    TPSAPI explicit PlayerSettingStorage();
 
-    TPSNDAPI static PlayerSettingStorage& getInstance();
+    TPSAPI void initStorage() override;
 
 public:
     /**

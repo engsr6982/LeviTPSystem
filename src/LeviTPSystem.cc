@@ -1,5 +1,6 @@
 #include "levitpsystem/LeviTPSystem.h"
 #include "levitpsystem/base/BaseEventListen.h"
+#include "levitpsystem/modules/home/HomeModule.h"
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/mod/RegisterHelper.h"
 
@@ -9,6 +10,7 @@
 #include "levitpsystem/common/EconomySystem.h"
 #include "levitpsystem/database/LeviTPSystemStorage.h"
 #include "levitpsystem/database/PlayerSettingStorage.h"
+#include "levitpsystem/database/StorageManager.h"
 #include "levitpsystem/modules/ModuleManager.h"
 #include "levitpsystem/modules/tpa/TpaModule.h"
 
@@ -40,17 +42,24 @@ bool LeviTPSystem::load() {
     logger.warn("LeviTPSystem is running in test mode!");
 #endif
 
+    // 初始化全局配置
     loadConfig();
 
     EconomySystemManager::getInstance().initEconomySystem();
 
     LeviTPSystemStorage::getInstance().init();
-    PlayerSettingStorage::getInstance().initStorage();
 
+    // 注册 Storage
+    auto& storageManager = StorageManager::getInstance();
+    storageManager.registerStorage<PlayerSettingStorage>();
+    storageManager.registerStorage<HomeStorage>();
+
+    // 注册模块
     auto& manager = ModuleManager::getInstance();
     manager.registerModule<TpaModule>();
+    manager.registerModule<HomeModule>();
 
-
+    storageManager.initStorages();
     manager.initModules();
     return true;
 }

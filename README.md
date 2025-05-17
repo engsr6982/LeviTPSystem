@@ -44,7 +44,7 @@
 /warp history [page]             # [玩家] 列出传送历史
 /warp mgr                        # [管理] 管理员GUI
 
-# Tpa 模块
+# Tpa 模块 √
 /tpa                             # [玩家] GUI
 /tpa <accept|deny>               # [玩家] 接受|拒绝 传送请求
 /tpa here <player: target>       # [玩家] 发起 Tpa 请求 (目标玩家传送到我)

@@ -3,6 +3,7 @@
 #include "levitpsystem/base/Config.h"
 #include "levitpsystem/common/EconomySystem.h"
 #include "levitpsystem/database/PlayerSettingStorage.h"
+#include "levitpsystem/database/StorageManager.h"
 #include "levitpsystem/modules/tpa/event/TpaEvents.h"
 #include "levitpsystem/utils/McUtils.h"
 #include "ll/api/event/EventBus.h"
@@ -136,7 +137,7 @@ void TpaRequest::sendFormToReceiver() {
     auto receiver = getReceiver();
     auto sender   = getSender();
 
-    auto& settingStorage     = PlayerSettingStorage::getInstance();
+    auto& settingStorage     = *StorageManager::getInstance().getStorage<PlayerSettingStorage>();
     auto  receiverSettings   = settingStorage.getSettingData(*receiver).value();
     auto  receiverLocaleCode = receiver->getLocaleCode();
 

@@ -5,7 +5,11 @@
 
 namespace tps {
 
+class LeviTPSystemStorage;
+
 class IStorage {
+    friend class StorageManager;
+
 protected:
     TPSNDAPI inline SQLite::Database& getDatabase() const;
 
