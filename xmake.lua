@@ -45,10 +45,8 @@ target("LeviTPSystem")
     set_symbols("debug")
     set_languages("c++20")
     set_exceptions("none") -- To avoid conflicts with /EHa.
-    add_includedirs(
-        "src",
-        "include"
-    )
+    add_includedirs("src")
+    add_headerfiles("src/**.h")
     add_files("src/**.cc")
     add_defines(
         "NOMINMAX",
