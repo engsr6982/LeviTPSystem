@@ -1,7 +1,7 @@
 #include "ltps/database/IStorage.h"
 #include "ltps/database/LeviTPSystemStorage.h"
 
-namespace tps {
+namespace ltps {
 
 
 SQLite::Database& IStorage::getDatabase() const { return LeviTPSystemStorage::getInstance().getDatabase(); }
@@ -9,4 +9,4 @@ SQLite::Database& IStorage::getDatabase() const { return LeviTPSystemStorage::ge
 LeviTPSystemStorage& IStorage::getMainStorage() const { return LeviTPSystemStorage::getInstance(); }
 
 
-} // namespace tps
+} // namespace ltps

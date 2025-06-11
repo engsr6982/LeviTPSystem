@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-namespace tps::test {
+namespace ltps::test {
 
 
 void PriceCalculateTest() {
@@ -22,4 +22,4 @@ void PriceCalculateTest() {
 }
 
 
-} // namespace tps::test
+} // namespace ltps::test

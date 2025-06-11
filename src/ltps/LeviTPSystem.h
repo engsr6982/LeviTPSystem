@@ -2,7 +2,7 @@
 
 #include "ll/api/mod/NativeMod.h"
 
-namespace tps {
+namespace ltps {
 
 class LeviTPSystem {
 public:
@@ -24,4 +24,4 @@ private:
     ll::mod::NativeMod& mSelf;
 };
 
-} // namespace tps
+} // namespace ltps

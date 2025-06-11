@@ -1,9 +1,8 @@
 #include "ltps/LeviTPSystem.h"
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/mod/RegisterHelper.h"
-#include "ltps/base/BaseEventListen.h"
+#include "ltps/base/BaseEventListener.h"
 #include "ltps/modules/home/HomeModule.h"
-
 
 
 #include "ltps/base/BaseCommand.h"
@@ -16,7 +15,7 @@
 #include "ltps/modules/tpa/TpaModule.h"
 
 
-namespace tps {
+namespace ltps {
 
 
 #ifdef TPS_TEST
@@ -91,6 +90,6 @@ bool LeviTPSystem::unload() {
     return true;
 }
 
-} // namespace tps
+} // namespace ltps
 
-LL_REGISTER_MOD(tps::LeviTPSystem, tps::LeviTPSystem::getInstance());
+LL_REGISTER_MOD(ltps::LeviTPSystem, ltps::LeviTPSystem::getInstance());

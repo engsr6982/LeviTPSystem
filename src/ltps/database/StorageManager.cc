@@ -1,6 +1,6 @@
 #include "ltps/database/StorageManager.h"
 
-namespace tps {
+namespace ltps {
 
 StorageManager::StorageManager() = default;
 
@@ -18,4 +18,4 @@ void StorageManager::initStorages() {
     }
 }
 
-} // namespace tps
+} // namespace ltps

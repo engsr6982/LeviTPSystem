@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 
-namespace tps {
+namespace ltps {
 
 
 class PriceCalculate {
@@ -72,4 +72,4 @@ TPSNDAPI double random_num_range(double min, double max);
 } // namespace internals
 
 
-} // namespace tps
+} // namespace ltps

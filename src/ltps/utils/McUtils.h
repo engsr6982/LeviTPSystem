@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 
-
 class Vec2;
 class Block;
 class Actor;
@@ -22,7 +21,7 @@ class BlockSource;
 class ItemStackBase;
 class DimensionHeightRange;
 
-namespace tps::mc_utils {
+namespace ltps::mc_utils {
 
 TPSNDAPI BlockPos face2Pos(BlockPos const& sour, uchar face);
 
@@ -85,4 +84,4 @@ inline void sendText(CommandOutput& output, std::string_view fmt, Args&&... args
     }
 }
 
-} // namespace tps::mc_utils
+} // namespace ltps::mc_utils

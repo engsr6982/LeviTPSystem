@@ -6,10 +6,9 @@
 #include <functional>
 
 
-
 class Player;
 
-namespace tps {
+namespace ltps {
 
 using ll::event::Cancellable;
 using ll::event::Event;
@@ -116,4 +115,4 @@ public:
     TPSNDAPI bool isAccept() const;
 };
 
-} // namespace tps
+} // namespace ltps

@@ -5,7 +5,7 @@
 #include "exprtk.hpp"
 #pragma warning(default : 4702)
 
-namespace tps {
+namespace ltps {
 
 
 PriceCalculate::PriceCalculate(std::string expression, InternalFuncOptions options)
@@ -97,4 +97,4 @@ double random_num_range(double min, double max) {
 
 } // namespace internals
 
-} // namespace tps
+} // namespace ltps

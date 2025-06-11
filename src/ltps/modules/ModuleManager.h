@@ -8,8 +8,7 @@
 #include <vector>
 
 
-
-namespace tps {
+namespace ltps {
 
 class ModuleManager final {
     std::unordered_map<std::string, std::unique_ptr<IModule>> mModules;
@@ -61,4 +60,4 @@ public:
 };
 
 
-} // namespace tps
+} // namespace ltps

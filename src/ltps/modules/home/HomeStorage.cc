@@ -1,7 +1,7 @@
 #include "ltps/modules/home/HomeStorage.h"
 
 
-namespace tps {
+namespace ltps {
 
 
 HomeStorage::HomeStorage() = default;
@@ -9,4 +9,4 @@ HomeStorage::HomeStorage() = default;
 void HomeStorage::initStorage() {}
 
 
-} // namespace tps
+} // namespace ltps

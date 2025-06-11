@@ -4,11 +4,10 @@
 #include <vector>
 
 
+namespace ltps {
 
-namespace tps {
 
-
-struct BaseEventListener {
+class BaseEventListener {
     std::vector<ll::event::ListenerPtr> mListeners;
 
 public:
@@ -20,4 +19,4 @@ public:
 };
 
 
-} // namespace tps
+} // namespace ltps

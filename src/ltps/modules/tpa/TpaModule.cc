@@ -12,8 +12,7 @@
 #include <algorithm>
 
 
-
-namespace tps {
+namespace ltps {
 
 TpaModule::TpaModule() = default;
 
@@ -239,4 +238,4 @@ TpaRequestPool&       TpaModule::getRequestPool() { return *mPool; }
 TpaRequestPool const& TpaModule::getRequestPool() const { return *mPool; }
 
 
-} // namespace tps
+} // namespace ltps

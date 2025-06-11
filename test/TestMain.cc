@@ -1,11 +1,11 @@
 
 
 
-namespace tps::test {
+namespace ltps::test {
 
 extern void PriceCalculateTest();
 
 void Test_Main() { PriceCalculateTest(); }
 
 
-} // namespace tps::test
+} // namespace ltps::test

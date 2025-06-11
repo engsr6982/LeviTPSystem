@@ -1,4 +1,4 @@
-#include "ltps/base/BaseEventListen.h"
+#include "ltps/base/BaseEventListener.h"
 #include "ll/api/event/EventBus.h"
 #include "ll/api/event/ListenerBase.h"
 #include "ll/api/event/player/PlayerDisconnectEvent.h"
@@ -9,12 +9,10 @@
 #include <vector>
 
 
+namespace ltps {
 
-namespace tps {
 
-std::vector<ll::event::ListenerPtr> BaseEventListen::mListeners;
-
-void BaseEventListen::setup() {
+BaseEventListener::BaseEventListener() {
     auto& bus = ll::event::EventBus::getInstance();
 
     mListeners.emplace_back(bus.emplaceListener<ll::event::PlayerJoinEvent>([](ll::event::PlayerJoinEvent& ev) {
@@ -23,7 +21,7 @@ void BaseEventListen::setup() {
     }));
 }
 
-void BaseEventListen::release() {
+BaseEventListener::~BaseEventListener() {
     auto& bus = ll::event::EventBus::getInstance();
     for (auto& listener : mListeners) {
         bus.removeListener(listener);
@@ -31,4 +29,4 @@ void BaseEventListen::release() {
 }
 
 
-} // namespace tps
+} // namespace ltps

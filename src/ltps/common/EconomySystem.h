@@ -7,13 +7,12 @@
 #include <string>
 
 
-
 class Player;
 namespace mce {
 class UUID;
 }
 
-namespace tps {
+namespace ltps {
 
 
 class EconomySystem {
@@ -124,4 +123,4 @@ public: // override
 } // namespace internals
 
 
-} // namespace tps
+} // namespace ltps

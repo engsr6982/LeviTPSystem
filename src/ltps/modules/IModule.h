@@ -5,8 +5,7 @@
 #include <vector>
 
 
-
-namespace tps {
+namespace ltps {
 
 
 class IModule {
@@ -36,4 +35,4 @@ private:
 };
 
 
-} // namespace tps
+} // namespace ltps

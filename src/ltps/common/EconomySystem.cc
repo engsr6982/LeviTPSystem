@@ -10,21 +10,20 @@
 #include <string>
 
 
-
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
-namespace tps {
+namespace ltps {
 
 
 std::shared_ptr<EconomySystem> EconomySystemManager::createEconomySystem() const {
     auto& cfg = getConfig();
     switch (cfg.kit) {
-    case tps::EconomySystem::Kit::LegacyMoney: {
+    case ltps::EconomySystem::Kit::LegacyMoney: {
         return std::make_shared<internals::LegacyMoneyEconomySystem>();
     }
-    case tps::EconomySystem::Kit::ScoreBoard: {
+    case ltps::EconomySystem::Kit::ScoreBoard: {
         throw std::runtime_error("ScoreBoard Economy System not implemented yet.");
     }
     }
@@ -244,4 +243,4 @@ bool LegacyMoneyEconomySystem::transfer(mce::UUID const& from, mce::UUID const& 
 } // namespace internals
 
 
-} // namespace tps
+} // namespace ltps

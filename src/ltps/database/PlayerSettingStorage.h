@@ -4,7 +4,7 @@
 #include "ltps/database/LeviTPSystemStorage.h"
 
 
-namespace tps {
+namespace ltps {
 
 struct SettingData {
     bool deathPopup{false};
@@ -48,4 +48,4 @@ public:
 };
 
 
-} // namespace tps
+} // namespace ltps

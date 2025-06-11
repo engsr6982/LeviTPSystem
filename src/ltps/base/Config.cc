@@ -5,8 +5,7 @@
 #include <stdexcept>
 
 
-
-namespace tps::inline config {
+namespace ltps::inline config {
 
 Config& getConfig() {
     static Config cfg;
@@ -43,4 +42,4 @@ void saveConfig() {
 }
 
 
-} // namespace tps::inline config
+} // namespace ltps::inline config

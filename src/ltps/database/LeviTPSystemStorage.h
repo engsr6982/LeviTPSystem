@@ -11,7 +11,7 @@ namespace SQLite {
 class Database;
 }
 
-namespace tps {
+namespace ltps {
 
 using PlayerID = int;
 
@@ -58,4 +58,4 @@ public:
 };
 
 
-} // namespace tps
+} // namespace ltps

@@ -10,8 +10,7 @@
 #include "mc/server/commands/CommandOutput.h"
 
 
-
-namespace tps {
+namespace ltps {
 
 
 void BaseCommand::setup() {
@@ -39,4 +38,4 @@ void BaseCommand::setup() {
 }
 
 
-} // namespace tps
+} // namespace ltps

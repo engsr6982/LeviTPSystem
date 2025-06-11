@@ -6,8 +6,7 @@
 #include <vector>
 
 
-
-namespace tps::inline config {
+namespace ltps::inline config {
 
 namespace v4 {
 struct Config {};
@@ -107,4 +106,4 @@ TPSNDAPI inline std::filesystem::path getConfigPath();
 TPSAPI void                           loadConfig();
 TPSAPI void                           saveConfig();
 
-} // namespace tps::inline config
+} // namespace ltps::inline config

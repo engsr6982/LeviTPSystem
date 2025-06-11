@@ -6,7 +6,7 @@
 
 class Player;
 
-namespace tps {
+namespace ltps {
 
 
 class TpaRequest {
@@ -83,4 +83,4 @@ public:
 };
 
 
-} // namespace tps
+} // namespace ltps

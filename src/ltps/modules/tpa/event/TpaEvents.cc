@@ -4,8 +4,7 @@
 #include <utility>
 
 
-
-namespace tps {
+namespace ltps {
 
 
 // ICreateTpaRequestEvent
@@ -82,4 +81,4 @@ IMPL_EVENT_EMITTER(TpaRequestDenyingEvent);
 IMPL_EVENT_EMITTER(TpaRequestDeniedEvent);
 IMPL_EVENT_EMITTER(PlayerExecuteTpaAcceptOrDenyCommandEvent);
 
-} // namespace tps
+} // namespace ltps

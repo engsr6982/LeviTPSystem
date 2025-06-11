@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 
-namespace tps {
+namespace ltps {
 
 
 class Cooldown {
@@ -31,4 +31,4 @@ public:
 };
 
 
-} // namespace tps
+} // namespace ltps

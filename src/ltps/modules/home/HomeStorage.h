@@ -1,6 +1,6 @@
 #include "ltps/database/IStorage.h"
 
-namespace tps {
+namespace ltps {
 
 
 class HomeStorage final : public IStorage {
@@ -11,4 +11,4 @@ public:
 };
 
 
-} // namespace tps
+} // namespace ltps

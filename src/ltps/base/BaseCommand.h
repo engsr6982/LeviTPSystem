@@ -2,7 +2,7 @@
 #include "ltps/Global.h"
 
 
-namespace tps {
+namespace ltps {
 
 
 struct BaseCommand {
@@ -10,4 +10,4 @@ struct BaseCommand {
 };
 
 
-} // namespace tps
+} // namespace ltps

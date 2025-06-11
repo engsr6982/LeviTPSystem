@@ -6,7 +6,7 @@
 #include <optional>
 
 
-namespace tps {
+namespace ltps {
 
 PlayerSettingStorage::PlayerSettingStorage() = default;
 
@@ -111,4 +111,4 @@ void PlayerSettingStorage::setSettingData(Player& player, SettingData const& dat
     query.exec();
 }
 
-} // namespace tps
+} // namespace ltps

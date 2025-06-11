@@ -5,7 +5,7 @@
 #include "ltps/modules/IModule.h"
 
 
-namespace tps {
+namespace ltps {
 
 class HomeModule final : public IModule {
 public:
@@ -27,4 +27,4 @@ public:
     TPSNDAPI HomeStorage* getStorage() const;
 };
 
-} // namespace tps
+} // namespace ltps

@@ -29,7 +29,7 @@
 
 #include "ll/api/i18n/I18n.h"
 #include <expected>
-namespace tps {
+namespace ltps {
 
 using ll::operator""_tr;
 using ll::operator""_trl;
@@ -37,4 +37,4 @@ using ll::operator""_trl;
 template <typename T, typename E = std::string>
 using Result = std::expected<T, E>;
 
-} // namespace tps
+} // namespace ltps

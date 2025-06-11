@@ -6,7 +6,7 @@ class Database;
 }
 
 
-namespace tps {
+namespace ltps {
 
 class LeviTPSystemStorage;
 
@@ -24,4 +24,4 @@ public:
     virtual void initStorage() = 0;
 };
 
-} // namespace tps
+} // namespace ltps

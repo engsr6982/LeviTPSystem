@@ -7,7 +7,7 @@
 #include <filesystem>
 
 
-namespace tps {
+namespace ltps {
 
 LeviTPSystemStorage::LeviTPSystemStorage() = default;
 
@@ -115,4 +115,4 @@ std::optional<mce::UUID> LeviTPSystemStorage::queryUUID(std::string const& realN
 }
 
 
-} // namespace tps
+} // namespace ltps

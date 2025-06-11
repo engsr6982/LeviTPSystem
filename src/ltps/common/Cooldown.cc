@@ -2,7 +2,7 @@
 #include <algorithm>
 
 
-namespace tps {
+namespace ltps {
 
 
 Cooldown::Cooldown() = default;
@@ -55,4 +55,4 @@ std::string Cooldown::getCooldownString(const std::string& target) const {
 }
 
 
-} // namespace tps
+} // namespace ltps

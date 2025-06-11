@@ -5,7 +5,7 @@
 
 class Player;
 
-namespace tps {
+namespace ltps {
 
 
 class TpaGUI {
@@ -24,4 +24,4 @@ public:
 };
 
 
-} // namespace tps
+} // namespace ltps

@@ -7,8 +7,7 @@
 #include <vector>
 
 
-
-namespace tps {
+namespace ltps {
 
 
 class TpaModule final : public IModule {
@@ -41,4 +40,4 @@ public:
 };
 
 
-} // namespace tps
+} // namespace ltps

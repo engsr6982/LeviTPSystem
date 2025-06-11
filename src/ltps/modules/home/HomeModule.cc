@@ -1,6 +1,6 @@
 #include "ltps/modules/home/HomeModule.h"
 
-namespace tps {
+namespace ltps {
 
 HomeModule::HomeModule() = default;
 
@@ -14,4 +14,4 @@ bool HomeModule::disable() { return true; }
 
 HomeStorage* HomeModule::getStorage() const { return StorageManager::getInstance().getStorage<HomeStorage>(); }
 
-} // namespace tps
+} // namespace ltps
