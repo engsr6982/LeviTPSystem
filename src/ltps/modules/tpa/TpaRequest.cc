@@ -23,7 +23,7 @@ TpaRequest::TpaRequest(Player& sender, Player& receiver, Type type)
   mState(State::Available),
   mCreationTime(std::chrono::system_clock::now()) {}
 
-TpaRequest::~TpaRequest() {}
+TpaRequest::~TpaRequest() = default;
 
 Player* TpaRequest::getSender() const { return mSender.tryUnwrap<Player>().as_ptr(); }
 Player* TpaRequest::getReceiver() const { return mReceiver.tryUnwrap<Player>().as_ptr(); }
