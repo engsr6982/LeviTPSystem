@@ -14,7 +14,7 @@
 #include <chrono>
 
 
-namespace ltps {
+namespace ltps::tpa {
 
 TpaRequest::TpaRequest(Player& sender, Player& receiver, Type type)
 : mSender(sender.getWeakEntity()),
@@ -194,4 +194,4 @@ std::string TpaRequest::getTypeString(Type type) {
 }
 
 
-} // namespace ltps
+} // namespace ltps::tpa

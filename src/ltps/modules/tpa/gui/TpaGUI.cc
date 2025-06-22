@@ -9,7 +9,7 @@
 #include <memory>
 
 
-namespace ltps {
+namespace ltps::tpa {
 
 
 void TpaGUI::sendMainMenu(Player& player) {
@@ -65,4 +65,4 @@ void TpaGUI::sendChooseTpaPlayerMenu(Player& player, TpaRequest::Type type) {
 }
 
 
-} // namespace ltps
+} // namespace ltps::tpa

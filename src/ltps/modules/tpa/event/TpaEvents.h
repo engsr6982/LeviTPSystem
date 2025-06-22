@@ -8,7 +8,7 @@
 
 class Player;
 
-namespace ltps {
+namespace ltps::tpa {
 
 using ll::event::Cancellable;
 using ll::event::Event;
@@ -115,4 +115,4 @@ public:
     TPSNDAPI bool isAccept() const;
 };
 
-} // namespace ltps
+} // namespace ltps::tpa

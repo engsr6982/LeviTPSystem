@@ -6,7 +6,7 @@
 #include <chrono>
 
 
-namespace ltps {
+namespace ltps::tpa {
 
 TpaRequestPool::TpaRequestPool(ll::thread::ThreadPoolExecutor& executor) { initCleanupCoro(executor); }
 TpaRequestPool::~TpaRequestPool() = default;
@@ -147,4 +147,4 @@ void TpaRequestPool::stopCleanupCoro() {
 }
 
 
-} // namespace ltps
+} // namespace ltps::tpa

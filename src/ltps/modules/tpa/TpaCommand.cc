@@ -14,7 +14,7 @@
 #include "mc/world/actor/player/Player.h"
 
 
-namespace ltps {
+namespace ltps::tpa {
 
 struct IAcceptDenyParam {
     enum Type { accept, deny };
@@ -95,4 +95,4 @@ void TpaCommand::setup() {
 }
 
 
-} // namespace ltps
+} // namespace ltps::tpa

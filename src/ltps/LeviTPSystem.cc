@@ -55,7 +55,7 @@ bool LeviTPSystem::load() {
 
     // 注册模块
     auto& manager = ModuleManager::getInstance();
-    manager.registerModule<TpaModule>();
+    manager.registerModule<tpa::TpaModule>();
     manager.registerModule<HomeModule>();
 
     storageManager.postOnLoad();

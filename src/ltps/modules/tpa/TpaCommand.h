@@ -1,7 +1,7 @@
 #pragma once
 #include "ltps/Global.h"
 
-namespace ltps {
+namespace ltps::tpa {
 
 
 class TpaCommand {
@@ -12,4 +12,4 @@ public:
 };
 
 
-} // namespace ltps
+} // namespace ltps::tpa
