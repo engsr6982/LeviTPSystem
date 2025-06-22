@@ -2,6 +2,7 @@
 #include "ltps/LeviTPSystem.h"
 #include "ltps/utils/JsonUtls.h"
 #include "nlohmann/json.hpp"
+#include <expected>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -48,11 +49,11 @@ void PlayerSettingStorage::onStorageUnload() {
     database.set(STORAGE_KEY, json.dump());
 }
 
-std::optional<SettingData> PlayerSettingStorage::getSettingData(RealName const& realName) const {
+Result<SettingData> PlayerSettingStorage::getSettingData(RealName const& realName) const {
     if (auto it = mSettingDatas.find(realName); it != mSettingDatas.end()) {
         return it->second;
     }
-    return std::nullopt;
+    return std::unexpected{"Player setting not found"};
 }
 
 void PlayerSettingStorage::initPlayerSetting(RealName const& realName) {

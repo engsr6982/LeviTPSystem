@@ -27,7 +27,7 @@ private:
     std::unordered_map<RealName, SettingData> mSettingDatas; // realName -> SettingData
 
 public:
-    TPSNDAPI std::optional<SettingData> getSettingData(RealName const& realName) const;
+    TPSNDAPI Result<SettingData> getSettingData(RealName const& realName) const;
 
     TPSNDAPI Result<void> setSettingData(RealName const& realName, SettingData settingData);
 
