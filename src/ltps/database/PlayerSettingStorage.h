@@ -29,6 +29,8 @@ private:
 public:
     TPSNDAPI std::optional<SettingData> getSettingData(RealName const& realName) const;
 
+    TPSNDAPI Result<void> setSettingData(RealName const& realName, SettingData settingData);
+
     TPSAPI void initPlayerSetting(RealName const& realName);
 
     static inline constexpr auto STORAGE_KEY = "rule";

@@ -4,6 +4,7 @@
 #include "nlohmann/json.hpp"
 #include <memory>
 #include <optional>
+#include <utility>
 
 
 namespace ltps {
@@ -54,11 +55,17 @@ std::optional<SettingData> PlayerSettingStorage::getSettingData(RealName const& 
     return std::nullopt;
 }
 
-
 void PlayerSettingStorage::initPlayerSetting(RealName const& realName) {
     if (mSettingDatas.find(realName) == mSettingDatas.end()) {
         mSettingDatas[realName] = SettingData{};
     }
 }
+
+
+Result<void> PlayerSettingStorage::setSettingData(RealName const& realName, SettingData settingData) {
+    mSettingDatas[realName] = settingData;
+    return {};
+}
+
 
 } // namespace ltps
