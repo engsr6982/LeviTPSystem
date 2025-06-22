@@ -9,7 +9,7 @@ else
 end
 add_requires("bedrockdata v1.21.80-server.5")
 add_requires("prelink v0.5.0")
-add_requires("levibuildscript")
+add_requires("levibuildscript 0.4.0")
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
