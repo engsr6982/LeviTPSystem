@@ -7,6 +7,8 @@ if is_config("target_type", "server") then
 else
     add_requires("levilamina 1.0.0-rc.3", {configs = {target_type = "client"}})
 end
+add_requires("bedrockdata v1.21.80-server.5")
+add_requires("prelink v0.5.0")
 add_requires("levibuildscript")
 
 if not has_config("vs_runtime") then
@@ -41,6 +43,7 @@ target("LeviTPSystem")
     set_kind("shared")
     set_languages("c++20")
     set_symbols("debug")
+    add_packages("bedrockdata")
 
     if is_mode("debug") then
         add_defines("DEBUG", "LL_I18N_COLLECT_STRINGS")
