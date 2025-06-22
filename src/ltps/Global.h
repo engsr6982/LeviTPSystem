@@ -37,4 +37,6 @@ using ll::operator""_trl;
 template <typename T, typename E = std::string>
 using Result = std::expected<T, E>;
 
+using RealName = std::string;
+
 } // namespace ltps

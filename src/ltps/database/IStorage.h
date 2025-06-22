@@ -1,27 +1,23 @@
 #pragma once
+#include "ll/api/data/KeyValueDB.h"
 #include "ltps/Global.h"
-
-namespace SQLite {
-class Database;
-}
 
 
 namespace ltps {
 
-class LeviTPSystemStorage;
 
 class IStorage {
     friend class StorageManager;
 
 protected:
-    TPSNDAPI inline SQLite::Database& getDatabase() const;
+    TPSNDAPI inline ll::data::KeyValueDB& getDatabase() const;
 
 public:
-    TPSNDAPI LeviTPSystemStorage& getMainStorage() const;
-
     virtual ~IStorage() = default;
 
-    virtual void initStorage() = 0;
+    virtual void onStorageLoad()   = 0;  // 存储加载
+    virtual void onStorageUnload() = 0;  // 存储卸载
+    virtual void onStorageWriteBack() {} // 存储回写
 };
 
 } // namespace ltps

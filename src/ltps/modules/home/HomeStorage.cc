@@ -6,7 +6,8 @@ namespace ltps {
 
 HomeStorage::HomeStorage() = default;
 
-void HomeStorage::initStorage() {}
+void HomeStorage::onStorageLoad() {}
+void HomeStorage::onStorageUnload() {}
 
 
 } // namespace ltps

@@ -4,18 +4,27 @@ namespace ltps {
 
 StorageManager::StorageManager() = default;
 
-StorageManager::~StorageManager() = default;
-
 StorageManager& StorageManager::getInstance() {
     static StorageManager instance;
     return instance;
 }
 
-void StorageManager::initStorages() {
-    // 初始化所有注册的Storage
+
+void StorageManager::postOnLoad() {
     for (auto& [_, storage] : mStorages) {
-        storage->initStorage();
+        storage->onStorageLoad();
     }
 }
+void StorageManager::postOnUnload() {
+    for (auto& [_, storage] : mStorages) {
+        storage->onStorageUnload();
+    }
+}
+void StorageManager::postOnWriteBack() {
+    for (auto& [_, storage] : mStorages) {
+        storage->onStorageWriteBack();
+    }
+}
+
 
 } // namespace ltps

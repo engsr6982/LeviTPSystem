@@ -138,7 +138,7 @@ void TpaRequest::sendFormToReceiver() {
     auto sender   = getSender();
 
     auto& settingStorage     = *StorageManager::getInstance().getStorage<PlayerSettingStorage>();
-    auto  receiverSettings   = settingStorage.getSettingData(*receiver).value();
+    auto  receiverSettings   = settingStorage.getSettingData(receiver->getRealName()).value();
     auto  receiverLocaleCode = receiver->getLocaleCode();
 
     if (!receiverSettings.tpaPopup) {

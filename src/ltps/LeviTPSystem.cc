@@ -2,17 +2,17 @@
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/mod/RegisterHelper.h"
 #include "ltps/base/BaseEventListener.h"
-#include "ltps/modules/home/HomeModule.h"
 
 
 #include "ltps/base/BaseCommand.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/EconomySystem.h"
-#include "ltps/database/LeviTPSystemStorage.h"
 #include "ltps/database/PlayerSettingStorage.h"
 #include "ltps/database/StorageManager.h"
 #include "ltps/modules/ModuleManager.h"
+#include "ltps/modules/home/HomeModule.h"
 #include "ltps/modules/tpa/TpaModule.h"
+#include <memory>
 
 
 namespace ltps {
@@ -47,7 +47,6 @@ bool LeviTPSystem::load() {
 
     EconomySystemManager::getInstance().initEconomySystem();
 
-    LeviTPSystemStorage::getInstance().init();
 
     // 注册 Storage
     auto& storageManager = StorageManager::getInstance();
@@ -59,14 +58,14 @@ bool LeviTPSystem::load() {
     manager.registerModule<TpaModule>();
     manager.registerModule<HomeModule>();
 
-    storageManager.initStorages();
+    storageManager.postOnLoad();
     manager.initModules();
     return true;
 }
 
 bool LeviTPSystem::enable() {
-    BaseCommand::setup();       // 基础命令
-    BaseEventListener::setup(); // 基础事件监听
+    BaseCommand::setup(); // 基础命令
+    mBaseEventListener = std::make_unique<BaseEventListener>();
 
     // 启用模块
     ModuleManager::getInstance().enableModules();
@@ -79,9 +78,11 @@ bool LeviTPSystem::enable() {
 }
 
 bool LeviTPSystem::disable() {
-    BaseEventListener::release(); // 释放监听器
+    mBaseEventListener.reset();
 
     ModuleManager::getInstance().disableModules();
+    StorageManager::getInstance().postOnUnload();
+
     return true;
 }
 

@@ -1,15 +1,16 @@
 #pragma once
 #include "ltps/Global.h"
 #include "ltps/database/IStorage.h"
-#include "ltps/database/LeviTPSystemStorage.h"
+#include <memory>
+#include <unordered_map>
 
 
 namespace ltps {
 
 struct SettingData {
-    bool deathPopup{false};
-    bool allowTpa{false};
-    bool tpaPopup{false};
+    bool deathPopup = true; // 死亡后立即发送返回弹窗
+    bool allowTpa   = true; // 允许对xx发送tpa请求
+    bool tpaPopup   = true; // tpa弹窗
 };
 
 
@@ -19,32 +20,18 @@ public:
 
     TPSAPI explicit PlayerSettingStorage();
 
-    TPSAPI void initStorage() override;
+    TPSAPI void onStorageLoad() override;
+    TPSAPI void onStorageUnload() override;
 
-
-    struct Category {
-        int         id;
-        std::string name;
-    };
-
-    struct Setting {};
+private:
+    std::unordered_map<RealName, SettingData> mSettingDatas; // realName -> SettingData
 
 public:
-    /**
-     * @brief 初始化玩家设置数据
-     */
-    TPSAPI void initPlayer(PlayerID id) const;
-    TPSAPI void initPlayer(Player& player) const;
+    TPSNDAPI std::optional<SettingData> getSettingData(RealName const& realName) const;
 
-    /**
-     * @brief 获取玩家设置数据
-     */
-    TPSNDAPI std::optional<SettingData> getSettingData(Player& player) const;
+    TPSAPI void initPlayerSetting(RealName const& realName);
 
-    /**
-     * @brief 设置玩家设置数据
-     */
-    TPSAPI void setSettingData(Player& player, SettingData const& data) const;
+    static constexpr auto STORAGE_KEY = "rule";
 };
 
 

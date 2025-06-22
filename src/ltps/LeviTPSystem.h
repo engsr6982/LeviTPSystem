@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ll/api/mod/NativeMod.h"
+#include "ltps/base/BaseEventListener.h"
+#include <memory>
 
 namespace ltps {
 
@@ -21,7 +23,8 @@ public:
     bool unload();
 
 private:
-    ll::mod::NativeMod& mSelf;
+    ll::mod::NativeMod&                mSelf;
+    std::unique_ptr<BaseEventListener> mBaseEventListener;
 };
 
 } // namespace ltps

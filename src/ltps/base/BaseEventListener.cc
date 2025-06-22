@@ -3,7 +3,6 @@
 #include "ll/api/event/ListenerBase.h"
 #include "ll/api/event/player/PlayerDisconnectEvent.h"
 #include "ll/api/event/player/PlayerJoinEvent.h"
-#include "ltps/database/LeviTPSystemStorage.h"
 #include "ltps/database/PlayerSettingStorage.h"
 #include "ltps/database/StorageManager.h"
 #include <vector>
@@ -16,8 +15,7 @@ BaseEventListener::BaseEventListener() {
     auto& bus = ll::event::EventBus::getInstance();
 
     mListeners.emplace_back(bus.emplaceListener<ll::event::PlayerJoinEvent>([](ll::event::PlayerJoinEvent& ev) {
-        LeviTPSystemStorage::getInstance().checkAndUpdatePlayer(ev.self());
-        StorageManager::getInstance().getStorage<PlayerSettingStorage>()->initPlayer(ev.self());
+        StorageManager::getInstance().getStorage<PlayerSettingStorage>()->initPlayerSetting(ev.self().getRealName());
     }));
 }
 
