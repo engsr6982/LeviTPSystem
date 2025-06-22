@@ -228,6 +228,7 @@ bool TpaModule::disable() {
     for (auto& listener : mListeners) {
         bus.removeListener(listener);
     }
+    mListeners.clear();
 
     return true;
 }
