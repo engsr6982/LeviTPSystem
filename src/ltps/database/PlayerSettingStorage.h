@@ -31,7 +31,7 @@ public:
 
     TPSAPI void initPlayerSetting(RealName const& realName);
 
-    static constexpr auto STORAGE_KEY = "rule";
+    static inline constexpr auto STORAGE_KEY = "rule";
 };
 
 
