@@ -141,8 +141,10 @@ bool HomeModule::enable() {
                 return;
             }
 
-            if (!EconomySystemManager::getInstance()->reduce(player, static_cast<llong>(price.value()))) {
-                mc_utils::sendText<mc_utils::Error>(player, "经济不足，无法创建"_trl(localeCode));
+            auto& economy = EconomySystemManager::getInstance();
+            if (!economy->reduce(player, static_cast<llong>(price.value()))) {
+                // mc_utils::sendText<mc_utils::Error>(player, "经济不足，无法创建"_trl(localeCode));
+                economy->sendNotEnoughMoneyMessage(player, static_cast<llong>(price.value()), localeCode);
                 ev.cancel();
                 return;
             }
