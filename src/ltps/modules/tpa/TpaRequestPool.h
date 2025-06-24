@@ -44,10 +44,11 @@ public:
 
     TPSAPI void cleanupExpiredRequests();
 
-    TPSAPI void stopCleanupCoro();
 
 private:
-    void initCleanupCoro(ll::thread::ThreadPoolExecutor& executor); // 构造时调用
+    void _stopCleanupCoro();
+
+    void _initCleanupCoro(ll::thread::ThreadPoolExecutor& executor); // 构造时调用
 
     friend class TpaModule;
 };

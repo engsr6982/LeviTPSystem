@@ -30,19 +30,23 @@ public:
 };
 
 
-// 创建 TPA 请求事件
-// 等价于 TpaRequestPool::createRequest()
-// 流程: CreateTpaRequestEvent -> CreatingTpaRequestEvent -> TpaRequestPool::createRequest() -> CreatedTpaRequestEvent
+/**
+ * @brief 创建 TPA 请求事件
+ *  流程: CreateTpaRequestEvent -> CreatingTpaRequestEvent -> TpaRequestPool::createRequest() -> CreatedTpaRequestEvent
+ */
 class CreateTpaRequestEvent final : public ICreateTpaRequestEvent, public Event {
     using Callback = std::function<void(std::shared_ptr<TpaRequest> request)>;
     Callback mCallback;
 
 public:
-    TPSAPI explicit CreateTpaRequestEvent(Player& sender, Player& receiver, TpaRequest::Type type, Callback callback);
+    TPSAPI explicit CreateTpaRequestEvent(
+        Player&          sender,
+        Player&          receiver,
+        TpaRequest::Type type,
+        Callback         callback = {}
+    );
 
-    TPSAPI void setCallback(Callback callback);
-
-    TPSNDAPI Callback const& getCallback() const;
+    TPSAPI void invokeCallback(std::shared_ptr<TpaRequest> request) const;
 };
 
 
@@ -101,7 +105,11 @@ public:
 };
 
 
-// 玩家执行 TPA 接受或拒绝命令事件
+/**
+ * @brief 玩家执行 TPA 接受或拒绝命令事件
+ * 流程: PlayerExecuteTpaAcceptOrDenyCommandEvent -> TpaRequest::accept/deny() ->
+ * TpaRequestAcceptingEvent/TpaRequestDenyingEvent -> TpaRequestAcceptedEvent/TpaRequestDeniedEvent
+ */
 class PlayerExecuteTpaAcceptOrDenyCommandEvent final : public Event {
     Player& mPlayer;
     bool    mIsAccept; // true: accept, false: deny

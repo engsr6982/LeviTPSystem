@@ -9,21 +9,8 @@
 
 namespace ltps {
 
-ModuleManager::ModuleManager() {
-    mThreadPool = std::make_unique<ll::thread::ThreadPoolExecutor>("LeviTPSystem-ThreadPool", 2);
-}
-
-ModuleManager::~ModuleManager() {
-    mThreadPool->destroy();
-    mThreadPool.reset();
-}
-
-ModuleManager& ModuleManager::getInstance() {
-    static ModuleManager instance;
-    return instance;
-}
-
-ll::thread::ThreadPoolExecutor& ModuleManager::getThreadPool() { return *mThreadPool; }
+ModuleManager::ModuleManager()  = default;
+ModuleManager::~ModuleManager() = default;
 
 void ModuleManager::registerModule(std::unique_ptr<IModule> module) {
     mModules.emplace(module->getModuleName(), std::move(module));

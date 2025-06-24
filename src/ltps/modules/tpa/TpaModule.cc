@@ -19,8 +19,8 @@ TpaModule::TpaModule() = default;
 std::vector<std::string> TpaModule::getDependencies() const { return {}; }
 
 bool TpaModule::init() {
-    if (!mPool) {
-        mPool = std::make_unique<TpaRequestPool>(getThreadPool());
+    if (!mTpaRequestPool) {
+        mTpaRequestPool = std::make_unique<TpaRequestPool>(getThreadPool());
     }
     return true;
 }
@@ -28,138 +28,156 @@ bool TpaModule::init() {
 bool TpaModule::enable() {
     auto& bus = ll::event::EventBus::getInstance();
 
-    mListeners.emplace_back(bus.emplaceListener<CreateTpaRequestEvent>([this, &bus](CreateTpaRequestEvent& ev) {
-        auto before = CreatingTpaRequestEvent(ev);
-        bus.publish(before);
+    mListeners.emplace_back(bus.emplaceListener<CreateTpaRequestEvent>(
+        [this, &bus](CreateTpaRequestEvent& ev) {
+            auto before = CreatingTpaRequestEvent(ev);
+            bus.publish(before);
 
-        if (before.isCancelled()) {
-            ev.getCallback()(nullptr);
-            return;
-        }
+            if (before.isCancelled()) {
+                return;
+            }
 
-        auto ptr = getRequestPool().createRequest(ev.getSender(), ev.getReceiver(), ev.getType());
+            auto ptr = getRequestPool().createRequest(ev.getSender(), ev.getReceiver(), ev.getType());
 
-        ev.getCallback()(ptr);
-        bus.publish(CreatedTpaRequestEvent(ptr));
-    }));
+            ev.invokeCallback(ptr);
 
-    mListeners.emplace_back(bus.emplaceListener<CreatingTpaRequestEvent>([this](CreatingTpaRequestEvent& ev) {
-        auto& sender = ev.getSender();
+            bus.publish(CreatedTpaRequestEvent(ptr));
+        },
+        ll::event::EventPriority::High
+    ));
 
-        auto localeCode = sender.getLocaleCode();
+    mListeners.emplace_back(bus.emplaceListener<CreatingTpaRequestEvent>(
+        [this](CreatingTpaRequestEvent& ev) {
+            auto& sender = ev.getSender();
 
-        // 维度检查
-        if (std::find(
-                getConfig().modules.tpa.disallowedDimensions.begin(),
-                getConfig().modules.tpa.disallowedDimensions.end(),
-                sender.getDimensionId()
-            )
-            != getConfig().modules.tpa.disallowedDimensions.end()) {
-            mc_utils::sendText<mc_utils::Error>(sender, "此功能在当前维度不可用"_trl(localeCode));
-            ev.cancel();
-            return;
-        }
+            auto localeCode = sender.getLocaleCode();
 
-        // TPA 请求冷却
-        if (this->mCooldown.isCooldown(sender.getRealName())) {
+            // 维度检查
+            if (std::find(
+                    getConfig().modules.tpa.disallowedDimensions.begin(),
+                    getConfig().modules.tpa.disallowedDimensions.end(),
+                    sender.getDimensionId()
+                )
+                != getConfig().modules.tpa.disallowedDimensions.end()) {
+                mc_utils::sendText<mc_utils::Error>(sender, "此功能在当前维度不可用"_trl(localeCode));
+                ev.cancel();
+                return;
+            }
+
+            // TPA 请求冷却
+            if (this->mCooldown.isCooldown(sender.getRealName())) {
+                mc_utils::sendText<mc_utils::Error>(
+                    sender,
+                    "TPA 请求冷却中，剩余时间 {0}"_trl(
+                        localeCode,
+                        this->mCooldown.getCooldownString(sender.getRealName())
+                    )
+                );
+                ev.cancel();
+                return;
+            }
+            this->mCooldown.setCooldown(sender.getRealName(), getConfig().modules.tpa.cooldownTime);
+
+            // 费用检查
+            PriceCalculate cl(getConfig().modules.tpa.createRequestCalculate);
+            auto           clValue = cl.eval();
+            if (!clValue.has_value()) {
+                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                    "An exception occurred while calculating the TPA price, please check the configuration file.\n{}",
+                    clValue.error()
+                );
+                mc_utils::sendText<mc_utils::Error>(sender, "TPA 模块异常，请联系管理员"_trl(localeCode));
+                ev.cancel();
+                return;
+            }
+
+            auto price = static_cast<llong>(*clValue);
+
+            auto economy = EconomySystemManager::getInstance().getEconomySystem();
+            if (!economy->has(sender, price)) {
+                economy->sendNotEnoughMoneyMessage(sender, price, localeCode);
+                ev.cancel();
+                return;
+            }
+
+            if (!economy->reduce(sender, price)) {
+                mc_utils::sendText<mc_utils::Error>(sender, "扣除 TPA 费用失败，请联系管理员"_trl(localeCode));
+                ev.cancel();
+            }
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<CreatedTpaRequestEvent>(
+        [](CreatedTpaRequestEvent& ev) {
+            auto request  = ev.getRequest();
+            auto sender   = request->getSender();
+            auto receiver = request->getReceiver();
+            auto type     = TpaRequest::getTypeString(request->getType());
+
+            mc_utils::sendText(
+                *sender,
+                "已向 '{0}' 发起 '{1}' 请求"_trl(sender->getLocaleCode(), receiver->getRealName(), type)
+            );
+            mc_utils::sendText(
+                *receiver,
+                "收到来自 '{0}' 的 '{1}' 请求"_trl(receiver->getLocaleCode(), sender->getRealName(), type)
+            );
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<TpaRequestAcceptedEvent>(
+        [](TpaRequestAcceptedEvent& ev) {
+            auto sender   = ev.getRequest().getSender();
+            auto receiver = ev.getRequest().getReceiver();
+            auto type     = ev.getRequest().getType();
+
+            mc_utils::sendText(
+                *sender,
+                "'{0}' 接受了您的 '{1}' 请求。"_trl(
+                    sender->getLocaleCode(),
+                    receiver->getRealName(),
+                    TpaRequest::getTypeString(type)
+                )
+            );
+            mc_utils::sendText(
+                *receiver,
+                "您接受了来自 '{0}' 的 '{1}' 请求。"_trl(
+                    receiver->getLocaleCode(),
+                    sender->getRealName(),
+                    TpaRequest::getTypeString(type)
+                )
+            );
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<TpaRequestDeniedEvent>(
+        [](TpaRequestDeniedEvent& ev) {
+            auto sender   = ev.getRequest().getSender();
+            auto receiver = ev.getRequest().getReceiver();
+            auto type     = ev.getRequest().getType();
+
             mc_utils::sendText<mc_utils::Error>(
-                sender,
-                "TPA 请求冷却中，剩余时间 {0}"_trl(localeCode, this->mCooldown.getCooldownString(sender.getRealName()))
+                *sender,
+                "'{0}' 拒绝了您的 '{1}' 请求。"_trl(
+                    sender->getLocaleCode(),
+                    receiver->getRealName(),
+                    TpaRequest::getTypeString(type)
+                )
             );
-            ev.cancel();
-            return;
-        }
-        this->mCooldown.setCooldown(sender.getRealName(), getConfig().modules.tpa.cooldownTime);
-
-        // 费用检查
-        PriceCalculate cl(getConfig().modules.tpa.createRequestCalculate);
-        auto           clValue = cl.eval();
-        if (!clValue.has_value()) {
-            LeviTPSystem::getInstance().getSelf().getLogger().error(
-                "An exception occurred while calculating the TPA price, please check the configuration file.\n{}",
-                clValue.error()
+            mc_utils::sendText<mc_utils::Warn>(
+                *receiver,
+                "您拒绝了来自 '{0}' 的 '{1}' 请求。"_trl(
+                    receiver->getLocaleCode(),
+                    sender->getRealName(),
+                    TpaRequest::getTypeString(type)
+                )
             );
-            mc_utils::sendText<mc_utils::Error>(sender, "TPA 模块异常，请联系管理员"_trl(localeCode));
-            ev.cancel();
-            return;
-        }
-
-        auto price = static_cast<llong>(*clValue);
-
-        auto economy = EconomySystemManager::getInstance().getEconomySystem();
-        if (!economy->has(sender, price)) {
-            economy->sendNotEnoughMoneyMessage(sender, price, localeCode);
-            ev.cancel();
-            return;
-        }
-
-        if (!economy->reduce(sender, price)) {
-            mc_utils::sendText<mc_utils::Error>(sender, "扣除 TPA 费用失败，请联系管理员"_trl(localeCode));
-            ev.cancel();
-        }
-    }));
-
-    mListeners.emplace_back(bus.emplaceListener<CreatedTpaRequestEvent>([](CreatedTpaRequestEvent& ev) {
-        auto request  = ev.getRequest();
-        auto sender   = request->getSender();
-        auto receiver = request->getReceiver();
-        auto type     = TpaRequest::getTypeString(request->getType());
-
-        mc_utils::sendText(
-            *sender,
-            "已向 '{0}' 发起 '{1}' 请求"_trl(sender->getLocaleCode(), receiver->getRealName(), type)
-        );
-        mc_utils::sendText(
-            *receiver,
-            "收到来自 '{0}' 的 '{1}' 请求"_trl(receiver->getLocaleCode(), sender->getRealName(), type)
-        );
-    }));
-
-    mListeners.emplace_back(bus.emplaceListener<TpaRequestAcceptedEvent>([](TpaRequestAcceptedEvent& ev) {
-        auto sender   = ev.getRequest().getSender();
-        auto receiver = ev.getRequest().getReceiver();
-        auto type     = ev.getRequest().getType();
-
-        mc_utils::sendText(
-            *sender,
-            "'{0}' 接受了您的 '{1}' 请求。"_trl(
-                sender->getLocaleCode(),
-                receiver->getRealName(),
-                TpaRequest::getTypeString(type)
-            )
-        );
-        mc_utils::sendText(
-            *receiver,
-            "您接受了来自 '{0}' 的 '{1}' 请求。"_trl(
-                receiver->getLocaleCode(),
-                sender->getRealName(),
-                TpaRequest::getTypeString(type)
-            )
-        );
-    }));
-
-    mListeners.emplace_back(bus.emplaceListener<TpaRequestDeniedEvent>([](TpaRequestDeniedEvent& ev) {
-        auto sender   = ev.getRequest().getSender();
-        auto receiver = ev.getRequest().getReceiver();
-        auto type     = ev.getRequest().getType();
-
-        mc_utils::sendText<mc_utils::Error>(
-            *sender,
-            "'{0}' 拒绝了您的 '{1}' 请求。"_trl(
-                sender->getLocaleCode(),
-                receiver->getRealName(),
-                TpaRequest::getTypeString(type)
-            )
-        );
-        mc_utils::sendText<mc_utils::Warn>(
-            *receiver,
-            "您拒绝了来自 '{0}' 的 '{1}' 请求。"_trl(
-                receiver->getLocaleCode(),
-                sender->getRealName(),
-                TpaRequest::getTypeString(type)
-            )
-        );
-    }));
+        },
+        ll::event::EventPriority::High
+    ));
 
     mListeners.emplace_back(bus.emplaceListener<PlayerExecuteTpaAcceptOrDenyCommandEvent>(
         [this](PlayerExecuteTpaAcceptOrDenyCommandEvent& ev) {
@@ -213,7 +231,8 @@ bool TpaModule::enable() {
                 return;
             }
             }
-        }
+        },
+        ll::event::EventPriority::High
     ));
 
     TpaCommand::setup();
@@ -222,7 +241,7 @@ bool TpaModule::enable() {
 }
 
 bool TpaModule::disable() {
-    mPool->stopCleanupCoro();
+    mTpaRequestPool.reset();
 
     auto& bus = ll::event::EventBus::getInstance();
     for (auto& listener : mListeners) {
@@ -235,8 +254,8 @@ bool TpaModule::disable() {
 
 Cooldown& TpaModule::getCooldown() { return mCooldown; }
 
-TpaRequestPool&       TpaModule::getRequestPool() { return *mPool; }
-TpaRequestPool const& TpaModule::getRequestPool() const { return *mPool; }
+TpaRequestPool&       TpaModule::getRequestPool() { return *mTpaRequestPool; }
+TpaRequestPool const& TpaModule::getRequestPool() const { return *mTpaRequestPool; }
 
 
 } // namespace ltps::tpa

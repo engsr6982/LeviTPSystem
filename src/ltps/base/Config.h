@@ -3,7 +3,7 @@
 #include "ltps/Global.h"
 #include "ltps/common/EconomySystem.h"
 #include <filesystem>
-#include <vector>
+#include <unordered_set>
 
 
 namespace ltps::inline config {
@@ -15,7 +15,7 @@ struct Config {};
 
 namespace v5 {
 
-using DisallowedDimensions = std::vector<int>;
+using DisallowedDimensions = std::unordered_set<int>;
 
 struct Config {
     int              version  = 7;
@@ -27,7 +27,7 @@ struct Config {
         struct {
             bool                 enable                 = true;
             std::string          createRequestCalculate = "random_num_range(10, 60)"; // 创建请求价格
-            int                  cooldownTime           = 10;                         // 冷却时间（秒）
+            int                  cooldownTime           = 10;                         // 发起请求冷却时间（秒）
             int                  expirationTime         = 120;                        // 请求过期时间（秒）
             DisallowedDimensions disallowedDimensions   = {};                         // 禁用此功能的维度
         } tpa;
@@ -36,10 +36,8 @@ struct Config {
             bool                 enable               = true;
             std::string          createHomeCalculate  = "random_num_range(10, 188)";
             std::string          goHomeCalculate      = "random_num_range(10, 188)";
-            std::string          editHomeCalculate    = "random_num_range(10, 188)";
-            std::string          deleteHomeCalculate  = "random_num_range(10, 188)";
             int                  maxHome              = 20; // 最大家园数量
-            int                  cooldownTime         = 10; // 冷却时间（秒）
+            int                  cooldownTime         = 10; // 传送冷却时间（秒）
             DisallowedDimensions disallowedDimensions = {};
         } home;
 
@@ -67,7 +65,7 @@ struct Config {
                 int max = 1000;
             } randomRange;
 
-            std::vector<std::string> dangerousBlocks = {
+            std::unordered_set<std::string> dangerousBlocks = {
                 "minecraft:water",
                 "minecraft:lava",
                 "minecraft:fire",

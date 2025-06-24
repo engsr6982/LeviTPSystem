@@ -12,7 +12,7 @@ namespace ltps {
 
 PlayerSettingStorage::PlayerSettingStorage() = default;
 
-void PlayerSettingStorage::onStorageLoad() {
+void PlayerSettingStorage::load() {
     auto& database = getDatabase();
     if (!database.has(STORAGE_KEY)) {
         database.set(STORAGE_KEY, "{}");
@@ -41,9 +41,12 @@ void PlayerSettingStorage::onStorageLoad() {
     }
 }
 
-void PlayerSettingStorage::onStorageUnload() {
+void PlayerSettingStorage::unload() {
     LeviTPSystem::getInstance().getSelf().getLogger().trace("Unloading player settings");
+    writeBack();
+}
 
+void PlayerSettingStorage::writeBack() {
     auto& database = getDatabase();
     auto  json     = json_utils::struct2json(mSettingDatas);
     database.set(STORAGE_KEY, json.dump());

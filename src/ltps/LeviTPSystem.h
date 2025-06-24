@@ -1,18 +1,18 @@
 #pragma once
+#include <memory>
 
 #include "ll/api/mod/NativeMod.h"
+#include "ll/api/thread/ThreadPoolExecutor.h"
+
 #include "ltps/base/BaseEventListener.h"
-#include <memory>
+#include "ltps/database/StorageManager.h"
+#include "ltps/modules/ModuleManager.h"
 
 namespace ltps {
 
 class LeviTPSystem {
 public:
     static LeviTPSystem& getInstance();
-
-    LeviTPSystem() : mSelf(*ll::mod::NativeMod::current()) {}
-
-    [[nodiscard]] ll::mod::NativeMod& getSelf() const { return mSelf; }
 
     bool load();
 
@@ -22,9 +22,23 @@ public:
 
     bool unload();
 
+public:
+    [[nodiscard]] ll::mod::NativeMod& getSelf() const;
+
+    [[nodiscard]] ll::thread::ThreadPoolExecutor& getThreadPool();
+
+    [[nodiscard]] StorageManager& getStorageManager();
+
+    [[nodiscard]] ModuleManager& getModuleManager();
+
 private:
-    ll::mod::NativeMod&                mSelf;
-    std::unique_ptr<BaseEventListener> mBaseEventListener;
+    explicit LeviTPSystem();
+
+    ll::mod::NativeMod&                             mSelf;
+    std::unique_ptr<ll::thread::ThreadPoolExecutor> mThreadPool;
+    std::unique_ptr<BaseEventListener>              mBaseEventListener;
+    std::unique_ptr<StorageManager>                 mStorageManager;
+    std::unique_ptr<ModuleManager>                  mModuleManager;
 };
 
 } // namespace ltps

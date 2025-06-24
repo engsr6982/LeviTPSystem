@@ -8,6 +8,9 @@
 namespace ltps {
 
 
+class ModuleManager;
+class StorageManager;
+
 class IModule {
 public:
     virtual ~IModule() = default;
@@ -22,9 +25,14 @@ public:
 
     [[nodiscard]] virtual bool disable() = 0;
 
-    TPSNDAPI ll::thread::ThreadPoolExecutor& getThreadPool(); // 返回插件的线程池
-
     TPSNDAPI bool isEnabled() const;
+
+protected:
+    [[nodiscard]] ll::thread::ThreadPoolExecutor& getThreadPool() const;
+
+    [[nodiscard]] StorageManager& getStorageManager() const;
+
+    [[nodiscard]] ModuleManager& getModuleManager() const;
 
 private:
     bool mEnabled = false;

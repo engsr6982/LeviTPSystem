@@ -15,9 +15,9 @@ protected:
 public:
     virtual ~IStorage() = default;
 
-    virtual void onStorageLoad()   = 0;  // 存储加载
-    virtual void onStorageUnload() = 0;  // 存储卸载
-    virtual void onStorageWriteBack() {} // 存储回写
+    virtual void load()      = 0; // 存储加载
+    virtual void unload()    = 0; // 存储卸载
+    virtual void writeBack() = 0; // 存储回写
 };
 
 } // namespace ltps

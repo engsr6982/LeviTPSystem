@@ -17,17 +17,19 @@ private:
 
     explicit StorageManager();
 
+    void connectDatabase();
+    void initWriteBackTask();
+    void stopWriteBackTask();
+
     friend IStorage;
     friend class LeviTPSystem;
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(StorageManager);
 
-    TPSNDAPI static StorageManager& getInstance();
-
-    TPSAPI void postOnLoad();      // 通知所有Storage实例加载
-    TPSAPI void postOnUnload();    // 通知所有Storage实例卸载
-    TPSAPI void postOnWriteBack(); // 通知所有Storage实例回写
+    TPSAPI void postLoad();      // 通知所有Storage实例加载
+    TPSAPI void postUnload();    // 通知所有Storage实例卸载
+    TPSAPI void postWriteBack(); // 通知所有Storage实例回写
 
     // 注册一个Storage实例
     template <typename T, typename... Args>

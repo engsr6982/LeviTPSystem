@@ -17,10 +17,17 @@
 
 ```bash
 # 基础命令
-/ltps                            # [玩家] GUI
 /ltps version                    # [玩家] 版本
-/ltps reload                     # [管理] 重载配置文件
+/ltps reload                     # [控制台] 重载配置文件
 /ltps setting                    # [玩家] 玩家设置
+
+# 权限管理
+/ltps perm list <builtin|default>                             # [控制台] 列出 内置权限 / 默认权限
+/ltps perm list player <realName>                             # [控制台] 列出玩家权限
+/ltps perm <add|remove> default <permission>                  # [控制台] 添加或移除默认权限
+/ltps perm <add|remove> player <realName> <permission>        # [控制台] 添加或移除玩家权限
+/ltps perm batch <add|remove> default <permissions>           # [控制台] 批量添加或移除默认权限 (用'|'分隔)
+/ltps perm batch <add|remove> player <realName> <permissions> # [控制台] 批量添加或移除玩家权限 (用'|'分隔)
 
 # Home 模块
 /home                            # [玩家] GUI

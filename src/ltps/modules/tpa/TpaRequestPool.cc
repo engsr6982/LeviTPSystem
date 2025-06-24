@@ -8,8 +8,8 @@
 
 namespace ltps::tpa {
 
-TpaRequestPool::TpaRequestPool(ll::thread::ThreadPoolExecutor& executor) { initCleanupCoro(executor); }
-TpaRequestPool::~TpaRequestPool() = default;
+TpaRequestPool::TpaRequestPool(ll::thread::ThreadPoolExecutor& executor) { _initCleanupCoro(executor); }
+TpaRequestPool::~TpaRequestPool() { _stopCleanupCoro(); }
 
 
 std::shared_ptr<TpaRequest> TpaRequestPool::createRequest(Player& sender, Player& receiver, TpaRequest::Type type) {
@@ -129,7 +129,7 @@ void TpaRequestPool::cleanupExpiredRequests() {
     }
 }
 
-void TpaRequestPool::initCleanupCoro(ll::thread::ThreadPoolExecutor& executor) {
+void TpaRequestPool::_initCleanupCoro(ll::thread::ThreadPoolExecutor& executor) {
     ll::coro::keepThis([this]() -> ll::coro::CoroTask<> {
         while (!mShouldStopCoro.load()) {
             co_await mCleanupCoroSleep.sleepFor(std::chrono::seconds(2));
@@ -141,7 +141,7 @@ void TpaRequestPool::initCleanupCoro(ll::thread::ThreadPoolExecutor& executor) {
     }).launch(executor);
 }
 
-void TpaRequestPool::stopCleanupCoro() {
+void TpaRequestPool::_stopCleanupCoro() {
     mShouldStopCoro.store(true);
     mCleanupCoroSleep.interrupt();
 }

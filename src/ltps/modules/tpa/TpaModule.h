@@ -13,7 +13,7 @@ namespace ltps::tpa {
 class TpaModule final : public IModule {
     Cooldown mCooldown;
 
-    std::unique_ptr<TpaRequestPool> mPool;
+    std::unique_ptr<TpaRequestPool> mTpaRequestPool;
 
     std::vector<ll::event::ListenerPtr> mListeners;
 

@@ -1,13 +1,17 @@
 #pragma once
 #include "HomeStorage.h"
+#include "ll/api/event/ListenerBase.h"
 #include "ltps/Global.h"
-#include "ltps/database/StorageManager.h"
+#include "ltps/common/Cooldown.h"
 #include "ltps/modules/IModule.h"
 
 
-namespace ltps {
+namespace ltps::home {
 
 class HomeModule final : public IModule {
+    Cooldown                            mCooldown;
+    std::vector<ll::event::ListenerPtr> mListeners;
+
 public:
     TPS_DISALLOW_COPY(HomeModule);
 
@@ -25,6 +29,8 @@ public:
     TPSNDAPI bool disable() override;
 
     TPSNDAPI HomeStorage* getStorage() const;
+
+    TPSNDAPI Cooldown& getCooldown();
 };
 
-} // namespace ltps
+} // namespace ltps::home

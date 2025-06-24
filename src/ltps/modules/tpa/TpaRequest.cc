@@ -3,12 +3,14 @@
 #include "ll/api/event/EventBus.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
+#include "ltps/LeviTPSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/EconomySystem.h"
 #include "ltps/database/PlayerSettingStorage.h"
 #include "ltps/database/StorageManager.h"
 #include "ltps/modules/tpa/event/TpaEvents.h"
 #include "ltps/utils/McUtils.h"
+#include "ltps/utils/TimeUtils.h"
 #include "mc/deps/core/math/Vec2.h"
 #include "mc/world/actor/player/Player.h"
 #include <chrono>
@@ -21,7 +23,7 @@ TpaRequest::TpaRequest(Player& sender, Player& receiver, Type type)
   mReceiver(receiver.getWeakEntity()),
   mType(type),
   mState(State::Available),
-  mCreationTime(std::chrono::system_clock::now()) {}
+  mCreationTime(time_utils::now()) {}
 
 TpaRequest::~TpaRequest() = default;
 
@@ -43,12 +45,7 @@ std::chrono::seconds TpaRequest::getRemainingTime() const {
 std::string TpaRequest::getExpirationTime() const {
     // 获取过期时间点
     auto expirationTime = mCreationTime + std::chrono::seconds(getConfig().modules.tpa.expirationTime);
-
-    // 转换为日历时间
-    auto tm = std::chrono::system_clock::to_time_t(expirationTime);
-
-    // 使用fmt格式化时间字符串
-    return fmt::format("{:%Y-%m-%d %H:%M:%S}", fmt::localtime(tm));
+    return time_utils::timeToString(expirationTime);
 }
 
 void TpaRequest::setState(State state) { mState = state; }
@@ -137,7 +134,7 @@ void TpaRequest::sendFormToReceiver() {
     auto receiver = getReceiver();
     auto sender   = getSender();
 
-    auto& settingStorage     = *StorageManager::getInstance().getStorage<PlayerSettingStorage>();
+    auto& settingStorage     = *LeviTPSystem::getInstance().getStorageManager().getStorage<PlayerSettingStorage>();
     auto  receiverSettings   = settingStorage.getSettingData(receiver->getRealName()).value();
     auto  receiverLocaleCode = receiver->getLocaleCode();
 

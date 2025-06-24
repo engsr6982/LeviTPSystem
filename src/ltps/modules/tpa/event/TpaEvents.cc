@@ -25,9 +25,11 @@ CreateTpaRequestEvent::CreateTpaRequestEvent(Player& sender, Player& receiver, T
 : ICreateTpaRequestEvent(sender, receiver, type),
   mCallback(std::move(callback)) {}
 
-void CreateTpaRequestEvent::setCallback(Callback callback) { mCallback = std::move(callback); }
-
-CreateTpaRequestEvent::Callback const& CreateTpaRequestEvent::getCallback() const { return mCallback; }
+void CreateTpaRequestEvent::invokeCallback(std::shared_ptr<TpaRequest> request) const {
+    if (mCallback) {
+        mCallback(std::move(request));
+    }
+}
 
 
 // CreatingTpaRequestEvent

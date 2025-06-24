@@ -13,21 +13,15 @@ namespace ltps {
 class ModuleManager final {
     std::unordered_map<std::string, std::unique_ptr<IModule>> mModules;
 
-    std::unique_ptr<ll::thread::ThreadPoolExecutor> mThreadPool;
+    void registerModule(std::unique_ptr<IModule> module);
 
     explicit ModuleManager();
 
-    void registerModule(std::unique_ptr<IModule> module);
+    friend class LeviTPSystem;
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(ModuleManager);
-
     ~ModuleManager();
-
-public:
-    TPSNDAPI static ModuleManager& getInstance();
-
-    TPSNDAPI ll::thread::ThreadPoolExecutor& getThreadPool();
 
     // 检查模块是否在配置中启用
     TPSNDAPI bool isModuleEnabled(const std::string& moduleName) const;

@@ -20,8 +20,9 @@ public:
 
     TPSAPI explicit PlayerSettingStorage();
 
-    TPSAPI void onStorageLoad() override;
-    TPSAPI void onStorageUnload() override;
+    TPSAPI void load() override;
+    TPSAPI void unload() override;
+    TPSAPI void writeBack() override;
 
 private:
     std::unordered_map<RealName, SettingData> mSettingDatas; // realName -> SettingData
