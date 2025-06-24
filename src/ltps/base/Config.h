@@ -36,6 +36,7 @@ struct Config {
             bool                 enable               = true;
             std::string          createHomeCalculate  = "random_num_range(10, 188)";
             std::string          goHomeCalculate      = "random_num_range(10, 188)";
+            int                  nameLength           = 20; // 名字长度
             int                  maxHome              = 20; // 最大家园数量
             int                  cooldownTime         = 10; // 传送冷却时间（秒）
             DisallowedDimensions disallowedDimensions = {};

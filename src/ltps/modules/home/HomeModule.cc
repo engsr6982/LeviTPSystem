@@ -12,6 +12,7 @@
 #include "ltps/modules/home/HomeCommand.h"
 #include "ltps/modules/home/event/HomeEvents.h"
 #include "ltps/utils/McUtils.h"
+#include "ltps/utils/StringUtils.h"
 namespace ltps::home {
 
 HomeModule::HomeModule() = default;
@@ -86,6 +87,18 @@ bool HomeModule::enable() {
             }
 
             auto const& homeName = ev.getHome().name;
+            if (string_utils::isLengthValid(homeName, getConfig().modules.home.nameLength)) {
+                mc_utils::sendText<mc_utils::Error>(
+                    player,
+                    "家园名称长度不符合要求({}/{})"_trl(
+                        localeCode,
+                        string_utils::length(homeName),
+                        getConfig().modules.home.nameLength
+                    )
+                );
+                ev.cancel();
+                return;
+            }
 
             if (storage->hasHome(realName, homeName)) {
                 mc_utils::sendText<mc_utils::Error>(player, "家园名称重复，请使用其它名称"_trl(localeCode));
