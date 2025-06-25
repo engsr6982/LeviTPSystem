@@ -87,7 +87,7 @@ bool HomeModule::enable() {
             }
 
             auto const& homeName = ev.getHome().name;
-            if (string_utils::isLengthValid(homeName, getConfig().modules.home.nameLength)) {
+            if (!string_utils::isLengthValid(homeName, getConfig().modules.home.nameLength)) {
                 mc_utils::sendText<mc_utils::Error>(
                     player,
                     "家园名称长度不符合要求({}/{})"_trl(
