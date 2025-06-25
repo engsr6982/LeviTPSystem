@@ -1,23 +1,34 @@
 #include "ltps/database/StorageManager.h"
+#include "ll/api/coro/CoroTask.h"
 #include "ll/api/data/KeyValueDB.h"
 #include "ltps/LeviTPSystem.h"
 #include <memory>
 #include <stdexcept>
 
+
 namespace ltps {
 
-StorageManager::StorageManager() = default;
-
-
-void StorageManager::connectDatabase() {
+StorageManager::StorageManager(ll::thread::ThreadPoolExecutor& threadPoolExecutor) {
     if (!mDatabase) {
         auto path = LeviTPSystem::getInstance().getSelf().getModDir() / "leveldb";
         mDatabase = std::make_unique<ll::data::KeyValueDB>(path);
-        return;
     }
-    throw std::runtime_error("StorageManager: Database already connected");
+
+    mWriteBackTaskCanRuning.store(true);
+    ll::coro::keepThis([this]() -> ll::coro::CoroTask<> {
+        while (mWriteBackTaskCanRuning.load()) {
+            co_await std::chrono::seconds(60);
+            if (!mWriteBackTaskCanRuning.load()) {
+                break;
+            }
+            postWriteBack();
+        }
+        LeviTPSystem::getInstance().getSelf().getLogger().debug("StorageManager: Write back task stopped");
+        co_return;
+    }).launch(threadPoolExecutor);
 }
 
+StorageManager::~StorageManager() { mWriteBackTaskCanRuning.store(false); }
 
 void StorageManager::postLoad() {
     for (auto& [_, storage] : mStorages) {
@@ -67,10 +78,6 @@ void StorageManager::postWriteBack() {
         }
     }
 }
-
-void StorageManager::initWriteBackTask() {}
-
-void StorageManager::stopWriteBackTask() {}
 
 
 } // namespace ltps

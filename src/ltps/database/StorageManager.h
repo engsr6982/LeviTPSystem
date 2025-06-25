@@ -1,5 +1,6 @@
 #pragma once
 #include "ll/api/data/KeyValueDB.h"
+#include "ll/api/thread/ThreadPoolExecutor.h"
 #include "ltps/Global.h"
 #include "ltps/database/IStorage.h"
 #include <memory>
@@ -14,18 +15,17 @@ class StorageManager final {
 private:
     std::unique_ptr<ll::data::KeyValueDB>                          mDatabase;
     std::unordered_map<std::type_index, std::unique_ptr<IStorage>> mStorages;
+    std::atomic<bool>                                              mWriteBackTaskCanRuning{false};
 
-    explicit StorageManager();
-
-    void connectDatabase();
-    void initWriteBackTask();
-    void stopWriteBackTask();
+    explicit StorageManager(ll::thread::ThreadPoolExecutor& threadPoolExecutor);
 
     friend IStorage;
     friend class LeviTPSystem;
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(StorageManager);
+
+    TPSAPI ~StorageManager();
 
     TPSAPI void postLoad();      // 通知所有Storage实例加载
     TPSAPI void postUnload();    // 通知所有Storage实例卸载

@@ -43,7 +43,7 @@ bool LeviTPSystem::load() {
 #endif
 
     mThreadPool     = std::make_unique<ll::thread::ThreadPoolExecutor>("LeviTPSystem-ThreadPool", 2);
-    mStorageManager = std::unique_ptr<StorageManager>(new StorageManager());
+    mStorageManager = std::unique_ptr<StorageManager>(new StorageManager(*mThreadPool));
     mModuleManager  = std::unique_ptr<ModuleManager>(new ModuleManager());
 
     // 初始化全局配置
@@ -60,10 +60,8 @@ bool LeviTPSystem::load() {
     mModuleManager->registerModule<tpa::TpaModule>();
     mModuleManager->registerModule<home::HomeModule>();
 
-
-    mStorageManager->connectDatabase(); // 连接数据库
-    mStorageManager->postLoad();        // 加载 Storage
-    mModuleManager->initModules();      // 初始化模块
+    mStorageManager->postLoad();   // 加载 Storage
+    mModuleManager->initModules(); // 初始化模块
     return true;
 }
 
