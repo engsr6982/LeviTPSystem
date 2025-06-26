@@ -23,13 +23,13 @@ void HomeStorage::load() {
 
     auto rawJson = db.get(STORAGE_KEY);
     if (!rawJson.has_value()) {
-        throw std::runtime_error("Could not load home storage");
+        throw std::runtime_error("Could not load home data");
     }
 
     try {
         auto json = nlohmann::json::parse(rawJson.value());
         if (!json.is_object()) {
-            throw std::runtime_error("Could not parse home storage");
+            throw std::runtime_error("Could not parse home data");
         }
 
         for (auto& [key, value] : json.items()) {
@@ -39,7 +39,7 @@ void HomeStorage::load() {
         }
         LeviTPSystem::getInstance().getSelf().getLogger().info("Loaded {} homes", mHomes.size());
     } catch (const nlohmann::json::parse_error& e) {
-        throw std::runtime_error("Could not parse home storage");
+        throw std::runtime_error("Could not parse home data");
     }
 }
 
