@@ -30,34 +30,35 @@
 /ltps perm batch <add|remove> player <realName> <permissions> # [控制台] 批量添加或移除玩家权限 (用'|'分隔)
 
 # Home 模块
-/home                            # [玩家] GUI
-/home add <name>                 # [玩家] 添加传送点 (当前位置)
-/home remove <name>              # [玩家] 删除传送点
-/home go <name>                  # [玩家] 传送 (传送点名称)
-/home list [name]                # [玩家] 列出传送点
-/home mgr                        # [管理] 管理员GUI
+/home                              # [玩家] GUI
+/home add <name>                   # [玩家] 添加传送点 (当前位置)
+/home remove <name>                # [玩家] 删除传送点
+/home go <name>                    # [玩家] 传送 (传送点名称)
+/home list [name]                  # [玩家] 列出传送点
+/home update name <name> [newName] # [玩家] 更新传送点名称
+/home update position <name>       # [玩家] 更新传送点位置
+/home mgr                          # [管理] 管理员GUI
 
 # Warp 模块
-/warp                            # [玩家] GUI
-/warp add <name>                 # [管理] 添加传送点 (当前位置)
-/warp remove <name>              # [管理] 删除传送点
-/warp go <name>                  # [玩家] 传送 (传送点名称)
-/warp list [name]                # [玩家] 列出传送点
-/warp mgr                        # [管理] 管理员GUI
+/warp                              # [玩家] GUI
+/warp add <name>                   # [管理] 添加传送点 (当前位置)
+/warp remove <name>                # [管理] 删除传送点
+/warp go <name>                    # [玩家] 传送 (传送点名称)
+/warp list [name]                  # [玩家] 列出传送点
+/warp mgr                          # [管理] 管理员GUI
 
 # Tpa 模块 √
-/tpa                             # [玩家] GUI
-/tpa <accept|deny>               # [玩家] 接受|拒绝 传送请求
-/tpa here <player: target>       # [玩家] 发起 Tpa 请求 (目标玩家传送到我)
-/tpa to <player: target>         # [玩家] 发起 Tpa 请求 (我传送到目标玩家)
+/tpa                               # [玩家] GUI
+/tpa <accept|deny>                 # [玩家] 接受|拒绝 传送请求
+/tpa here <player: target>         # [玩家] 发起 Tpa 请求 (目标玩家传送到我)
+/tpa to <player: target>           # [玩家] 发起 Tpa 请求 (我传送到目标玩家)
 
 # Tpr 模块
-/tpr                             # [玩家] GUI
+/tpr                               # [玩家] GUI
 
 # Death 模块
-/death                           # [玩家] GUI
-/death list [page]               # [玩家] 列出死亡点
-/death back [id]                 # [玩家] 返回死亡点 (id 按死亡时间排序，默认从新到旧)
-
-/back                            # [玩家] 返回死亡点 (最近一次，等价于 /death back 0)
+/death                             # [玩家] GUI
+/death list [page]                 # [玩家] 列出死亡点
+/death back [id]                   # [玩家] 返回死亡点 (id 按死亡时间排序，默认从新到旧)
+/back                              # [玩家] 返回死亡点 (最近一次，等价于 /death back 0)
 ```

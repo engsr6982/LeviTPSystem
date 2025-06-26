@@ -1,4 +1,6 @@
 #include "ltps/LeviTPSystem.h"
+#include "ll/api/mod/NativeMod.h"
+#include "ll/api/mod/RegisterHelper.h"
 #include "ltps/base/BaseCommand.h"
 #include "ltps/base/BaseEventListener.h"
 #include "ltps/base/Config.h"
@@ -9,10 +11,8 @@
 #include "ltps/modules/ModuleManager.h"
 #include "ltps/modules/home/HomeModule.h"
 #include "ltps/modules/tpa/TpaModule.h"
-
-#include "ll/api/mod/NativeMod.h"
-#include "ll/api/mod/RegisterHelper.h"
-
+#include "ltps/modules/warp/WarpModule.h"
+#include "ltps/modules/warp/WarpStorage.h"
 #include <memory>
 
 namespace ltps {
@@ -55,10 +55,12 @@ bool LeviTPSystem::load() {
     mStorageManager->registerStorage<PlayerSettingStorage>();
     mStorageManager->registerStorage<PermissionStorage>();
     mStorageManager->registerStorage<home::HomeStorage>();
+    mStorageManager->registerStorage<warp::WarpStorage>();
 
     // 注册模块
     mModuleManager->registerModule<tpa::TpaModule>();
     mModuleManager->registerModule<home::HomeModule>();
+    mModuleManager->registerModule<warp::WarpModule>();
 
     mStorageManager->postLoad();   // 加载 Storage
     mModuleManager->initModules(); // 初始化模块
