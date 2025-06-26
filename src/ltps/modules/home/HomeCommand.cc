@@ -28,6 +28,12 @@ struct HomeActionParam {
     std::string name;
 };
 
+struct HomeUpdateParam {
+    PlayerRequestEditHomeEvent::Type type;
+    std::string                      name;
+    std::string                      newName;
+};
+
 
 void HomeCommand::setup() {
     auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand("home", "LeviTPSystem - Home");
@@ -116,6 +122,40 @@ void HomeCommand::setup() {
             }
         }
     );
+
+    // home update <name|pos> <name> [newName]
+    cmd.overload<HomeUpdateParam>().text("update").required("type").required("name").optional("newName").execute(
+        [](CommandOrigin const& origin, CommandOutput& output, HomeUpdateParam const& param) {
+            if (origin.getOriginType() != CommandOriginType::Player) {
+                mc_utils::sendText<mc_utils::Error>(output, "此命令只能由玩家执行"_tr());
+                return;
+            }
+
+            auto& player = *static_cast<Player*>(origin.getEntity());
+
+            switch (param.type) {
+            case PlayerRequestEditHomeEvent::Type::Name: {
+                if (param.newName.empty()) {
+                    mc_utils::sendText<mc_utils::Error>(output, "新名称不能为空!"_trl(player.getLocaleCode()));
+                    return;
+                }
+                ll::event::EventBus::getInstance().publish(
+                    PlayerRequestEditHomeEvent{player, param.name, param.type, std::nullopt, param.newName}
+                );
+                break;
+            }
+            case PlayerRequestEditHomeEvent::Type::Position: {
+                ll::event::EventBus::getInstance().publish(
+                    PlayerRequestEditHomeEvent{player, param.name, param.type, player.getPosition(), std::nullopt}
+                );
+                break;
+            }
+            }
+        }
+    );
+
+
+    // TODO: home mgr
 }
 
 
