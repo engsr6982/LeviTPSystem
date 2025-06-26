@@ -330,8 +330,8 @@ bool HomeModule::enable() {
         ll::event::EventPriority::High
     ));
 
-    mListeners.emplace_back(bus.emplaceListener<PlayerRequestEditHomeEvent>(
-        [this](PlayerRequestEditHomeEvent& ev) {
+    mListeners.emplace_back(bus.emplaceListener<HomeEditingEvent>(
+        [this](HomeEditingEvent& ev) {
             auto&      player     = ev.getPlayer();
             auto       localeCode = player.getLocaleCode();
             auto const newName    = ev.getNewName();
