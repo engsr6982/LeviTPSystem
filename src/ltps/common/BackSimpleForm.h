@@ -44,9 +44,9 @@ public:
     }
 
 
-    template <typename ParentFn = void, auto BP = ButtonPos::Upper, typename... Args>
+    template <auto ParentFn = nullptr, auto BP = ButtonPos::Upper, typename... Args>
     static BackSimpleForm make(Args&&... args) {
-        if constexpr (std::is_same_v<ParentFn, void>) {
+        if constexpr (ParentFn == nullptr) {
             return BackSimpleForm{}; // 没有父表单，不需要返回按钮
         } else {
             return BackSimpleForm{makeCallback<ParentFn>(std::forward<Args>(args)...), BP};
