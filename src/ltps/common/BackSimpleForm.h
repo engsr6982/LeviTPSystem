@@ -27,6 +27,7 @@ public:
 
     // factory method
     template <auto Fn, typename... Args>
+        requires std::invocable<decltype(Fn), Player&, Args...>
     static BackCallback makeCallback(Args&&... args) {
         static_assert(
             std::is_invocable_v<decltype(Fn), Player&, Args...>,
