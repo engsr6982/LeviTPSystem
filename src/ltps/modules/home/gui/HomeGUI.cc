@@ -21,25 +21,29 @@ using ll::form::SimpleForm;
 
 void HomeGUI::sendMainMenu(Player& player, BackCB backCB) {
     auto localeCode = player.getLocaleCode();
-
-    auto fm = BackSimpleForm{std::move(backCB)};
-    fm.setTitle("Home Menu"_trl(localeCode))
+    BackSimpleForm{std::move(backCB), BackSimpleForm::ButtonPos::Lower}
+        .setTitle("Home Menu"_trl(localeCode))
         .setContent(" · 请选择一个操作"_trl(localeCode))
-        .appendButton("新建家"_tr(), "textures/ui/color_plus", "path", [](Player& self) { sendAddHomeGUI(self); })
         .appendButton(
-            "前往家"_tr(),
+            "新建家"_trl(localeCode),
+            "textures/ui/color_plus",
+            "path",
+            [](Player& self) { sendAddHomeGUI(self); }
+        )
+        .appendButton(
+            "前往家"_trl(localeCode),
             "textures/ui/send_icon",
             "path",
             [](Player& self) { sendGoHomeGUI(self, BackSimpleForm::makeCallback<HomeGUI::sendMainMenu>(nullptr)); }
         )
         .appendButton(
-            "编辑家"_tr(),
+            "编辑家"_trl(localeCode),
             "textures/ui/book_edit_default",
             "path",
             [](Player& self) { sendEditHomeGUI(self, BackSimpleForm::makeCallback<HomeGUI::sendMainMenu>(nullptr)); }
         )
         .appendButton(
-            "删除家"_tr(),
+            "删除家"_trl(localeCode),
             "textures/ui/trash_default",
             "path",
             [](Player& self) { sendRemoveHomeGUI(self, BackSimpleForm::makeCallback<HomeGUI::sendMainMenu>(nullptr)); }
