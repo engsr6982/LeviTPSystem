@@ -125,7 +125,7 @@ void HomeGUI::sendEditHomeGUI(Player& player) {
 void HomeGUI::_sendEditHomeGUI(Player& player, HomeStorage::Home home) {
     auto localeCode = player.getLocaleCode();
 
-    auto fm = BackSimpleForm::make<HomeGUI::sendEditHomeGUI>(nullptr);
+    auto fm = BackSimpleForm::make<HomeGUI::sendEditHomeGUI>();
     fm.setTitle("Home - Edit"_trl(localeCode))
         .setContent(
             "名称: {}\n坐标: {}.{}.{}\n维度: {}\n创建时间: {}\n更改时间: {}"_trl(
