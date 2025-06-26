@@ -97,6 +97,9 @@ Result<void> HomeStorage::addHome(RealName const& realName, Home home) {
     if (!mHomes.contains(realName)) {
         mHomes[realName] = {};
     }
+    if (hasHome(realName, home.name)) {
+        return std::unexpected("Home name repeated");
+    }
     mHomes[realName].push_back(std::move(home));
     return {};
 }
