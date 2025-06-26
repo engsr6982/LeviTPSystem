@@ -168,10 +168,14 @@ void HomeGUI::_sendEditHomeGUI(Player& player, HomeStorage::Home home, BackCB ba
         )
         .appendButton(
             "修改名称"_trl(localeCode),
+            "textures/ui/book_edit_default",
+            "path",
             [name = home.name](Player& self) { _sendEditHomeNameGUI(self, name); }
         )
         .appendButton(
             "更新坐标"_trl(localeCode),
+            "textures/ui/icon_import",
+            "path",
             [name = home.name](Player& self) {
                 ll::event::EventBus::getInstance().publish(PlayerRequestEditHomeEvent(
                     self,
