@@ -57,18 +57,14 @@ void HomeCommand::setup() {
                 return;
             }
 
-            auto& player  = *static_cast<Player*>(origin.getEntity());
-            auto  storage = LeviTPSystem::getInstance().getStorageManager().getStorage<HomeStorage>();
-
-            if (!storage) {
-                mc_utils::sendText<mc_utils::Error>(output, "获取存储器失败"_tr());
-                return;
-            }
+            auto& player     = *static_cast<Player*>(origin.getEntity());
+            auto  localeCode = player.getLocaleCode();
+            auto  storage    = LeviTPSystem::getInstance().getStorageManager().getStorage<HomeStorage>();
 
             if (param.name.empty()) {
                 auto& homes = storage->getHomes(player.getRealName());
                 // 进行 join name 操作
-                std::string text = fmt::format("您共有 {} 个家园:", homes.size());
+                std::string text = "您共有 {} 个家园:"_trl(localeCode, homes.size());
                 for (const auto& home : homes) {
                     text += fmt::format(" ,{}", home.name);
                 }
@@ -78,20 +74,22 @@ void HomeCommand::setup() {
 
             auto home = storage->getHome(player.getRealName(), param.name);
             if (!home) {
-                mc_utils::sendText<mc_utils::Error>(output, "未找到该家园"_tr());
+                mc_utils::sendText<mc_utils::Error>(output, "未找到该家园"_trl(localeCode));
                 return;
             }
 
             mc_utils::sendText(
                 output,
-                "家园名称: {} 坐标：{},{},{} 维度: {} 创建时间: {} 修改时间: {}",
-                home->name,
-                home->x,
-                home->y,
-                home->z,
-                VanillaDimensions::toString(home->dimid),
-                home->createdTime,
-                home->modifiedTime
+                "家园名称: {} 坐标：{},{},{} 维度: {} 创建时间: {} 修改时间: {}"_trl(
+                    localeCode,
+                    home->name,
+                    home->x,
+                    home->y,
+                    home->z,
+                    VanillaDimensions::toString(home->dimid),
+                    home->createdTime,
+                    home->modifiedTime
+                )
             );
         }
     );
