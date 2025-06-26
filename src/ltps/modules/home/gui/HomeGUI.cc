@@ -34,19 +34,19 @@ void HomeGUI::sendMainMenu(Player& player, BackCB backCB) {
             "前往家"_trl(localeCode),
             "textures/ui/send_icon",
             "path",
-            [](Player& self) { sendGoHomeGUI(self, BackSimpleForm::makeCallback<HomeGUI::sendMainMenu>(nullptr)); }
+            [](Player& self) { sendGoHomeGUI(self); }
         )
         .appendButton(
             "编辑家"_trl(localeCode),
             "textures/ui/book_edit_default",
             "path",
-            [](Player& self) { sendEditHomeGUI(self, BackSimpleForm::makeCallback<HomeGUI::sendMainMenu>(nullptr)); }
+            [](Player& self) { sendEditHomeGUI(self); }
         )
         .appendButton(
             "删除家"_trl(localeCode),
             "textures/ui/trash_default",
             "path",
-            [](Player& self) { sendRemoveHomeGUI(self, BackSimpleForm::makeCallback<HomeGUI::sendMainMenu>(nullptr)); }
+            [](Player& self) { sendRemoveHomeGUI(self); }
         )
         .sendTo(player);
 }
@@ -83,25 +83,11 @@ void HomeGUI::sendAddHomeGUI(Player& player) {
     });
 }
 
-void HomeGUI::sendChooseHomeGUI(Player& player, ChooseNameCallBack chooseCB, BackCB backCB) {
+
+void HomeGUI::sendChooseHomeGUI(Player& player, ChooseHomeCallback chooseCB) {
     auto localeCode = player.getLocaleCode();
 
-    auto fm = BackSimpleForm{std::move(backCB)};
-    fm.setTitle("Choose Home"_trl(localeCode)).setContent("请选择一个家"_trl(localeCode));
-
-    auto storage = LeviTPSystem::getInstance().getStorageManager().getStorage<HomeStorage>();
-
-    auto homes = storage->getHomes(player.getRealName());
-    for (auto const& home : homes) {
-        fm.appendButton(home.name, [cb = std::move(chooseCB), name = home.name](Player& self) { cb(self, name); });
-    }
-
-    fm.sendTo(player);
-}
-void HomeGUI::sendChooseHomeGUI(Player& player, ChooseHomeCallback chooseCB, BackCB backCB) {
-    auto localeCode = player.getLocaleCode();
-
-    auto fm = BackSimpleForm{std::move(backCB)};
+    auto fm = BackSimpleForm::make<HomeGUI::sendMainMenu>(BackCB{});
     fm.setTitle("Choose Home"_trl(localeCode)).setContent("请选择一个家"_trl(localeCode));
 
     auto storage = LeviTPSystem::getInstance().getStorageManager().getStorage<HomeStorage>();
@@ -114,49 +100,32 @@ void HomeGUI::sendChooseHomeGUI(Player& player, ChooseHomeCallback chooseCB, Bac
 
     fm.sendTo(player);
 }
-
-
-void HomeGUI::sendGoHomeGUI(Player& player, BackCB backCB) {
-    sendChooseHomeGUI(
-        player,
-        [](Player& self, std::string name) {
-            ll::event::EventBus::getInstance().publish(PlayerRequestGoHomeEvent(self, std::move(name)));
-        },
-        std::move(backCB)
-    );
+void HomeGUI::sendChooseHomeGUI(Player& player, ChooseNameCallBack chooseCB) {
+    sendChooseHomeGUI(player, [cb = std::move(chooseCB)](Player& self, HomeStorage::Home home) {
+        cb(self, home.name);
+    });
 }
 
-void HomeGUI::sendRemoveHomeGUI(Player& player, BackCB backCB) {
-    sendChooseHomeGUI(
-        player,
-        [](Player& self, std::string name) {
-            ll::event::EventBus::getInstance().publish(PlayerRequestRemoveHomeEvent(self, std::move(name)));
-        },
-        std::move(backCB)
-    );
+void HomeGUI::sendGoHomeGUI(Player& player) {
+    sendChooseHomeGUI(player, [](Player& self, std::string name) {
+        ll::event::EventBus::getInstance().publish(PlayerRequestGoHomeEvent(self, std::move(name)));
+    });
+}
+
+void HomeGUI::sendRemoveHomeGUI(Player& player) {
+    sendChooseHomeGUI(player, [](Player& self, std::string name) {
+        ll::event::EventBus::getInstance().publish(PlayerRequestRemoveHomeEvent(self, std::move(name)));
+    });
 }
 
 
-void HomeGUI::sendEditHomeGUI(Player& player, BackCB backCB) {
-    sendChooseHomeGUI(
-        player,
-        [](Player& self, HomeStorage::Home home) {
-            _sendEditHomeGUI(
-                self,
-                std::move(home),
-                BackSimpleForm::makeCallback<HomeGUI::sendEditHomeGUI>(
-                    BackSimpleForm::makeCallback<HomeGUI::sendMainMenu>(nullptr)
-                )
-            );
-        },
-        std::move(backCB)
-    );
+void HomeGUI::sendEditHomeGUI(Player& player) {
+    sendChooseHomeGUI(player, [](Player& self, HomeStorage::Home home) { _sendEditHomeGUI(self, std::move(home)); });
 }
-void HomeGUI::_sendEditHomeGUI(Player& player, HomeStorage::Home home, BackCB backCB) {
+void HomeGUI::_sendEditHomeGUI(Player& player, HomeStorage::Home home) {
     auto localeCode = player.getLocaleCode();
 
-    // auto fm = BackSimpleForm::make<HomeGUI::sendEditHomeGUI>(nullptr);
-    auto fm = BackSimpleForm{std::move(backCB)};
+    auto fm = BackSimpleForm::make<HomeGUI::sendEditHomeGUI>(nullptr);
     fm.setTitle("Home - Edit"_trl(localeCode))
         .setContent(
             "名称: {}\n坐标: {}.{}.{}\n维度: {}\n创建时间: {}\n更改时间: {}"_trl(
@@ -193,7 +162,7 @@ void HomeGUI::_sendEditHomeGUI(Player& player, HomeStorage::Home home, BackCB ba
 }
 
 
-void HomeGUI::_sendEditHomeNameGUI(Player& player, std::string const& name, BackCB backCB) {
+void HomeGUI::_sendEditHomeNameGUI(Player& player, std::string const& name) {
     auto localeCode = player.getLocaleCode();
     CustomForm{"Edit Home Name"}
         .appendLabel("修改家园名称，新名称不得超过 {} 个字符"_trl(localeCode, getConfig().modules.home.nameLength))
