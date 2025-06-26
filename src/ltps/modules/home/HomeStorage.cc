@@ -80,11 +80,15 @@ Result<void> HomeStorage::updateHome(RealName const& realName, std::string const
     if (!mHomes.contains(realName)) {
         return std::unexpected{"Home not found"};
     };
-    auto it =
-        std::find_if(mHomes[realName].begin(), mHomes[realName].end(), [&](Home const& h) { return h.name == name; });
-    if (it == mHomes[realName].end()) {
+
+    auto& homes = mHomes[realName];
+
+    auto it = std::find_if(homes.begin(), homes.end(), [&](Home const& h) { return h.name == name; });
+    if (it == homes.end()) {
         return std::unexpected{"Home not found"};
     }
+
+    home.updateModifiedTime();
     *it = std::move(home);
     return {};
 }
@@ -143,6 +147,12 @@ HomeStorage::Home HomeStorage::Home::make(Vec3 const& vec3, int dimid, std::stri
 void HomeStorage::Home::teleport(Player& player) const { player.teleport(Vec3{x, y, z}, dimid, player.getRotation()); }
 
 void HomeStorage::Home::updateModifiedTime() { modifiedTime = time_utils::getCurrentTimeString(); }
+
+void HomeStorage::Home::updatePosition(Vec3 const& vec3) {
+    x = vec3.x;
+    y = vec3.y;
+    z = vec3.z;
+}
 
 
 } // namespace ltps::home

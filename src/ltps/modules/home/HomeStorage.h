@@ -25,6 +25,8 @@ public:
         TPSAPI void teleport(Player& player) const;
 
         TPSAPI void updateModifiedTime();
+
+        TPSAPI void updatePosition(Vec3 const& vec3);
     };
     using Homes   = std::vector<Home>;
     using HomeMap = std::unordered_map<RealName, Homes>;

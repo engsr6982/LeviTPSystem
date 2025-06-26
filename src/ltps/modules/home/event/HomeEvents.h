@@ -5,6 +5,7 @@
 #include "ltps/modules/home/HomeStorage.h"
 #include "mc/world/actor/player/Player.h"
 #include <functional>
+#include <optional>
 
 
 namespace ltps::home {
@@ -136,5 +137,87 @@ public:
     TPSAPI explicit HomeTeleportedEvent(Player& player, home::HomeStorage::Home const& home);
 };
 
+
+class PlayerRequestEditHomeEvent final : public Cancellable<Event>, public IPlayerRequestActionEvent {
+public:
+    enum class Type { Name, Position };
+
+    TPSAPI explicit PlayerRequestEditHomeEvent(
+        Player&                    player,
+        std::string                name,
+        Type                       type,
+        std::optional<Vec3>        newPosition = std::nullopt,
+        std::optional<std::string> newName     = std::nullopt
+    );
+
+    TPSNDAPI Type getType() const;
+
+    TPSNDAPI std::optional<Vec3> getNewPosition() const;
+
+    TPSNDAPI std::optional<std::string> getNewName() const;
+
+private:
+    Type                       mType;
+    std::optional<Vec3>        mNewPosition{std::nullopt};
+    std::optional<std::string> mNewName{std::nullopt};
+};
+
+class IHomeEditEvent {
+protected:
+    using Type = PlayerRequestEditHomeEvent::Type;
+
+    Player&                    mPlayer;
+    Type                       mType;
+    std::string                mName;
+    HomeStorage::Home const&   mHome;
+    std::optional<Vec3>        mNewPosition;
+    std::optional<std::string> mNewName;
+
+public:
+    TPSAPI explicit IHomeEditEvent(
+        Player&                    player,
+        Type                       type,
+        std::string                name,
+        HomeStorage::Home const&   home,
+        std::optional<Vec3>        newpos,
+        std::optional<std::string> newName
+    );
+
+    TPSNDAPI Player& getPlayer() const;
+
+    TPSNDAPI Type getType() const;
+
+    TPSNDAPI HomeStorage::Home const& getHome() const;
+
+    TPSNDAPI std::string const& getName() const;
+
+    TPSNDAPI std::optional<Vec3> getNewPosition() const;
+
+    TPSNDAPI std::optional<std::string> getNewName() const;
+};
+
+class HomeEditingEvent final : public Cancellable<Event>, public IHomeEditEvent {
+public:
+    TPSAPI explicit HomeEditingEvent(
+        Player&                    player,
+        Type                       type,
+        std::string                name,
+        HomeStorage::Home const&   home,
+        std::optional<Vec3>        newpos,
+        std::optional<std::string> newName
+    );
+};
+
+class HomeEditedEvent final : public Event, public IHomeEditEvent {
+public:
+    TPSAPI explicit HomeEditedEvent(
+        Player&                    player,
+        Type                       type,
+        std::string                name,
+        HomeStorage::Home const&   home,
+        std::optional<Vec3>        newpos,
+        std::optional<std::string> newName
+    );
+};
 
 } // namespace ltps::home

@@ -13,6 +13,8 @@
 #include "ltps/modules/home/event/HomeEvents.h"
 #include "ltps/utils/McUtils.h"
 #include "ltps/utils/StringUtils.h"
+
+
 namespace ltps::home {
 
 HomeModule::HomeModule() = default;
@@ -185,6 +187,7 @@ bool HomeModule::enable() {
                 ev.cancel();
                 return;
             }
+            mc_utils::sendText(player, "删除家园 {} 成功!"_trl(player.getLocaleCode(), name));
 
             auto removed = HomeRemovedEvent(player, name);
             bus.publish(removed);
@@ -251,11 +254,104 @@ bool HomeModule::enable() {
                 return;
             }
 
+            auto cl = PriceCalculate(getConfig().modules.home.goHomeCalculate);
+            cl.addVariable("dimid", ev.getHome().dimid);
+            auto price = cl.eval();
+
+            if (!price) {
+                mc_utils::sendText<mc_utils::Error>(player, "计算价格失败"_trl(localeCode));
+                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                    "[HomeModule]: Calculate price failed! player: {}, homeName: {}, error: {}",
+                    realName,
+                    ev.getHome().name,
+                    price.error()
+                );
+                ev.cancel();
+                return;
+            }
+
+            if (const auto& economy = EconomySystemManager::getInstance();
+                !economy->reduce(player, static_cast<llong>(price.value()))) {
+                economy->sendNotEnoughMoneyMessage(player, static_cast<llong>(price.value()), localeCode);
+                ev.cancel();
+                return;
+            }
+
             cooldown.setCooldown(realName, getConfig().modules.home.cooldownTime);
         },
         ll::event::EventPriority::High
     ));
 
+    mListeners.emplace_back(bus.emplaceListener<PlayerRequestEditHomeEvent>(
+        [this](PlayerRequestEditHomeEvent& ev) {
+            auto& bus        = ll::event::EventBus::getInstance();
+            auto& player     = ev.getPlayer();
+            auto  realName   = player.getRealName();
+            auto  localeCode = player.getLocaleCode();
+
+            auto&      name    = ev.getName();
+            auto const type    = ev.getType();
+            auto const newPos  = ev.getNewPosition();
+            auto const newName = ev.getNewName();
+
+            auto storage = this->getStorage();
+            auto home    = storage->getHome(realName, name);
+            if (!home) {
+                mc_utils::sendText<mc_utils::Error>(player, "家园 {} 不存在，本次操作无法继续"_trl(localeCode, name));
+                ev.cancel();
+                return;
+            }
+
+            auto editing = HomeEditingEvent(player, type, name, *home, newPos, newName);
+            bus.publish(editing);
+            if (editing.isCancelled()) {
+                ev.cancel();
+                return;
+            }
+
+            if (newName.has_value()) {
+                home->name = *newName;
+            }
+            if (newPos.has_value()) {
+                home->updatePosition(*newPos);
+            }
+
+            if (auto res = storage->updateHome(realName, name, *home)) {
+                mc_utils::sendText(player, "家园 {} 数据已更新"_trl(localeCode, name));
+            } else {
+                mc_utils::sendText(player, "更改家园数据失败: {}"_trl(localeCode, res.error()));
+                ev.cancel();
+                return;
+            }
+
+            auto edited = HomeEditedEvent(player, type, name, *home, newPos, newName);
+            bus.publish(edited);
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<PlayerRequestEditHomeEvent>(
+        [this](PlayerRequestEditHomeEvent& ev) {
+            auto&      player     = ev.getPlayer();
+            auto       localeCode = player.getLocaleCode();
+            auto const newName    = ev.getNewName();
+
+            if (newName.has_value()) {
+                if (!string_utils::isLengthValid(*newName, getConfig().modules.home.nameLength)) {
+                    mc_utils::sendText<mc_utils::Error>(
+                        player,
+                        "家园名称长度不符合要求({}/{})"_trl(
+                            localeCode,
+                            string_utils::length(*newName),
+                            getConfig().modules.home.nameLength
+                        )
+                    );
+                    ev.cancel();
+                }
+            }
+        },
+        ll::event::EventPriority::High
+    ));
 
     HomeCommand::setup();
 

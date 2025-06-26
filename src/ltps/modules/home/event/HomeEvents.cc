@@ -1,7 +1,12 @@
 #include "HomeEvents.h"
+
+#include <utility>
+
 #include "ll/api/event/Emitter.h"
 #include "ll/api/event/EmitterBase.h"
 #include "ltps/Global.h"
+#include <utility>
+#include <vector>
 
 
 namespace ltps::home {
@@ -99,5 +104,79 @@ HomeTeleportedEvent::HomeTeleportedEvent(Player& player, home::HomeStorage::Home
 IMPL_EVENT_EMITTER(PlayerRequestGoHomeEvent);
 IMPL_EVENT_EMITTER(HomeTeleportingEvent);
 IMPL_EVENT_EMITTER(HomeTeleportedEvent);
+
+
+// PlayerRequestEditHomeEvent
+PlayerRequestEditHomeEvent::PlayerRequestEditHomeEvent(
+    Player&                    player,
+    std::string                name,
+    Type                       type,
+    std::optional<Vec3>        newPosition,
+    std::optional<std::string> newName
+)
+: IPlayerRequestActionEvent(player, std::move(name)),
+  mType(type),
+  mNewPosition(newPosition),
+  mNewName(std::move(newName)) {}
+
+PlayerRequestEditHomeEvent::Type PlayerRequestEditHomeEvent::getType() const { return mType; }
+
+std::optional<Vec3> PlayerRequestEditHomeEvent::getNewPosition() const { return mNewPosition; }
+
+std::optional<std::string> PlayerRequestEditHomeEvent::getNewName() const { return mNewName; }
+
+// IHomeEditEvent
+IHomeEditEvent::IHomeEditEvent(
+    Player&                    player,
+    Type                       type,
+    std::string                name,
+    HomeStorage::Home const&   home,
+    std::optional<Vec3>        newpos,
+    std::optional<std::string> newName
+)
+: mPlayer(player),
+  mType(type),
+  mName(std::move(name)),
+  mHome(home),
+  mNewPosition(newpos),
+  mNewName(std::move(newName)) {}
+
+Player& IHomeEditEvent::getPlayer() const { return mPlayer; }
+
+IHomeEditEvent::Type IHomeEditEvent::getType() const { return mType; }
+
+std::string const& IHomeEditEvent::getName() const { return mName; }
+
+HomeStorage::Home const& IHomeEditEvent::getHome() const { return mHome; }
+
+std::optional<Vec3> IHomeEditEvent::getNewPosition() const { return mNewPosition; }
+
+std::optional<std::string> IHomeEditEvent::getNewName() const { return mNewName; }
+
+// HomeEditingEvent & HomeEditedEvent
+HomeEditingEvent::HomeEditingEvent(
+    Player&                    player,
+    Type                       type,
+    std::string                name,
+    HomeStorage::Home const&   home,
+    std::optional<Vec3>        newpos,
+    std::optional<std::string> newName
+)
+: IHomeEditEvent(player, type, std::move(name), home, newpos, std::move(newName)) {}
+HomeEditedEvent::HomeEditedEvent(
+    Player&                    player,
+    Type                       type,
+    std::string                name,
+    HomeStorage::Home const&   home,
+    std::optional<Vec3>        newpos,
+    std::optional<std::string> newName
+)
+: IHomeEditEvent(player, type, std::move(name), home, newpos, std::move(newName)) {}
+
+
+IMPL_EVENT_EMITTER(PlayerRequestEditHomeEvent);
+IMPL_EVENT_EMITTER(HomeEditingEvent);
+IMPL_EVENT_EMITTER(HomeEditedEvent);
+
 
 } // namespace ltps::home
