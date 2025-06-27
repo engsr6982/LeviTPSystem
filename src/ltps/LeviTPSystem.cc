@@ -85,9 +85,9 @@ bool LeviTPSystem::enable() {
 }
 
 bool LeviTPSystem::disable() {
-    mThreadPool->destroy();           // 销毁线程池
     mModuleManager->disableModules(); // 禁用模块
     mStorageManager->postUnload();    // 卸载 Storage
+    mThreadPool->destroy();           // 销毁线程池
 
     mThreadPool.reset();     // 销毁线程池指针
     mModuleManager.reset();  // 销毁模块管理器指针
