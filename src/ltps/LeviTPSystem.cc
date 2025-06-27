@@ -11,6 +11,7 @@
 #include "ltps/modules/tpa/TpaModule.h"
 #include "ltps/modules/warp/WarpModule.h"
 #include "ltps/modules/warp/WarpStorage.h"
+#include "modules/death/DeathModule.h"
 #include "modules/death/DeathStorage.h"
 #include "modules/setting/SettingModule.h"
 #include "modules/setting/SettingStorage.h"
@@ -65,6 +66,7 @@ bool LeviTPSystem::load() {
     mModuleManager->registerModule<tpa::TpaModule>();
     mModuleManager->registerModule<home::HomeModule>();
     mModuleManager->registerModule<warp::WarpModule>();
+    mModuleManager->registerModule<death::DeathModule>();
 
     mStorageManager->postLoad();   // 加载 Storage
     mModuleManager->initModules(); // 初始化模块
