@@ -9,9 +9,9 @@
 #include "ltps/database/StorageManager.h"
 #include "ltps/utils/McUtils.h"
 
+#include "../setting/SettingStorage.h"
 #include "ll/api/event/player/PlayerDieEvent.h"
 #include "ll/api/event/player/PlayerRespawnEvent.h"
-#include "ltps/database/PlayerSettingStorage.h"
 
 #include <ll/api/event/EventBus.h>
 #include <mc/world/actor/player/Player.h>
@@ -122,7 +122,7 @@ bool DeathModule::enable() {
                 return;
             }
 
-            if (auto ps = getStorageManager().getStorage<PlayerSettingStorage>();
+            if (auto ps = getStorageManager().getStorage<setting::SettingStorage>();
                 ps && ps->getSettingData(player.getRealName())->deathPopup) {
                 DeathGUI::sendBackGUI(player);
             }

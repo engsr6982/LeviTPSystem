@@ -7,6 +7,7 @@
 #include "ltps/database/PermissionStorage.h"
 #include "ltps/database/StorageManager.h"
 #include "ltps/modules/ModuleManager.h"
+#include "ltps/modules/setting/gui/SettingGUI.h"
 #include "ltps/utils/McUtils.h"
 #include "mc/server/commands/CommandOrigin.h"
 #include "mc/server/commands/CommandOriginType.h"
@@ -70,8 +71,15 @@ void BaseCommand::setup() {
         mc_utils::sendText(output, "配置已重载"_tr());
     });
 
-    // TODO: ltps settings
-
+    // ltps setting
+    cmd.overload().text("setting").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        if (origin.getOriginType() != CommandOriginType::Player) {
+            mc_utils::sendText<mc_utils::Error>(output, "此命令只能由玩家执行"_tr());
+            return;
+        }
+        auto& player = *static_cast<Player*>(origin.getEntity());
+        setting::SettingGUI::sendMainGUI(player);
+    });
 
     // ======= 权限 =======
     // /ltps perm list <builtin|default> # [控制台] 列出 内置权限 / 默认权限

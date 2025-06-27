@@ -4,7 +4,6 @@
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/thread/ThreadPoolExecutor.h"
 
-#include "ltps/base/BaseEventListener.h"
 #include "ltps/database/StorageManager.h"
 #include "ltps/modules/ModuleManager.h"
 
@@ -36,7 +35,6 @@ private:
 
     ll::mod::NativeMod&                             mSelf;
     std::unique_ptr<ll::thread::ThreadPoolExecutor> mThreadPool;
-    std::unique_ptr<BaseEventListener>              mBaseEventListener;
     std::unique_ptr<StorageManager>                 mStorageManager;
     std::unique_ptr<ModuleManager>                  mModuleManager;
 };

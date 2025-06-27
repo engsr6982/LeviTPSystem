@@ -1,4 +1,4 @@
-#include "ltps/database/PlayerSettingStorage.h"
+#include "SettingStorage.h"
 #include "ltps/LeviTPSystem.h"
 #include "ltps/utils/JsonUtls.h"
 #include "nlohmann/json.hpp"
@@ -8,11 +8,11 @@
 #include <utility>
 
 
-namespace ltps {
+namespace ltps::setting {
 
-PlayerSettingStorage::PlayerSettingStorage() = default;
+SettingStorage::SettingStorage() = default;
 
-void PlayerSettingStorage::load() {
+void SettingStorage::load() {
     auto& database = getDatabase();
     if (!database.has(STORAGE_KEY)) {
         database.set(STORAGE_KEY, "{}");
@@ -41,35 +41,35 @@ void PlayerSettingStorage::load() {
     }
 }
 
-void PlayerSettingStorage::unload() {
+void SettingStorage::unload() {
     LeviTPSystem::getInstance().getSelf().getLogger().trace("Unloading player settings");
     writeBack();
 }
 
-void PlayerSettingStorage::writeBack() {
+void SettingStorage::writeBack() {
     auto& database = getDatabase();
     auto  json     = json_utils::struct2json(mSettingDatas);
     database.set(STORAGE_KEY, json.dump());
 }
 
-Result<SettingData> PlayerSettingStorage::getSettingData(RealName const& realName) const {
+Result<SettingData> SettingStorage::getSettingData(RealName const& realName) const {
     if (auto it = mSettingDatas.find(realName); it != mSettingDatas.end()) {
         return it->second;
     }
     return std::unexpected{"Player setting not found"};
 }
 
-void PlayerSettingStorage::initPlayerSetting(RealName const& realName) {
+void SettingStorage::initPlayerSetting(RealName const& realName) {
     if (mSettingDatas.find(realName) == mSettingDatas.end()) {
         mSettingDatas[realName] = SettingData{};
     }
 }
 
 
-Result<void> PlayerSettingStorage::setSettingData(RealName const& realName, SettingData settingData) {
+Result<void> SettingStorage::setSettingData(RealName const& realName, SettingData settingData) {
     mSettingDatas[realName] = settingData;
     return {};
 }
 
 
-} // namespace ltps
+} // namespace ltps::setting

@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 
-namespace ltps {
+namespace ltps::setting {
 
 struct SettingData {
     bool deathPopup = true; // 死亡后立即发送返回弹窗
@@ -14,11 +14,11 @@ struct SettingData {
 };
 
 
-class PlayerSettingStorage final : public IStorage {
+class SettingStorage final : public IStorage {
 public:
-    TPS_DISALLOW_COPY_AND_MOVE(PlayerSettingStorage);
+    TPS_DISALLOW_COPY_AND_MOVE(SettingStorage);
 
-    TPSAPI explicit PlayerSettingStorage();
+    TPSAPI explicit SettingStorage();
 
     TPSAPI void load() override;
     TPSAPI void unload() override;
@@ -38,4 +38,4 @@ public:
 };
 
 
-} // namespace ltps
+} // namespace ltps::setting
