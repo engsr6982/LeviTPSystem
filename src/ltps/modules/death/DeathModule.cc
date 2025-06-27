@@ -23,6 +23,8 @@ DeathModule::DeathModule() = default;
 
 std::vector<std::string> DeathModule::getDependencies() const { return {}; }
 
+bool DeathModule::isLoadable() const { return getConfig().modules.death.enable; }
+
 bool DeathModule::init() { return true; }
 
 bool DeathModule::enable() {

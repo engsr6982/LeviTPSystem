@@ -18,6 +18,8 @@ WarpModule::WarpModule() = default;
 
 std::vector<std::string> WarpModule::getDependencies() const { return {}; }
 
+bool WarpModule::isLoadable() const { return getConfig().modules.warp.enable; }
+
 bool WarpModule::init() { return true; }
 
 bool WarpModule::enable() {

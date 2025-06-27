@@ -21,6 +21,8 @@ HomeModule::HomeModule() = default;
 
 std::vector<std::string> HomeModule::getDependencies() const { return {}; }
 
+bool HomeModule::isLoadable() const { return getConfig().modules.home.enable; }
+
 bool HomeModule::init() { return true; }
 
 bool HomeModule::enable() {

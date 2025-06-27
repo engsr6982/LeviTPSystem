@@ -19,6 +19,8 @@ public:
 
     [[nodiscard]] virtual std::vector<std::string> getDependencies() const = 0;
 
+    [[nodiscard]] virtual bool isLoadable() const = 0; // 检查模块是否可加载
+
     [[nodiscard]] virtual bool init() = 0;
 
     [[nodiscard]] virtual bool enable() = 0;

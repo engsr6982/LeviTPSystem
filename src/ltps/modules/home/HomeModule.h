@@ -22,6 +22,8 @@ public:
 
     TPSNDAPI std::vector<std::string> getDependencies() const override;
 
+    TPSAPI bool isLoadable() const override;
+
     TPSNDAPI bool init() override;
 
     TPSNDAPI bool enable() override;

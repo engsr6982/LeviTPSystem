@@ -23,9 +23,6 @@ public:
     TPS_DISALLOW_COPY_AND_MOVE(ModuleManager);
     ~ModuleManager();
 
-    // 检查模块是否在配置中启用
-    TPSNDAPI bool isModuleEnabled(const std::string& moduleName) const;
-
     TPSAPI void initModules();
 
     TPSAPI void enableModules();

@@ -18,6 +18,8 @@ TpaModule::TpaModule() = default;
 
 std::vector<std::string> TpaModule::getDependencies() const { return {}; }
 
+bool TpaModule::isLoadable() const { return getConfig().modules.tpa.enable; }
+
 bool TpaModule::init() {
     if (!mTpaRequestPool) {
         mTpaRequestPool = std::make_unique<TpaRequestPool>(getThreadPool());

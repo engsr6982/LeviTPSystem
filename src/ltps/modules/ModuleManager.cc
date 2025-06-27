@@ -16,28 +16,6 @@ void ModuleManager::registerModule(std::unique_ptr<IModule> module) {
     mModules.emplace(module->getModuleName(), std::move(module));
 }
 
-bool ModuleManager::isModuleEnabled(const std::string& moduleName) const {
-    // 检查配置文件中模块是否启用
-    auto& config = config::getConfig();
-
-    // 遍历modules结构体中的所有模块配置
-    if (moduleName == "TpaModule" && config.modules.tpa.enable) {
-        return true;
-    } else if (moduleName == "HomeModule" && config.modules.home.enable) {
-        return true;
-    } else if (moduleName == "WarpModule" && config.modules.warp.enable) {
-        return true;
-    } else if (moduleName == "DeathModule" && config.modules.death.enable) {
-        return true;
-    } else if (moduleName == "TprModule" && config.modules.tpr.enable) {
-        return true;
-    } else if (moduleName == "PrModule" && config.modules.pr.enable) {
-        return true;
-    }
-
-    return false;
-}
-
 void ModuleManager::initModules() {
     auto& logger        = LeviTPSystem::getInstance().getSelf().getLogger();
     auto  sortedModules = sortModulesByDependency();
@@ -49,7 +27,7 @@ void ModuleManager::initModules() {
         auto const name = module->getModuleName();
 
         // 检查模块是否在配置中启用
-        if (!isModuleEnabled(name)) {
+        if (!module->isLoadable()) {
             logger.debug("Skipping initialization of disabled module: {}", name);
             continue;
         }
@@ -76,7 +54,7 @@ void ModuleManager::enableModules() {
         auto const name = module->getModuleName();
 
         // 检查模块是否在配置中启用
-        if (!isModuleEnabled(name)) {
+        if (!module->isLoadable()) {
             logger.debug("Skipping enabling of disabled module: {}", name);
             continue;
         }
@@ -137,7 +115,7 @@ void ModuleManager::reconfigureModules() {
 
     for (auto module : sortedModules) {
         auto const name               = module->getModuleName();
-        bool       shouldBeEnabled    = isModuleEnabled(name);
+        bool       shouldBeEnabled    = module->isLoadable();
         bool       isCurrentlyEnabled = module->isEnabled();
 
         if (shouldBeEnabled && !isCurrentlyEnabled) {

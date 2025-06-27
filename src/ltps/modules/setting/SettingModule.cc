@@ -11,6 +11,8 @@ SettingModule::SettingModule() = default;
 
 std::vector<std::string> SettingModule::getDependencies() const { return {}; }
 
+bool SettingModule::isLoadable() const { return true; }
+
 bool SettingModule::init() { return true; }
 
 bool SettingModule::enable() {
