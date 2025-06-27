@@ -51,9 +51,9 @@ struct Config {
 
         struct {
             bool                 enable               = true;
-            int                  cooldownTime         = 10; // 传送冷却时间（秒）
+            bool                 registerBackCommand  = true; // 注册 /back 命令 (/death back的别名)
             std::string          goDeathCalculate     = "random_num_range(10, 60)";
-            int                  maxShowDeathInfos    = 5; // 显示给玩家的死亡信息数量
+            int                  maxDeathInfos        = 5; // 显示给玩家的死亡信息数量
             DisallowedDimensions disallowedDimensions = {};
         } death;
 

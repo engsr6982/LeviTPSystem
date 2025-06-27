@@ -94,16 +94,6 @@ bool registerCommands() {
             Player& player = *static_cast<Player*>(origin.getEntity());
             tpr::ShowTprMenu(player);
         });
-
-
-    // Register All Commands
-    string const& name = Config::cfg.Command.Command;
-    registerCommandWithLevelDB(name);
-    registerPermissionCommand(name);
-    if (Config::cfg.Home.Enable) registerCommandWithHome(name);
-    if (Config::cfg.Warp.Enable) registerCommandWithWarp(name);
-    if (Config::cfg.Tpa.Enable) registerCommandWithTpa(name);
-    return true;
 }
 
 } // namespace tps::command

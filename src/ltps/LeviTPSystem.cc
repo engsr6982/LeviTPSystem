@@ -13,6 +13,8 @@
 #include "ltps/modules/tpa/TpaModule.h"
 #include "ltps/modules/warp/WarpModule.h"
 #include "ltps/modules/warp/WarpStorage.h"
+#include "modules/death/DeathStorage.h"
+
 #include <memory>
 
 namespace ltps {
@@ -56,6 +58,7 @@ bool LeviTPSystem::load() {
     mStorageManager->registerStorage<PermissionStorage>();
     mStorageManager->registerStorage<home::HomeStorage>();
     mStorageManager->registerStorage<warp::WarpStorage>();
+    mStorageManager->registerStorage<death::DeathStorage>();
 
     // 注册模块
     mModuleManager->registerModule<tpa::TpaModule>();
