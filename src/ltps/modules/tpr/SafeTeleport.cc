@@ -167,7 +167,7 @@ SafeTeleport::SafeTeleport() {
             }
         }
         co_return;
-    });
+    }).launch(ll::thread::ServerThreadExecutor::getDefault());
 }
 
 SafeTeleport::~SafeTeleport() {
