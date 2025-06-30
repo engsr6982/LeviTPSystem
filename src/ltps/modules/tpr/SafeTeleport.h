@@ -93,9 +93,9 @@ public:
 
         TPSAPI void commit() const;
 
-        TPSAPI void checkChunkStatus();  // 检查目标区块状态
-        TPSAPI void checkPlayerStatus(); // 检查玩家是否在线
-
+        TPSAPI void checkChunkStatus();                   // 检查目标区块状态
+        TPSAPI void checkPlayerStatus();                  // 检查玩家是否在线
+        TPSAPI void teleportToTargetPosAndTryLoadChunk(); // 传送到目标位置并尝试加载区块
         TPSAPI void launchFindPosTask();
     };
     using SharedTask = std::shared_ptr<Task>;

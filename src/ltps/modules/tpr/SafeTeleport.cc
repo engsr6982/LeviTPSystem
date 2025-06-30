@@ -33,7 +33,11 @@ SafeTeleport::Task::Task(Player& player, DimensionPos targetPos)
   mTargetChunkPos(ChunkPos(targetPos.first)),
   mCachedLocaleCode(player.getLocaleCode()),
   mSourcePos({player.getPosition(), player.getDimensionId()}),
-  mTargetPos(targetPos) {}
+  mTargetPos(targetPos) {
+    mTargetPos.first.x += 0.5; // 方块中心
+    mTargetPos.first.z += 0.5;
+    mTargetPos.first.y  = 3389;
+}
 
 bool SafeTeleport::Task::isPending() const { return mState == TaskState::Pending; }
 bool SafeTeleport::Task::isWaitingChunkLoad() const { return mState == TaskState::WaitingChunkLoad; }
@@ -94,9 +98,16 @@ void SafeTeleport::Task::checkChunkStatus() {
         } else {
             updateCounter();
             sendWaitChunkLoadTip();
+            teleportToTargetPosAndTryLoadChunk();
         }
     }
 }
+void SafeTeleport::Task::teleportToTargetPosAndTryLoadChunk() {
+    if (auto player = getPlayer()) {
+        player->teleport(mTargetPos.first, mTargetPos.second);
+    }
+}
+
 void SafeTeleport::Task::checkPlayerStatus() {
     if (!getPlayer()) {
         updateState(TaskState::TaskFailed);
@@ -142,6 +153,8 @@ void SafeTeleport::Task::_findSafePos() {
             headBlock->isAir() &&                              // 头部方块是空气
             legBlock->isAir()                                  // 腿部方块是空气
         ) {
+            y++; // 往上一格，当前格为落脚点方块
+
             updateState(TaskState::FoundSafePos); // 找到安全位置
             return;
         }
