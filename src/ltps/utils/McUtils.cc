@@ -75,17 +75,6 @@ BlockPos face2Pos(BlockPos const& sour, uchar face) {
 
 DimensionHeightRange& getDimensionHeight(Dimension& dim) { return dim.mHeightRange.get(); }
 
-bool isChunkFullyLoaded(ChunkSource& chunkSource, ChunkPos const& chunkPos) {
-    if (!chunkSource.isWithinWorldLimit(chunkPos)) return true;
-    auto chunk = chunkSource.getOrLoadChunk(chunkPos, ::ChunkSource::LoadMode::None, true);
-    return chunk && static_cast<int>(chunk->mLoadState->load()) >= static_cast<int>(ChunkState::Loaded)
-        && !chunk->mIsEmptyClientChunk && chunk->mIsRedstoneLoaded;
-}
-
-bool isChunkFullLyoaded(BlockSource& bs, BlockPos const& pos) {
-    return isChunkFullyLoaded(bs.getChunkSource(), ChunkPos(pos));
-}
-
 void executeCommand(std::string const& cmd, Player* player) {
     auto& minecraftCommands = ll::service::getMinecraft()->mCommands;
     if (!minecraftCommands) {

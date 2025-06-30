@@ -27,9 +27,6 @@ TPSNDAPI BlockPos face2Pos(BlockPos const& sour, uchar face);
 
 TPSNDAPI DimensionHeightRange& getDimensionHeight(Dimension& dim);
 
-TPSNDAPI bool isChunkFullyLoaded(ChunkSource& chunkSource, ChunkPos const& chunkPos);
-TPSNDAPI bool isChunkFullLyoaded(BlockSource& bs, BlockPos const& pos);
-
 TPSAPI void executeCommand(std::string const& cmd, Player* player);
 
 TPSNDAPI bool isSneaking(Player& player);

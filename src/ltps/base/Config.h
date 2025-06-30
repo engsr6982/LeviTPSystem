@@ -18,7 +18,7 @@ namespace v5 {
 using DisallowedDimensions = std::unordered_set<int>;
 
 struct Config {
-    int              version  = 9;
+    int              version  = 10;
     ll::io::LogLevel logLevel = ll::io::LogLevel::Info;
 
     EconomySystem::Config economySystem{};
@@ -74,8 +74,7 @@ struct Config {
 
             struct {
                 bool enable = false;
-                enum class RestrictedAreaType { Circle, CenteredSquare };
-                RestrictedAreaType type = RestrictedAreaType::Circle;
+                bool isCircle = true; // true: Circle  false: CenteredSquare
 
                 struct {
                     int  x                       = 0;     // 圆心或矩形的中心点
@@ -89,11 +88,12 @@ struct Config {
             DisallowedDimensions disallowedDimensions = {};
         } tpr;
 
-        struct {
-            bool        enable           = true;
-            std::string openPRCalculate  = "random_num_range(10, 60)";
-            std::string closePRCalculate = "random_num_range(10, 60)";
-        } pr;
+        // [[deprecated]]
+        // struct {
+        //     bool        enable           = true;
+        //     std::string openPRCalculate  = "random_num_range(10, 60)";
+        //     std::string closePRCalculate = "random_num_range(10, 60)";
+        // } pr;
     } modules;
 };
 } // namespace v5
