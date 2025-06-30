@@ -8,6 +8,7 @@
 #include "mc/deps/ecs/WeakEntityRef.h"
 #include "mc/network/packet/SetTitlePacket.h"
 #include "mc/world/actor/player/Player.h"
+#include "mc/world/level/ChunkBlockPos.h"
 #include <cstdint>
 #include <ll/api/coro/CoroTask.h>
 #include <ll/api/thread/ThreadPoolExecutor.h>
@@ -81,27 +82,20 @@ bool SafeTeleport::Task::isTargetChunkGenerated() const {
     return mLevelChunk->mLoadState.get() == ChunkState::Generated;
 }
 bool SafeTeleport::Task::tryLoadTargetChunk() {
-    // if (!mChunkSource.isChunkKnown(mTargetChunkPos)) {
-    //     auto chunk = mChunkSource.getOrLoadChunk(mTargetChunkPos, ChunkSource::LoadMode::Deferred, true);
-    //     if (!chunk) {
-    //         return false;
-    //     }
-    // }
-    // mChunkSource.loadChunk()
     auto chunk = mChunkSource.getOrLoadChunk(mTargetChunkPos, ChunkSource::LoadMode::Deferred, true);
     if (!chunk) {
         return false;
     }
     mChunkSource.checkAndLaunchChunkGenerationTasks(false);
     mLevelChunk = chunk;
-    // TODO: 检查是否工作
+    // TODO: 为什么区块不加载？
     return true;
 }
 
 
 void SafeTeleport::Task::checkChunkStatus() {
     if (isWaitingChunkLoad()) {
-        if (isTargetChunkFullyLoaded()) {
+        if (/*isTargetChunkFullyLoaded() &&*/ isTargetChunkGenerated()) {
             updateState(TaskState::ChunkLoaded);
         } else if (mCounter > MaxCounter) {
             updateState(TaskState::ChunkLoadTimeout);
@@ -135,13 +129,27 @@ void SafeTeleport::Task::_findSafePos() {
     auto& y = targetPos.y;
     y       = start; // 从最高点开始寻找
 
+#ifdef TPS_DEBUG
+    auto& logger = LeviTPSystem::getInstance().getSelf().getLogger();
+#endif
+
     while (y > end && !mAbortFlag.load()) {
-        auto block = &const_cast<Block&>(blockSource.getBlock(targetPos));
+        // auto block = &const_cast<Block&>(blockSource.getBlock(targetPos));
+
+        auto block = &const_cast<Block&>(mLevelChunk->getBlock(ChunkBlockPos(
+            static_cast<int>(targetPos.x) % 16,
+            static_cast<int>(targetPos.z) % 16,
+            y + (std::abs(end) + start)
+        )));
 
         if (!headBlock && !legBlock) { // 第一次循环, 初始化
             headBlock = block;
             legBlock  = block;
         }
+
+#ifdef TPS_DEBUG
+        logger.debug("[TPR] Y: {}  Block: {}", y, block->getTypeName());
+#endif
 
         if (!block->isAir() &&                                 // 落脚点不是空气
             !dangerousBlocks.contains(block->getTypeName()) && // 落脚点不是危险方块
@@ -171,7 +179,7 @@ void SafeTeleport::Task::launchFindPosTask() {
 SafeTeleport::SafeTeleport() {
     ll::coro::keepThis([this]() -> ll::coro::CoroTask<> {
         while (!mPollingStopFlag.load()) {
-            co_await ll::chrono::ticks(5); // 每 5_tick 检查一次任务状态
+            co_await ll::chrono::ticks(10); // 每 10_tick 检查一次任务状态
             try {
                 polling();
             } catch (...) {
@@ -244,6 +252,7 @@ void SafeTeleport::handlePending(SharedTask& task) {
     if (task->isTargetChunkFullyLoaded()) {
         task->updateState(TaskState::ChunkLoaded);
     } else {
+        task->tryLoadTargetChunk();
         task->updateState(TaskState::WaitingChunkLoad);
         mc_utils::sendText(
             *task->getPlayer(),
