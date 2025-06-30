@@ -39,7 +39,7 @@ bool TprModule::enable() {
         auto pre = PrepareCreateTprTaskEvent{player, pos, dim};
         bus.publish(pre);
 
-        if (!pre.isCancelled()) {
+        if (pre.isCancelled()) {
             ev.cancel();
             return;
         }
