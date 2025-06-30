@@ -32,7 +32,6 @@ SafeTeleport::Task::Task(Player& player, DimensionPos targetPos)
   mChunkSource(player.getDimensionBlockSource().getChunkSource()),
   mTargetChunkPos(ChunkPos(targetPos.first)),
   mCachedLocaleCode(player.getLocaleCode()),
-  mSourcePos({player.getPosition(), player.getDimensionId()}),
   mTargetPos(targetPos) {}
 
 bool SafeTeleport::Task::isPending() const { return mState == TaskState::Pending; }
@@ -66,12 +65,6 @@ void SafeTeleport::Task::abort() {
     updateState(TaskState::TaskFailed);
 }
 
-void SafeTeleport::Task::rollback() const {
-    if (auto player = getPlayer()) {
-        player->teleport(mSourcePos.first, mSourcePos.second);
-    }
-}
-
 void SafeTeleport::Task::commit() const {
     if (auto player = getPlayer()) {
         player->teleport(mTargetPos.first, mTargetPos.second);
@@ -84,6 +77,27 @@ bool SafeTeleport::Task::isTargetChunkFullyLoaded() const {
     return chunk && static_cast<int>(chunk->mLoadState->load()) >= static_cast<int>(ChunkState::Loaded)
         && !chunk->mIsEmptyClientChunk && chunk->mIsRedstoneLoaded;
 }
+bool SafeTeleport::Task::isTargetChunkGenerated() const {
+    return mLevelChunk->mLoadState.get() == ChunkState::Generated;
+}
+bool SafeTeleport::Task::tryLoadTargetChunk() {
+    // if (!mChunkSource.isChunkKnown(mTargetChunkPos)) {
+    //     auto chunk = mChunkSource.getOrLoadChunk(mTargetChunkPos, ChunkSource::LoadMode::Deferred, true);
+    //     if (!chunk) {
+    //         return false;
+    //     }
+    // }
+    // mChunkSource.loadChunk()
+    auto chunk = mChunkSource.getOrLoadChunk(mTargetChunkPos, ChunkSource::LoadMode::Deferred, true);
+    if (!chunk) {
+        return false;
+    }
+    mChunkSource.checkAndLaunchChunkGenerationTasks(false);
+    mLevelChunk = chunk;
+    // TODO: 检查是否工作
+    return true;
+}
+
 
 void SafeTeleport::Task::checkChunkStatus() {
     if (isWaitingChunkLoad()) {
@@ -219,6 +233,8 @@ void SafeTeleport::polling() {
             iter = mTasks.erase(iter); // 任务完成或失败, 移除任务
             break;
         }
+
+        ++iter;
     }
 }
 
@@ -231,14 +247,13 @@ void SafeTeleport::handlePending(SharedTask& task) {
         task->updateState(TaskState::WaitingChunkLoad);
         mc_utils::sendText(
             *task->getPlayer(),
-            "[2/4] 目标区块未加载，等待目标区块加载..."_trl(task->mCachedLocaleCode)
+            "[2/4] 目标区块未加载，尝试加载目标区块..."_trl(task->mCachedLocaleCode)
         );
     }
 }
 void SafeTeleport::handleWaitingChunkLoad(SharedTask& task) { task->checkChunkStatus(); }
 void SafeTeleport::handleChunkLoadTimeout(SharedTask& task) {
-    mc_utils::sendText(*task->getPlayer(), "[2/4] 目标区块加载超时，正在返回原位置..."_trl(task->mCachedLocaleCode));
-    task->rollback();
+    mc_utils::sendText(*task->getPlayer(), "[2/4] 目标区块加载超时，任务失败!"_trl(task->mCachedLocaleCode));
     task->updateState(TaskState::TaskFailed);
 }
 void SafeTeleport::handleChunkLoaded(SharedTask& task) {
@@ -253,8 +268,7 @@ void SafeTeleport::handleFoundSafePos(SharedTask& task) {
     task->updateState(TaskState::TaskCompleted);
 }
 void SafeTeleport::handleNoSafePos(SharedTask& task) {
-    mc_utils::sendText(*task->getPlayer(), "[3/4] 未找到安全位置，正在返回原位置..."_trl(task->mCachedLocaleCode));
-    task->rollback();
+    mc_utils::sendText(*task->getPlayer(), "[3/4] 未找到安全位置，请重试!"_trl(task->mCachedLocaleCode));
     task->updateState(TaskState::TaskFailed);
 }
 
