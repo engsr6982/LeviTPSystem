@@ -560,3 +560,5 @@ fabric.properties
 /.vscode/
 /bin/
 /vsxmake2022
+
+src/ltps/Version.h

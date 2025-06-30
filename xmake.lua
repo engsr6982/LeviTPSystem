@@ -28,7 +28,13 @@ option("test")
     set_showmenu(true)
 option_end()
 
+rule("gen_version")
+    before_build(function(target)
+        import("scripts.gen_version")()
+    end)
+
 target("LeviTPSystem")
+    add_rules("gen_version")
     add_rules("@levibuildscript/linkrule")
     add_rules("@levibuildscript/modpacker")
     add_cxflags(
@@ -73,28 +79,6 @@ target("LeviTPSystem")
 
     add_defines("MOD_NAME=\"LeviTPSystem\"")
 
-    on_load(function (target)
-        -- 解析 git tag + commit hash
-        local raw_version_str = try { function() 
-            return os.iorunv("git", {"describe", "--tags", "--always"})
-        end } or "v0.0.0-unknown"
-
-        -- 解析版本号组件
-        local major, minor, patch = raw_version_str:match("v(%d+)%.(%d+)%.(%d+)")
-        major = major or "0"
-        minor = minor or "0" 
-        patch = patch or "0"
-
-        local version_str = "v" .. major .. "." .. minor .. "." .. patch
-
-        -- 添加版本相关宏定义
-        target:add("defines", 
-            "LEVITPSYSTEM_VERSION=\"" .. version_str .. "\"",
-            "LEVITPSYSTEM_VERSION_MAJOR=" .. major,
-            "LEVITPSYSTEM_VERSION_MINOR=" .. minor, 
-            "LEVITPSYSTEM_VERSION_PATCH=" .. patch
-        )
-    end)
     after_build(function (target)
         -- local bindir = path.join(os.projectdir(), "bin")
         -- local outputdir = path.join(bindir, target:name())

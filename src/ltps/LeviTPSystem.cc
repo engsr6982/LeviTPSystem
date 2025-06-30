@@ -1,6 +1,7 @@
 #include "ltps/LeviTPSystem.h"
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/mod/RegisterHelper.h"
+#include "ltps/Version.h"
 #include "ltps/base/BaseCommand.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/EconomySystem.h"
@@ -16,7 +17,6 @@
 #include "modules/setting/SettingModule.h"
 #include "modules/setting/SettingStorage.h"
 #include "modules/tpr/TprModule.h"
-
 #include <memory>
 
 namespace ltps {
@@ -37,7 +37,7 @@ LeviTPSystem& LeviTPSystem::getInstance() {
 
 bool LeviTPSystem::load() {
     auto& logger = mSelf.getLogger();
-    logger.info("Version: ", LEVITPSYSTEM_VERSION);
+    logger.info("Version: {}", LTPS_VERSION_STRING);
 #ifdef TPS_DEBUG
     logger.setLevel(ll::io::LogLevel::Trace);
     logger.warn("LeviTPSystem is running in debug mode!");

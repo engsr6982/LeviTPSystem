@@ -3,6 +3,7 @@
 #include "ll/api/command/CommandHandle.h"
 #include "ll/api/command/CommandRegistrar.h"
 #include "ltps/LeviTPSystem.h"
+#include "ltps/Version.h"
 #include "ltps/base/Config.h"
 #include "ltps/database/PermissionStorage.h"
 #include "ltps/database/StorageManager.h"
@@ -56,7 +57,7 @@ void BaseCommand::setup() {
 
     // ltps version
     cmd.overload().text("version").execute([](CommandOrigin const& /* origin */, CommandOutput& output) {
-        mc_utils::sendText(output, LEVITPSYSTEM_VERSION);
+        mc_utils::sendText(output, LTPS_VERSION_STRING);
     });
 
     // ltps reload
