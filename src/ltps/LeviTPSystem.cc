@@ -15,6 +15,7 @@
 #include "modules/death/DeathStorage.h"
 #include "modules/setting/SettingModule.h"
 #include "modules/setting/SettingStorage.h"
+#include "modules/tpr/TprModule.h"
 
 #include <memory>
 
@@ -67,6 +68,7 @@ bool LeviTPSystem::load() {
     mModuleManager->registerModule<home::HomeModule>();
     mModuleManager->registerModule<warp::WarpModule>();
     mModuleManager->registerModule<death::DeathModule>();
+    mModuleManager->registerModule<tpr::TprModule>();
 
     mStorageManager->postLoad();   // 加载 Storage
     mModuleManager->initModules(); // 初始化模块
