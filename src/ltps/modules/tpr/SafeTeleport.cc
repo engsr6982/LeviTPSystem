@@ -39,6 +39,7 @@ SafeTeleport::Task::Task(Player& player, DimensionPos targetPos)
     mTargetPos.first.y  = 3389;
 }
 
+
 bool SafeTeleport::Task::isPending() const { return mState == TaskState::Pending; }
 bool SafeTeleport::Task::isWaitingChunkLoad() const { return mState == TaskState::WaitingChunkLoad; }
 bool SafeTeleport::Task::isChunkLoadTimeout() const { return mState == TaskState::ChunkLoadTimeout; }
@@ -114,7 +115,18 @@ void SafeTeleport::Task::checkPlayerStatus() {
     }
 }
 
-
+void SafeTeleport::Task::_tryApplyDimensionFixPatch(DimensionHeightRange const& range) {
+    switch (mTargetPos.second) {
+    case 1:
+        _applyNetherFixPatch(range);
+        break;
+    default:
+        break;
+    }
+}
+void SafeTeleport::Task::_applyNetherFixPatch(DimensionHeightRange const& range) {
+    mTargetPos.first.y = range.mMax - 5; // 向下偏移 5 格，避免基岩顶部
+}
 void SafeTeleport::Task::_findSafePos() {
     auto const& dangerousBlocks = getConfig().modules.tpr.dangerousBlocks;
 
@@ -122,15 +134,17 @@ void SafeTeleport::Task::_findSafePos() {
     auto* player      = getPlayer();
     auto& blockSource = player->getDimensionBlockSource();
 
-    auto&      heightRange = player->getDimension().mHeightRange;
-    auto const start       = heightRange->mMax;
-    auto const end         = heightRange->mMin;
+    auto const& heightRange = player->getDimension().mHeightRange.get();
+    auto const  start       = heightRange.mMax;
+    auto const  end         = heightRange.mMin;
 
     Block* headBlock = nullptr; // 头部方块
     Block* legBlock  = nullptr; // 腿部方块
 
     auto& y = targetPos.y;
     y       = start; // 从最高点开始寻找
+
+    _tryApplyDimensionFixPatch(heightRange); // 尝试应用维度修复补丁
 
 #ifdef TPS_DEBUG
     auto& logger = LeviTPSystem::getInstance().getSelf().getLogger();

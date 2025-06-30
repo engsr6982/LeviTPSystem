@@ -7,6 +7,8 @@
 #include <mc/world/level/ChunkPos.h>
 #include <utility>
 
+
+class DimensionHeightRange;
 namespace mce {
 class UUID;
 }
@@ -53,6 +55,8 @@ public:
         std::atomic<bool>             mAbortFlag{false};                                // 终止标志
 
         void _findSafePos();
+        void _tryApplyDimensionFixPatch(DimensionHeightRange const& range); // 尝试应用维度修复补丁
+        void _applyNetherFixPatch(DimensionHeightRange const& range);
         friend SafeTeleport;
 
     public:
