@@ -7,8 +7,6 @@
 #include <mc/world/level/ChunkPos.h>
 #include <utility>
 
-
-class LevelChunk;
 namespace mce {
 class UUID;
 }
@@ -47,12 +45,12 @@ public:
         ChunkSource&                  mChunkSource;                                     // 区块源
         ChunkPos                      mTargetChunkPos;                                  // 目标区块位置
         std::string const             mCachedLocaleCode;                                // 玩家语言代码
+        DimensionPos const            mSourcePos;                                       // 原位置
         DimensionPos                  mTargetPos;                                       // 目标位置
         TaskState                     mState{TaskState::Pending};                       // 任务状态
         short                         mCounter{0};                                      // 计数器
         SetTitlePacket                mTipPacket{SetTitlePacket::TitleType::Actionbar}; // 提示包
         std::atomic<bool>             mAbortFlag{false};                                // 终止标志
-        std::shared_ptr<LevelChunk>   mLevelChunk{nullptr};
 
         void _findSafePos();
         friend SafeTeleport;
@@ -78,9 +76,6 @@ public:
         TPSNDAPI bool isAborted() const;
 
         TPSNDAPI bool isTargetChunkFullyLoaded() const;
-        TPSNDAPI bool isTargetChunkGenerated() const;
-
-        TPSAPI bool tryLoadTargetChunk();
 
         TPSNDAPI TaskState getState() const;
 
@@ -93,6 +88,8 @@ public:
         TPSAPI void sendWaitChunkLoadTip();
 
         TPSAPI void abort();
+
+        TPSAPI void rollback() const;
 
         TPSAPI void commit() const;
 

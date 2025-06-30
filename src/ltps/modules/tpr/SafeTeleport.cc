@@ -8,7 +8,6 @@
 #include "mc/deps/ecs/WeakEntityRef.h"
 #include "mc/network/packet/SetTitlePacket.h"
 #include "mc/world/actor/player/Player.h"
-#include "mc/world/level/ChunkBlockPos.h"
 #include <cstdint>
 #include <ll/api/coro/CoroTask.h>
 #include <ll/api/thread/ThreadPoolExecutor.h>
@@ -33,6 +32,7 @@ SafeTeleport::Task::Task(Player& player, DimensionPos targetPos)
   mChunkSource(player.getDimensionBlockSource().getChunkSource()),
   mTargetChunkPos(ChunkPos(targetPos.first)),
   mCachedLocaleCode(player.getLocaleCode()),
+  mSourcePos({player.getPosition(), player.getDimensionId()}),
   mTargetPos(targetPos) {}
 
 bool SafeTeleport::Task::isPending() const { return mState == TaskState::Pending; }
@@ -66,6 +66,12 @@ void SafeTeleport::Task::abort() {
     updateState(TaskState::TaskFailed);
 }
 
+void SafeTeleport::Task::rollback() const {
+    if (auto player = getPlayer()) {
+        player->teleport(mSourcePos.first, mSourcePos.second);
+    }
+}
+
 void SafeTeleport::Task::commit() const {
     if (auto player = getPlayer()) {
         player->teleport(mTargetPos.first, mTargetPos.second);
@@ -78,24 +84,10 @@ bool SafeTeleport::Task::isTargetChunkFullyLoaded() const {
     return chunk && static_cast<int>(chunk->mLoadState->load()) >= static_cast<int>(ChunkState::Loaded)
         && !chunk->mIsEmptyClientChunk && chunk->mIsRedstoneLoaded;
 }
-bool SafeTeleport::Task::isTargetChunkGenerated() const {
-    return mLevelChunk->mLoadState.get() == ChunkState::Generated;
-}
-bool SafeTeleport::Task::tryLoadTargetChunk() {
-    auto chunk = mChunkSource.getOrLoadChunk(mTargetChunkPos, ChunkSource::LoadMode::Deferred, true);
-    if (!chunk) {
-        return false;
-    }
-    mChunkSource.checkAndLaunchChunkGenerationTasks(false);
-    mLevelChunk = chunk;
-    // TODO: 为什么区块不加载？
-    return true;
-}
-
 
 void SafeTeleport::Task::checkChunkStatus() {
     if (isWaitingChunkLoad()) {
-        if (/*isTargetChunkFullyLoaded() &&*/ isTargetChunkGenerated()) {
+        if (isTargetChunkFullyLoaded()) {
             updateState(TaskState::ChunkLoaded);
         } else if (mCounter > MaxCounter) {
             updateState(TaskState::ChunkLoadTimeout);
@@ -134,13 +126,7 @@ void SafeTeleport::Task::_findSafePos() {
 #endif
 
     while (y > end && !mAbortFlag.load()) {
-        // auto block = &const_cast<Block&>(blockSource.getBlock(targetPos));
-
-        auto block = &const_cast<Block&>(mLevelChunk->getBlock(ChunkBlockPos(
-            static_cast<int>(targetPos.x) % 16,
-            static_cast<int>(targetPos.z) % 16,
-            y + (std::abs(end) + start)
-        )));
+        auto block = &const_cast<Block&>(blockSource.getBlock(targetPos));
 
         if (!headBlock && !legBlock) { // 第一次循环, 初始化
             headBlock = block;
@@ -252,17 +238,17 @@ void SafeTeleport::handlePending(SharedTask& task) {
     if (task->isTargetChunkFullyLoaded()) {
         task->updateState(TaskState::ChunkLoaded);
     } else {
-        task->tryLoadTargetChunk();
         task->updateState(TaskState::WaitingChunkLoad);
         mc_utils::sendText(
             *task->getPlayer(),
-            "[2/4] 目标区块未加载，尝试加载目标区块..."_trl(task->mCachedLocaleCode)
+            "[2/4] 目标区块未加载，等待目标区块加载..."_trl(task->mCachedLocaleCode)
         );
     }
 }
 void SafeTeleport::handleWaitingChunkLoad(SharedTask& task) { task->checkChunkStatus(); }
 void SafeTeleport::handleChunkLoadTimeout(SharedTask& task) {
-    mc_utils::sendText(*task->getPlayer(), "[2/4] 目标区块加载超时，任务失败!"_trl(task->mCachedLocaleCode));
+    mc_utils::sendText(*task->getPlayer(), "[2/4] 目标区块加载超时，正在返回原位置..."_trl(task->mCachedLocaleCode));
+    task->rollback();
     task->updateState(TaskState::TaskFailed);
 }
 void SafeTeleport::handleChunkLoaded(SharedTask& task) {
@@ -277,7 +263,8 @@ void SafeTeleport::handleFoundSafePos(SharedTask& task) {
     task->updateState(TaskState::TaskCompleted);
 }
 void SafeTeleport::handleNoSafePos(SharedTask& task) {
-    mc_utils::sendText(*task->getPlayer(), "[3/4] 未找到安全位置，请重试!"_trl(task->mCachedLocaleCode));
+    mc_utils::sendText(*task->getPlayer(), "[3/4] 未找到安全位置，正在返回原位置..."_trl(task->mCachedLocaleCode));
+    task->rollback();
     task->updateState(TaskState::TaskFailed);
 }
 
