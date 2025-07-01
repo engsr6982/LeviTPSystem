@@ -1,6 +1,7 @@
 #pragma once
 #include "ll/api/thread/ThreadPoolExecutor.h"
 #include "ltps/Global.h"
+#include <ll/api/thread/ServerThreadExecutor.h>
 #include <string>
 #include <vector>
 
@@ -30,7 +31,8 @@ public:
     TPSNDAPI bool isEnabled() const;
 
 protected:
-    [[nodiscard]] ll::thread::ThreadPoolExecutor& getThreadPool() const;
+    [[nodiscard]] ll::thread::ThreadPoolExecutor&         getThreadPool() const;
+    [[nodiscard]] ll::thread::ServerThreadExecutor const& getServerThreadExecutor() const;
 
     [[nodiscard]] StorageManager& getStorageManager() const;
 

@@ -20,7 +20,7 @@ bool TprModule::isLoadable() const { return getConfig().modules.tpa.enable; }
 
 bool TprModule::init() {
     if (!mSafeTeleport) {
-        mSafeTeleport = std::make_unique<SafeTeleport>();
+        mSafeTeleport = std::make_unique<SafeTeleport>(getServerThreadExecutor());
     }
     return true;
 }

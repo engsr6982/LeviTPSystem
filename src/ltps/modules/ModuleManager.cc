@@ -9,8 +9,8 @@
 
 namespace ltps {
 
-ModuleManager::ModuleManager()  = default;
-ModuleManager::~ModuleManager() = default;
+ModuleManager::ModuleManager() = default;
+ModuleManager::~ModuleManager() { mModules.clear(); }
 
 void ModuleManager::registerModule(std::unique_ptr<IModule> module) {
     mModules.emplace(module->getModuleName(), std::move(module));

@@ -46,7 +46,12 @@ bool LeviTPSystem::load() {
     logger.warn("LeviTPSystem is running in test mode!");
 #endif
 
-    mThreadPool     = std::make_unique<ll::thread::ThreadPoolExecutor>("LeviTPSystem-ThreadPool", 2);
+    mThreadPool           = std::make_unique<ll::thread::ThreadPoolExecutor>("LeviTPSystem-ThreadPool", 2);
+    mServerThreadExecutor = std::make_unique<ll::thread::ServerThreadExecutor>(
+        "LeviTPSystem-ServerThreadExecutor",
+        std::chrono::milliseconds{30},
+        16
+    );
     mStorageManager = std::unique_ptr<StorageManager>(new StorageManager(*mThreadPool));
     mModuleManager  = std::unique_ptr<ModuleManager>(new ModuleManager());
 
@@ -89,12 +94,13 @@ bool LeviTPSystem::enable() {
 bool LeviTPSystem::disable() {
     mModuleManager->disableModules(); // 禁用模块
     mStorageManager->postUnload();    // 卸载 Storage
-    mThreadPool->destroy();           // 销毁线程池
 
-    mThreadPool.reset();     // 销毁线程池指针
-    mModuleManager.reset();  // 销毁模块管理器指针
-    mStorageManager.reset(); // 销毁 Storage 指针
 
+    mModuleManager.reset();        // 销毁模块管理器指针
+    mStorageManager.reset();       // 销毁 Storage 指针
+    mServerThreadExecutor.reset(); // 销毁 Server 线程池指针
+    mThreadPool->destroy();        // 销毁线程池
+    mThreadPool.reset();           // 销毁线程池指针
     return true;
 }
 
@@ -104,10 +110,11 @@ bool LeviTPSystem::unload() {
 }
 
 LeviTPSystem::LeviTPSystem() : mSelf(*ll::mod::NativeMod::current()) {}
-ll::mod::NativeMod&             LeviTPSystem::getSelf() const { return mSelf; }
-ll::thread::ThreadPoolExecutor& LeviTPSystem::getThreadPool() { return *mThreadPool; }
-StorageManager&                 LeviTPSystem::getStorageManager() { return *mStorageManager; }
-ModuleManager&                  LeviTPSystem::getModuleManager() { return *mModuleManager; }
+ll::mod::NativeMod&                     LeviTPSystem::getSelf() const { return mSelf; }
+ll::thread::ThreadPoolExecutor&         LeviTPSystem::getThreadPool() { return *mThreadPool; }
+ll::thread::ServerThreadExecutor const& LeviTPSystem::getServerThreadExecutor() const { return *mServerThreadExecutor; }
+StorageManager&                         LeviTPSystem::getStorageManager() { return *mStorageManager; }
+ModuleManager&                          LeviTPSystem::getModuleManager() { return *mModuleManager; }
 
 } // namespace ltps
 

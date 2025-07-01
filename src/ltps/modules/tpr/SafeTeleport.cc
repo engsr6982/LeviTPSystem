@@ -180,33 +180,42 @@ void SafeTeleport::Task::_findSafePos() {
     updateState(TaskState::NoSafePos); // 没有找到安全位置
 }
 
-void SafeTeleport::Task::launchFindPosTask() {
+void SafeTeleport::Task::launchFindPosTask(ll::thread::ServerThreadExecutor const& serverThreadExecutor) {
     ll::coro::keepThis([this]() -> ll::coro::CoroTask<> {
         co_await ll::chrono::ticks(1); // 等待 1_tick 再开始寻找安全位置
         _findSafePos();
         co_return;
-    }).launch(ll::thread::ServerThreadExecutor::getDefault());
+    }).launch(serverThreadExecutor.getDefault());
 }
 
 
-SafeTeleport::SafeTeleport() {
-    ll::coro::keepThis([this]() -> ll::coro::CoroTask<> {
-        while (!mPollingStopFlag.load()) {
-            co_await ll::chrono::ticks(10); // 每 10_tick 检查一次任务状态
-            try {
-                polling();
-            } catch (...) {
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
-                    "An exception occurred while polling SafeTeleport tasks"
-                );
+SafeTeleport::SafeTeleport(ll::thread::ServerThreadExecutor const& serverThreadExecutor)
+: mServerThreadExecutor(serverThreadExecutor) {
+    mInterruptableSleep = std::make_shared<ll::coro::InterruptableSleep>();
+    mPollingAbortFlag   = std::make_shared<std::atomic_bool>(false);
+
+    ll::coro::keepThis(
+        [/*this,*/ sleep = mInterruptableSleep, abortFlag = mPollingAbortFlag]() -> ll::coro::CoroTask<> {
+            while (!abortFlag->load()) {
+                co_await sleep->sleepFor(ll::chrono::ticks{10});
+                if (abortFlag->load()) break;
+                try {
+                    // polling();
+                    // TODO: 修复热卸载时，此协程引发异常
+                } catch (...) {
+                    LeviTPSystem::getInstance().getSelf().getLogger().error(
+                        "An exception occurred while polling SafeTeleport tasks"
+                    );
+                }
             }
+            co_return;
         }
-        co_return;
-    }).launch(ll::thread::ServerThreadExecutor::getDefault());
+    ).launch(serverThreadExecutor.getDefault());
 }
 
 SafeTeleport::~SafeTeleport() {
-    mPollingStopFlag.store(true);
+    mPollingAbortFlag->store(true);
+    mInterruptableSleep->interrupt();
     for (auto& [_, task] : mTasks) {
         task->abort();
     }
@@ -280,7 +289,7 @@ void SafeTeleport::handleChunkLoadTimeout(SharedTask& task) {
 }
 void SafeTeleport::handleChunkLoaded(SharedTask& task) {
     mc_utils::sendText(*task->getPlayer(), "[3/4] 区块已加载，正在寻找安全位置..."_trl(task->mCachedLocaleCode));
-    task->launchFindPosTask();
+    task->launchFindPosTask(mServerThreadExecutor);
     task->updateState(TaskState::FindingSafePos);
 }
 

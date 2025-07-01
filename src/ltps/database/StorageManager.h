@@ -3,6 +3,7 @@
 #include "ll/api/thread/ThreadPoolExecutor.h"
 #include "ltps/Global.h"
 #include "ltps/database/IStorage.h"
+#include <ll/api/coro/InterruptableSleep.h>
 #include <memory>
 #include <string>
 #include <typeindex>
@@ -15,7 +16,9 @@ class StorageManager final {
 private:
     std::unique_ptr<ll::data::KeyValueDB>                          mDatabase;
     std::unordered_map<std::type_index, std::unique_ptr<IStorage>> mStorages;
-    std::atomic<bool>                                              mWriteBackTaskCanRuning{false};
+    std::shared_ptr<ll::coro::InterruptableSleep>                  mInterruptableSleep{nullptr};
+    std::shared_ptr<std::atomic_bool>                              mWriteBackTaskAbortFlag{nullptr};
+
 
     explicit StorageManager(ll::thread::ThreadPoolExecutor& threadPoolExecutor);
 

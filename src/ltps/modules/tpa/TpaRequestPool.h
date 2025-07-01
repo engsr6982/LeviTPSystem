@@ -18,8 +18,10 @@ class TpaRequestPool {
     using RequestMap = std::unordered_map<mce::UUID, std::shared_ptr<TpaRequest>>;
     std::unordered_map<mce::UUID, RequestMap> mPool;
 
-    std::atomic<bool>            mShouldStopCoro{false};
-    ll::coro::InterruptableSleep mCleanupCoroSleep;
+    std::shared_ptr<std::atomic_bool>             mPollingAbortFlag{nullptr};
+    std::shared_ptr<ll::coro::InterruptableSleep> mInterruptableSleep{nullptr};
+
+    friend class TpaModule;
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(TpaRequestPool)
@@ -43,14 +45,6 @@ public:
     TPSNDAPI std::vector<mce::UUID> getSenders(mce::UUID const& receiver);
 
     TPSAPI void cleanupExpiredRequests();
-
-
-private:
-    void _stopCleanupCoro();
-
-    void _initCleanupCoro(ll::thread::ThreadPoolExecutor& executor); // 构造时调用
-
-    friend class TpaModule;
 };
 
 

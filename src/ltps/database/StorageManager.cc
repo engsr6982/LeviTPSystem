@@ -13,22 +13,28 @@ StorageManager::StorageManager(ll::thread::ThreadPoolExecutor& threadPoolExecuto
         auto path = LeviTPSystem::getInstance().getSelf().getModDir() / "leveldb";
         mDatabase = std::make_unique<ll::data::KeyValueDB>(path);
     }
+    mInterruptableSleep     = std::make_shared<ll::coro::InterruptableSleep>();
+    mWriteBackTaskAbortFlag = std::make_shared<std::atomic_bool>(false);
 
-    mWriteBackTaskCanRuning.store(true);
-    ll::coro::keepThis([this]() -> ll::coro::CoroTask<> {
-        while (mWriteBackTaskCanRuning.load()) {
-            co_await std::chrono::seconds(60);
-            if (!mWriteBackTaskCanRuning.load()) {
-                break;
+    ll::coro::keepThis(
+        [this, interruptableSleep = mInterruptableSleep, writeBackTaskAbortFlag = mWriteBackTaskAbortFlag](
+        ) -> ll::coro::CoroTask<> {
+            while (!writeBackTaskAbortFlag->load()) {
+                co_await interruptableSleep->sleepFor(std::chrono::seconds(60));
+                if (writeBackTaskAbortFlag->load()) {
+                    break;
+                }
+                postWriteBack();
             }
-            postWriteBack();
+            co_return;
         }
-        LeviTPSystem::getInstance().getSelf().getLogger().debug("StorageManager: Write back task stopped");
-        co_return;
-    }).launch(threadPoolExecutor);
+    ).launch(threadPoolExecutor);
 }
 
-StorageManager::~StorageManager() { mWriteBackTaskCanRuning.store(false); }
+StorageManager::~StorageManager() {
+    mWriteBackTaskAbortFlag->store(true);
+    mInterruptableSleep->interrupt();
+}
 
 void StorageManager::postLoad() {
     for (auto& [_, storage] : mStorages) {

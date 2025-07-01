@@ -7,6 +7,8 @@
 #include "ltps/database/StorageManager.h"
 #include "ltps/modules/ModuleManager.h"
 
+#include <ll/api/thread/ServerThreadExecutor.h>
+
 namespace ltps {
 
 class LeviTPSystem {
@@ -26,6 +28,8 @@ public:
 
     [[nodiscard]] ll::thread::ThreadPoolExecutor& getThreadPool();
 
+    [[nodiscard]] ll::thread::ServerThreadExecutor const& getServerThreadExecutor() const;
+
     [[nodiscard]] StorageManager& getStorageManager();
 
     [[nodiscard]] ModuleManager& getModuleManager();
@@ -33,10 +37,11 @@ public:
 private:
     explicit LeviTPSystem();
 
-    ll::mod::NativeMod&                             mSelf;
-    std::unique_ptr<ll::thread::ThreadPoolExecutor> mThreadPool;
-    std::unique_ptr<StorageManager>                 mStorageManager;
-    std::unique_ptr<ModuleManager>                  mModuleManager;
+    ll::mod::NativeMod&                               mSelf;
+    std::unique_ptr<ll::thread::ThreadPoolExecutor>   mThreadPool;
+    std::unique_ptr<ll::thread::ServerThreadExecutor> mServerThreadExecutor;
+    std::unique_ptr<StorageManager>                   mStorageManager;
+    std::unique_ptr<ModuleManager>                    mModuleManager;
 };
 
 } // namespace ltps

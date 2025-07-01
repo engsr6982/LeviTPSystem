@@ -3,6 +3,9 @@
 #include "mc/deps/core/math/Vec3.h"
 #include "mc/deps/ecs/WeakEntityRef.h"
 #include <cstdint>
+#include <ll/api/coro/CoroTask.h>
+#include <ll/api/coro/InterruptableSleep.h>
+#include <ll/api/thread/ServerThreadExecutor.h>
 #include <mc/network/packet/SetTitlePacket.h>
 #include <mc/world/level/ChunkPos.h>
 #include <utility>
@@ -100,12 +103,12 @@ public:
         TPSAPI void checkChunkStatus();                   // 检查目标区块状态
         TPSAPI void checkPlayerStatus();                  // 检查玩家是否在线
         TPSAPI void teleportToTargetPosAndTryLoadChunk(); // 传送到目标位置并尝试加载区块
-        TPSAPI void launchFindPosTask();
+        TPSAPI void launchFindPosTask(ll::thread::ServerThreadExecutor const& serverThreadExecutor);
     };
     using SharedTask = std::shared_ptr<Task>;
 
 
-    TPSAPI explicit SafeTeleport();
+    TPSAPI explicit SafeTeleport(ll::thread::ServerThreadExecutor const& serverThreadExecutor);
     TPSAPI ~SafeTeleport();
 
     TPSAPI void launchTask(Player& player, DimensionPos targetPos);
@@ -114,15 +117,18 @@ public:
 private:
     void polling(); // 轮询任务状态
 
-    static void handlePending(SharedTask& task);
-    static void handleWaitingChunkLoad(SharedTask& task);
-    static void handleChunkLoadTimeout(SharedTask& task);
-    static void handleChunkLoaded(SharedTask& task);
-    static void handleFoundSafePos(SharedTask& task);
-    static void handleNoSafePos(SharedTask& task);
+    void handlePending(SharedTask& task);
+    void handleWaitingChunkLoad(SharedTask& task);
+    void handleChunkLoadTimeout(SharedTask& task);
+    void handleChunkLoaded(SharedTask& task);
+    void handleFoundSafePos(SharedTask& task);
+    void handleNoSafePos(SharedTask& task);
 
     std::unordered_map<TaskId, SharedTask> mTasks;
-    std::atomic<bool>                      mPollingStopFlag{false}; // 轮询停止标志
+
+    ll::thread::ServerThreadExecutor const&       mServerThreadExecutor;
+    std::shared_ptr<ll::coro::InterruptableSleep> mInterruptableSleep{nullptr};
+    std::shared_ptr<std::atomic_bool>             mPollingAbortFlag{nullptr};
 };
 
 } // namespace ltps::tpr
