@@ -218,7 +218,7 @@ bool LegacyMoneyEconomySystem::transfer(Player& from, Player& to, long long amou
     if (!func) {
         throw std::runtime_error("Dynamic call to LLMoney_Trans failed.");
     }
-    return func(from.getXuid(), to.getXuid(), amount, "LeviTPSystem Transfer");
+    return func(from.getXuid(), to.getXuid(), amount, "TeleportSystem Transfer");
 }
 bool LegacyMoneyEconomySystem::transfer(mce::UUID const& from, mce::UUID const& to, long long amount) const {
     if (!isLegacyMoneyLoaded()) {

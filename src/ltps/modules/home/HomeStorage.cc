@@ -1,5 +1,5 @@
 #include "ltps/modules/home/HomeStorage.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/utils/JsonUtls.h"
 #include "ltps/utils/McUtils.h"
 #include "ltps/utils/TimeUtils.h"
@@ -37,7 +37,7 @@ void HomeStorage::load() {
             json_utils::json2structTryPatch(home, value);
             mHomes[key].push_back(std::move(home));
         }
-        LeviTPSystem::getInstance().getSelf().getLogger().info("Loaded {} homes", mHomes.size());
+        TeleportSystem::getInstance().getSelf().getLogger().info("Loaded {} homes", mHomes.size());
     } catch (const nlohmann::json::parse_error& e) {
         throw std::runtime_error("Could not parse home data");
     }

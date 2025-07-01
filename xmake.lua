@@ -33,7 +33,7 @@ rule("gen_version")
         import("scripts.gen_version")()
     end)
 
-target("LeviTPSystem")
+target("TeleportSystem")
     add_rules("gen_version")
     add_rules("@levibuildscript/linkrule")
     add_rules("@levibuildscript/modpacker")
@@ -77,7 +77,7 @@ target("LeviTPSystem")
         add_files("test/**.cc")
     end
 
-    add_defines("MOD_NAME=\"LeviTPSystem\"")
+    add_defines("MOD_NAME=\"TeleportSystem\"")
 
     after_build(function (target)
         -- local bindir = path.join(os.projectdir(), "bin")

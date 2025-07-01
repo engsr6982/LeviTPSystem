@@ -1,6 +1,6 @@
 #include "DeathStorage.h"
 
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/utils/JsonUtls.h"
 #include "ltps/utils/TimeUtils.h"
@@ -33,7 +33,7 @@ void DeathStorage::load() {
         }
 
         json_utils::json2structTryPatch(mDeathInfoMap, json);
-        LeviTPSystem::getInstance().getSelf().getLogger().info("Loaded {} death infos", mDeathInfoMap.size());
+        TeleportSystem::getInstance().getSelf().getLogger().info("Loaded {} death infos", mDeathInfoMap.size());
     } catch (const nlohmann::json::parse_error& e) {
         throw std::runtime_error("Could not parse death data");
     }

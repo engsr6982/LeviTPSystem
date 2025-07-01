@@ -10,7 +10,7 @@ namespace ltps::tpr {
 
 void TprCommand::setup() {
     ll::command::CommandRegistrar::getInstance()
-        .getOrCreateCommand("tpr", "LeviTPSystem - Tpr")
+        .getOrCreateCommand("tpr", "TeleportSystem - Tpr")
         .overload()
         .execute([](CommandOrigin const& origin, CommandOutput& output) {
             if (origin.getOriginType() != CommandOriginType::Player) {

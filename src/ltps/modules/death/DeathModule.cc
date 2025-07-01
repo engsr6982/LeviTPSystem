@@ -3,7 +3,7 @@
 #include "DeathCommand.h"
 #include "event/DeathEvents.h"
 #include "gui/DeathGUI.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/PriceCalculate.h"
 #include "ltps/database/StorageManager.h"
@@ -77,7 +77,7 @@ bool DeathModule::enable() {
 
             if (!price) {
                 mc_utils::sendText<mc_utils::Error>(player, "计算价格失败"_trl(localeCode));
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                TeleportSystem::getInstance().getSelf().getLogger().error(
                     "[DeathModule]: Calculate price failed! player: {}, deathInfo: {}, error: {}",
                     realName,
                     info.toString(),
@@ -117,19 +117,18 @@ bool DeathModule::enable() {
         mc_utils::sendText(player, "本次死亡信息已记录，使用 /death back 可以返回死亡点"_trl(player.getLocaleCode()));
     }));
 
-    mListeners.emplace_back(
-        bus.emplaceListener<ll::event::PlayerRespawnEvent>([this](ll::event::PlayerRespawnEvent& ev) {
-            auto& player = ev.self();
-            if (player.isSimulatedPlayer()) {
-                return;
-            }
+    mListeners.emplace_back(bus.emplaceListener<ll::event::PlayerRespawnEvent>([this](ll::event::PlayerRespawnEvent& ev
+                                                                               ) {
+        auto& player = ev.self();
+        if (player.isSimulatedPlayer()) {
+            return;
+        }
 
-            if (auto ps = getStorageManager().getStorage<setting::SettingStorage>();
-                ps && ps->getSettingData(player.getRealName())->deathPopup) {
-                DeathGUI::sendBackGUI(player);
-            }
-        })
-    );
+        if (auto ps = getStorageManager().getStorage<setting::SettingStorage>();
+            ps && ps->getSettingData(player.getRealName())->deathPopup) {
+            DeathGUI::sendBackGUI(player);
+        }
+    }));
 
 
     DeathCommand::setup();

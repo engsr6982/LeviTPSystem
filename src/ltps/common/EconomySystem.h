@@ -69,7 +69,7 @@ class EconomySystemManager final {
     void reloadEconomySystem(); // 重载经济系统（当 kit 改变时）
 
     friend class EconomySystem;
-    friend class LeviTPSystem;
+    friend class TeleportSystem;
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(EconomySystemManager);

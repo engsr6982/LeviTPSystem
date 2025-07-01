@@ -2,7 +2,7 @@
 #include "ll/api/chrono/GameChrono.h"
 #include "ll/api/thread/ServerThreadExecutor.h"
 #include "ltps/Global.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/utils/McUtils.h"
 #include "mc/deps/ecs/WeakEntityRef.h"
@@ -147,7 +147,7 @@ void SafeTeleport::Task::_findSafePos() {
     _tryApplyDimensionFixPatch(heightRange); // 尝试应用维度修复补丁
 
 #ifdef TPS_DEBUG
-    auto& logger = LeviTPSystem::getInstance().getSelf().getLogger();
+    auto& logger = TeleportSystem::getInstance().getSelf().getLogger();
 #endif
 
     while (y > end && !mAbortFlag.load()) {
@@ -203,7 +203,7 @@ SafeTeleport::SafeTeleport(ll::thread::ServerThreadExecutor const& serverThreadE
                     // polling();
                     // TODO: 修复热卸载时，此协程引发异常
                 } catch (...) {
-                    LeviTPSystem::getInstance().getSelf().getLogger().error(
+                    TeleportSystem::getInstance().getSelf().getLogger().error(
                         "An exception occurred while polling SafeTeleport tasks"
                     );
                 }

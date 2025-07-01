@@ -1,7 +1,7 @@
 #include "ltps/database/StorageManager.h"
 #include "ll/api/coro/CoroTask.h"
 #include "ll/api/data/KeyValueDB.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include <memory>
 #include <stdexcept>
 
@@ -10,7 +10,7 @@ namespace ltps {
 
 StorageManager::StorageManager(ll::thread::ThreadPoolExecutor& threadPoolExecutor) {
     if (!mDatabase) {
-        auto path = LeviTPSystem::getInstance().getSelf().getModDir() / "leveldb";
+        auto path = TeleportSystem::getInstance().getSelf().getModDir() / "leveldb";
         mDatabase = std::make_unique<ll::data::KeyValueDB>(path);
     }
     mInterruptableSleep     = std::make_shared<ll::coro::InterruptableSleep>();
@@ -41,12 +41,12 @@ void StorageManager::postLoad() {
         try {
             storage->load();
         } catch (const std::exception& e) {
-            LeviTPSystem::getInstance().getSelf().getLogger().error(
+            TeleportSystem::getInstance().getSelf().getLogger().error(
                 "StorageManager: Failed to load storage: {}",
                 e.what()
             );
         } catch (...) {
-            LeviTPSystem::getInstance().getSelf().getLogger().error(
+            TeleportSystem::getInstance().getSelf().getLogger().error(
                 "StorageManager: Failed to load storage: unknown error"
             );
         }
@@ -57,12 +57,12 @@ void StorageManager::postUnload() {
         try {
             storage->unload();
         } catch (const std::exception& e) {
-            LeviTPSystem::getInstance().getSelf().getLogger().error(
+            TeleportSystem::getInstance().getSelf().getLogger().error(
                 "StorageManager: Failed to unload storage: {}",
                 e.what()
             );
         } catch (...) {
-            LeviTPSystem::getInstance().getSelf().getLogger().error(
+            TeleportSystem::getInstance().getSelf().getLogger().error(
                 "StorageManager: Failed to unload storage: unknown error"
             );
         }
@@ -73,12 +73,12 @@ void StorageManager::postWriteBack() {
         try {
             storage->writeBack();
         } catch (const std::exception& e) {
-            LeviTPSystem::getInstance().getSelf().getLogger().error(
+            TeleportSystem::getInstance().getSelf().getLogger().error(
                 "StorageManager: Failed to write back storage: {}",
                 e.what()
             );
         } catch (...) {
-            LeviTPSystem::getInstance().getSelf().getLogger().error(
+            TeleportSystem::getInstance().getSelf().getLogger().error(
                 "StorageManager: Failed to write back storage: unknown error"
             );
         }

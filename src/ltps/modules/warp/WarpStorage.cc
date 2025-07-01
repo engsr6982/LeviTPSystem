@@ -1,5 +1,5 @@
 #include "WarpStorage.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/utils/JsonUtls.h"
 #include "ltps/utils/McUtils.h"
 #include "ltps/utils/TimeUtils.h"
@@ -34,7 +34,7 @@ void WarpStorage::load() {
             json_utils::json2structTryPatch(warp, value);
             mWarps.push_back(std::move(warp));
         }
-        LeviTPSystem::getInstance().getSelf().getLogger().info("Loaded {} warps", mWarps.size());
+        TeleportSystem::getInstance().getSelf().getLogger().info("Loaded {} warps", mWarps.size());
     } catch (const nlohmann::json::parse_error& e) {
         throw std::runtime_error("Could not parse warp data");
     }

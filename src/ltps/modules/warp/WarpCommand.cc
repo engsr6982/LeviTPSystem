@@ -4,7 +4,7 @@
 #include "event/WarpEvents.h"
 #include "gui/WarpGUI.h"
 #include "ll/api/event/EventBus.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/utils/McUtils.h"
 #include <ll/api/command/CommandHandle.h>
 #include <mc/world/level/dimension/VanillaDimensions.h>
@@ -23,7 +23,7 @@ struct WarpActionParam {
 
 
 void WarpCommand::setup() {
-    auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand("warp", "LeviTPSystem - Warp");
+    auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand("warp", "TeleportSystem - Warp");
 
     // warp
     cmd.overload().execute([](CommandOrigin const& origin, CommandOutput& output) {
@@ -45,7 +45,7 @@ void WarpCommand::setup() {
 
             auto& player     = *static_cast<Player*>(origin.getEntity());
             auto  localeCode = player.getLocaleCode();
-            auto  storage    = LeviTPSystem::getInstance().getStorageManager().getStorage<WarpStorage>();
+            auto  storage    = TeleportSystem::getInstance().getStorageManager().getStorage<WarpStorage>();
 
             if (param.name.empty()) {
                 auto        warps = storage->getWarps(16);

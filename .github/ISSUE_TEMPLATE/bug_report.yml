@@ -53,7 +53,7 @@ body:
   - type: input
     attributes:
       label: Version | 版本
-      description: The version of the LeviTPSystem you are using. (e.g. 1.0.0) | 您使用的 LeviTPSystem 版本。
+      description: The version of the TeleportSystem you are using. (e.g. 1.0.0) | 您使用的 TeleportSystem 版本。
     validations:
       required: true
 

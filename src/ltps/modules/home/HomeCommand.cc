@@ -5,7 +5,7 @@
 #include "ll/api/command/CommandRegistrar.h"
 #include "ll/api/command/Overload.h"
 #include "ll/api/event/EventBus.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/database/StorageManager.h"
 #include "ltps/modules/home/HomeStorage.h"
 #include "ltps/modules/home/event/HomeEvents.h"
@@ -36,7 +36,7 @@ struct HomeUpdateParam {
 
 
 void HomeCommand::setup() {
-    auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand("home", "LeviTPSystem - Home");
+    auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand("home", "TeleportSystem - Home");
 
     // home
     cmd.overload().execute([](CommandOrigin const& origin, CommandOutput& output) {
@@ -59,7 +59,7 @@ void HomeCommand::setup() {
 
             auto& player     = *static_cast<Player*>(origin.getEntity());
             auto  localeCode = player.getLocaleCode();
-            auto  storage    = LeviTPSystem::getInstance().getStorageManager().getStorage<HomeStorage>();
+            auto  storage    = TeleportSystem::getInstance().getStorageManager().getStorage<HomeStorage>();
 
             if (param.name.empty()) {
                 auto& homes = storage->getHomes(player.getRealName());

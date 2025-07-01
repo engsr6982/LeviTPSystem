@@ -1,6 +1,6 @@
 #include "ltps/modules/ModuleManager.h"
 #include "ll/api/thread/ThreadPoolExecutor.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include <exception>
 #include <memory>
@@ -17,7 +17,7 @@ void ModuleManager::registerModule(std::unique_ptr<IModule> module) {
 }
 
 void ModuleManager::initModules() {
-    auto& logger        = LeviTPSystem::getInstance().getSelf().getLogger();
+    auto& logger        = TeleportSystem::getInstance().getSelf().getLogger();
     auto  sortedModules = sortModulesByDependency();
 
     logger.debug("Initializing modules in dependency order...");
@@ -44,7 +44,7 @@ void ModuleManager::initModules() {
 }
 
 void ModuleManager::enableModules() {
-    auto& logger        = LeviTPSystem::getInstance().getSelf().getLogger();
+    auto& logger        = TeleportSystem::getInstance().getSelf().getLogger();
     auto  sortedModules = sortModulesByDependency();
 
     logger.debug("Enabling modules in dependency order...");
@@ -73,7 +73,7 @@ void ModuleManager::enableModules() {
 }
 
 void ModuleManager::disableModules() {
-    auto& logger        = LeviTPSystem::getInstance().getSelf().getLogger();
+    auto& logger        = TeleportSystem::getInstance().getSelf().getLogger();
     auto  sortedModules = sortModulesByDependency();
 
     logger.debug("Disabling modules in reverse dependency order...");
@@ -104,7 +104,7 @@ void ModuleManager::disableModules() {
 
 // 添加热重载配置后重新配置模块的方法
 void ModuleManager::reconfigureModules() {
-    auto& logger        = LeviTPSystem::getInstance().getSelf().getLogger();
+    auto& logger        = TeleportSystem::getInstance().getSelf().getLogger();
     auto  sortedModules = sortModulesByDependency();
 
     logger.debug("Reconfiguring modules after config reload...");
@@ -174,7 +174,7 @@ void ModuleManager::reconfigureModules() {
 }
 
 std::vector<IModule*> ModuleManager::sortModulesByDependency() {
-    auto& logger = LeviTPSystem::getInstance().getSelf().getLogger();
+    auto& logger = TeleportSystem::getInstance().getSelf().getLogger();
 
     // 构建模块名称到模块指针的映射
     std::unordered_map<std::string, IModule*> moduleMap;

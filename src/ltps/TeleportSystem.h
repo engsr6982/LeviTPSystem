@@ -11,9 +11,9 @@
 
 namespace ltps {
 
-class LeviTPSystem {
+class TeleportSystem {
 public:
-    static LeviTPSystem& getInstance();
+    static TeleportSystem& getInstance();
 
     bool load();
 
@@ -35,7 +35,7 @@ public:
     [[nodiscard]] ModuleManager& getModuleManager();
 
 private:
-    explicit LeviTPSystem();
+    explicit TeleportSystem();
 
     ll::mod::NativeMod&                               mSelf;
     std::unique_ptr<ll::thread::ThreadPoolExecutor>   mThreadPool;

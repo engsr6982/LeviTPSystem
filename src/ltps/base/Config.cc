@@ -1,6 +1,6 @@
 #include "ltps/base/Config.h"
 #include "ll/api/Config.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include <filesystem>
 #include <stdexcept>
 
@@ -12,7 +12,7 @@ Config& getConfig() {
     return cfg;
 }
 
-std::filesystem::path getConfigPath() { return LeviTPSystem::getInstance().getSelf().getConfigDir() / "Config.json"; }
+std::filesystem::path getConfigPath() { return TeleportSystem::getInstance().getSelf().getConfigDir() / "Config.json"; }
 
 void loadConfig() {
     namespace fs = std::filesystem;

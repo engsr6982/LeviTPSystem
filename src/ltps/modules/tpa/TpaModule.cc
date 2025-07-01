@@ -2,7 +2,7 @@
 #include "ll/api/event/EventBus.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/service/PlayerInfo.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/PriceCalculate.h"
 #include "ltps/modules/tpa/TpaCommand.h"
@@ -84,7 +84,7 @@ bool TpaModule::enable() {
             PriceCalculate cl(getConfig().modules.tpa.createRequestCalculate);
             auto           clValue = cl.eval();
             if (!clValue.has_value()) {
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                TeleportSystem::getInstance().getSelf().getLogger().error(
                     "An exception occurred while calculating the TPA price, please check the configuration file.\n{}",
                     clValue.error()
                 );
@@ -205,7 +205,7 @@ bool TpaModule::enable() {
                     isAccept ? request->accept() : request->deny();
                 } else {
                     mc_utils::sendText<mc_utils::Error>(receiver, "TPA 请求不存在"_trl(localeCode));
-                    LeviTPSystem::getInstance().getSelf().getLogger().error("An unexpected request is null pointer.");
+                    TeleportSystem::getInstance().getSelf().getLogger().error("An unexpected request is null pointer.");
                 }
                 return;
             }

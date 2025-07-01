@@ -2,7 +2,7 @@
 
 #include "TprCommand.h"
 #include "events/TprEvents.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/PriceCalculate.h"
 #include "ltps/utils/McUtils.h"
@@ -69,7 +69,7 @@ bool TprModule::enable() {
         auto price = cl.eval();
 
         if (!price.has_value()) {
-            LeviTPSystem::getInstance().getSelf().getLogger().error(
+            TeleportSystem::getInstance().getSelf().getLogger().error(
                 "An exception occurred while calculating the TPA price, please check the configuration file.\n{}",
                 price.error()
             );

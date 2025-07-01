@@ -3,7 +3,7 @@
 #include "ll/api/event/EventBus.h"
 #include "ll/api/event/ListenerBase.h"
 #include "ltps/Global.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/EconomySystem.h"
 #include "ltps/common/PriceCalculate.h"
@@ -52,7 +52,7 @@ bool HomeModule::enable() {
             auto res = storage->addHome(realName, home);
             if (!res) {
                 mc_utils::sendText<mc_utils::Error>(player, "添加家园失败"_trl(localeCode));
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                TeleportSystem::getInstance().getSelf().getLogger().error(
                     "[HomeModule]: Add home failed! player: {}, homeName: {}, error: {}",
                     realName,
                     home.name,
@@ -134,7 +134,7 @@ bool HomeModule::enable() {
             auto price = cl.eval();
             if (!price.has_value()) {
                 mc_utils::sendText<mc_utils::Error>(player, "计算价格失败"_trl(localeCode));
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                TeleportSystem::getInstance().getSelf().getLogger().error(
                     "[HomeModule]: Calculate price failed! player: {}, homeName: {}, count: {}, error: {}",
                     realName,
                     homeName,
@@ -179,7 +179,7 @@ bool HomeModule::enable() {
             auto res = storage->removeHome(player.getRealName(), name);
             if (!res) {
                 mc_utils::sendText<mc_utils::Error>(player, "删除家园失败"_trl(player.getLocaleCode()));
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                TeleportSystem::getInstance().getSelf().getLogger().error(
                     "[HomeModule]: Remove home failed! player: {}, homeName: {}, error: {}",
                     player.getRealName(),
                     name,
@@ -262,7 +262,7 @@ bool HomeModule::enable() {
 
             if (!price) {
                 mc_utils::sendText<mc_utils::Error>(player, "计算价格失败"_trl(localeCode));
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                TeleportSystem::getInstance().getSelf().getLogger().error(
                     "[HomeModule]: Calculate price failed! player: {}, homeName: {}, error: {}",
                     realName,
                     ev.getHome().name,

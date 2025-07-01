@@ -17,7 +17,7 @@ class ModuleManager final {
 
     explicit ModuleManager();
 
-    friend class LeviTPSystem;
+    friend class TeleportSystem;
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(ModuleManager);

@@ -1,6 +1,6 @@
 #include "DeathGUI.h"
 
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/modules/death/DeathStorage.h"
 #include "ltps/modules/death/event/DeathEvents.h"
 #include "ltps/utils/McUtils.h"
@@ -15,7 +15,8 @@ void DeathGUI::sendMainMenu(Player& player, BackCB backCb) {
     auto localeCode = player.getLocaleCode();
 
     auto infos =
-        LeviTPSystem::getInstance().getStorageManager().getStorage<DeathStorage>()->getDeathInfos(player.getRealName());
+        TeleportSystem::getInstance().getStorageManager().getStorage<DeathStorage>()->getDeathInfos(player.getRealName()
+        );
 
     if (infos->empty()) {
         mc_utils::sendText(player, "您还没有任何死亡信息"_trl(localeCode));
@@ -41,7 +42,7 @@ void DeathGUI::sendMainMenu(Player& player, BackCB backCb) {
 void DeathGUI::sendBackGUI(Player& player, int index, BackCB backCb) {
     auto localeCode = player.getLocaleCode();
 
-    auto info = LeviTPSystem::getInstance().getStorageManager().getStorage<DeathStorage>()->getSpecificDeathInfo(
+    auto info = TeleportSystem::getInstance().getStorageManager().getStorage<DeathStorage>()->getSpecificDeathInfo(
         player.getRealName(),
         index
     );

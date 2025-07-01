@@ -3,7 +3,7 @@
 #include "DeathStorage.h"
 #include "event/DeathEvents.h"
 #include "gui/DeathGUI.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/utils/McUtils.h"
 
@@ -18,7 +18,7 @@ struct BackParam {
 
 
 void DeathCommand::setup() {
-    auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand("death", "LeviTPSystem - Death");
+    auto& cmd = ll::command::CommandRegistrar::getInstance().getOrCreateCommand("death", "TeleportSystem - Death");
 
     // death
     cmd.overload().execute([](CommandOrigin const& origin, CommandOutput& output) {
@@ -41,7 +41,7 @@ void DeathCommand::setup() {
         auto  localeCode = player.getLocaleCode();
 
         auto deaths =
-            LeviTPSystem::getInstance().getStorageManager().getStorage<DeathStorage>()->getDeathInfos(realName);
+            TeleportSystem::getInstance().getStorageManager().getStorage<DeathStorage>()->getDeathInfos(realName);
         if (!deaths || deaths->empty()) {
             mc_utils::sendText<mc_utils::Error>(output, "您还没有任何死亡信息"_trl(localeCode));
             return;
@@ -76,7 +76,7 @@ void DeathCommand::setup() {
     // back (别名)
     if (getConfig().modules.death.registerBackCommand) {
         ll::command::CommandRegistrar::getInstance()
-            .getOrCreateCommand("back", "LeviTPSystem - Death")
+            .getOrCreateCommand("back", "TeleportSystem - Death")
             .overload()
             .execute([](CommandOrigin const& origin, CommandOutput& output) {
                 if (origin.getOriginType() != CommandOriginType::Player) {

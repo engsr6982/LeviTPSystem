@@ -4,7 +4,7 @@
 #include "ll/api/event/EventBus.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ll/api/i18n/I18n.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/EconomySystem.h"
 #include "ltps/database/StorageManager.h"
@@ -134,7 +134,7 @@ void TpaRequest::sendFormToReceiver() {
     auto receiver = getReceiver();
     auto sender   = getSender();
 
-    auto& settingStorage     = *LeviTPSystem::getInstance().getStorageManager().getStorage<setting::SettingStorage>();
+    auto& settingStorage     = *TeleportSystem::getInstance().getStorageManager().getStorage<setting::SettingStorage>();
     auto  receiverSettings   = settingStorage.getSettingData(receiver->getRealName()).value();
     auto  receiverLocaleCode = receiver->getLocaleCode();
 

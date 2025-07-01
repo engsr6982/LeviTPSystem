@@ -78,7 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- 添加权限 `HomeCoutUnlimited` [#5](https://github.com/engsr6982/LeviTPSystem/issues/5)
+- 添加权限 `HomeCoutUnlimited` [#5](https://github.com/engsr6982/TeleportSystem/issues/5)
 
 ## [0.2.4] - 2024-8-19
 

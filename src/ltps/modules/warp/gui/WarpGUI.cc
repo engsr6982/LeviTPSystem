@@ -1,6 +1,6 @@
 #include "WarpGUI.h"
 
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/modules/warp/event/WarpEvents.h"
 #include "ltps/utils/McUtils.h"
 
@@ -39,7 +39,7 @@ void WarpGUI::sendMainMenu(Player& player, BackCB backCB) {
 void WarpGUI::sendChooseWarpGUI(Player& player, ChooseWarpCB callback) {
     _sendChooseWarpGUI(
         player,
-        LeviTPSystem::getInstance().getStorageManager().getStorage<WarpStorage>()->getWarps(),
+        TeleportSystem::getInstance().getStorageManager().getStorage<WarpStorage>()->getWarps(),
         std::move(callback)
     );
 }
@@ -65,7 +65,7 @@ void WarpGUI::_sendFuzzySearchGUI(Player& player, ChooseWarpCB callback) {
         }
         _sendChooseWarpGUI(
             self,
-            LeviTPSystem::getInstance().getStorageManager().getStorage<WarpStorage>()->queryWarp(name),
+            TeleportSystem::getInstance().getStorageManager().getStorage<WarpStorage>()->queryWarp(name),
             std::move(cb)
         );
     });

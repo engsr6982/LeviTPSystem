@@ -1,6 +1,6 @@
 #include "SettingGUI.h"
 
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/modules/setting/SettingStorage.h"
 #include "ltps/utils/McUtils.h"
 
@@ -11,7 +11,7 @@ namespace ltps::setting {
 
 void SettingGUI::sendMainGUI(Player& player) {
     auto localeCode = player.getLocaleCode();
-    auto setting    = LeviTPSystem::getInstance().getStorageManager().getStorage<SettingStorage>()->getSettingData(
+    auto setting    = TeleportSystem::getInstance().getStorageManager().getStorage<SettingStorage>()->getSettingData(
         player.getRealName()
     );
     if (!setting) {
@@ -34,14 +34,14 @@ void SettingGUI::sendMainGUI(Player& player) {
         bool deathPopup = std::get<uint64>(res->at("deathPopup"));
         bool tpaPopup   = std::get<uint64>(res->at("tpaPopup"));
 
-        auto resp = LeviTPSystem::getInstance().getStorageManager().getStorage<SettingStorage>()->setSettingData(
+        auto resp = TeleportSystem::getInstance().getStorageManager().getStorage<SettingStorage>()->setSettingData(
             realName,
             {.deathPopup = deathPopup, .allowTpa = allowTpa, .tpaPopup = tpaPopup}
         );
 
         if (!resp.has_value()) {
             mc_utils::sendText<mc_utils::Error>(self, "发生错误，请稍后再试"_trl(localeCode));
-            LeviTPSystem::getInstance().getSelf().getLogger().error(
+            TeleportSystem::getInstance().getSelf().getLogger().error(
                 "Failed to set setting data for player: {}, error: {}",
                 realName,
                 resp.error()

@@ -1,6 +1,6 @@
 #include "PermissionStorage.h"
 #include "ll/api/io/FileUtils.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/utils/JsonUtls.h"
 #include "magic_enum/magic_enum.hpp"
 #include "mc/world/actor/player/Player.h"
@@ -19,10 +19,10 @@ void PermissionStorage::load() {
         _tryLoadLegacyPermissionFile(); // 加载旧版权限文件
         _renameLegacyPermissionFile();  // 重命名旧版权限文件
         writeBack();                    // 将权限写入数据库
-        LeviTPSystem::getInstance().getSelf().getLogger().trace("Loaded legacy permission file");
+        TeleportSystem::getInstance().getSelf().getLogger().trace("Loaded legacy permission file");
         return;
     }
-    LeviTPSystem::getInstance().getSelf().getLogger().trace("No legacy permission file found");
+    TeleportSystem::getInstance().getSelf().getLogger().trace("No legacy permission file found");
 
     auto& db = getDatabase();
 
@@ -40,7 +40,7 @@ void PermissionStorage::load() {
 
         json_utils::json2structTryPatch(mData, json);
 
-        LeviTPSystem::getInstance().getSelf().getLogger().info(
+        TeleportSystem::getInstance().getSelf().getLogger().info(
             "Loaded permissions, {} entries",
             mData.mPlayerPerms.size()
         );
@@ -59,7 +59,7 @@ void PermissionStorage::writeBack() {
 
 
 bool PermissionStorage::_hasLegacyPermissionFile() const {
-    auto path = LeviTPSystem::getInstance().getSelf().getDataDir() / LEGACY_FILE_NAME;
+    auto path = TeleportSystem::getInstance().getSelf().getDataDir() / LEGACY_FILE_NAME;
     return std::filesystem::exists(path);
 }
 
@@ -68,7 +68,7 @@ void PermissionStorage::_tryLoadLegacyPermissionFile() {
         return;
     }
 
-    auto path    = LeviTPSystem::getInstance().getSelf().getDataDir() / LEGACY_FILE_NAME;
+    auto path    = TeleportSystem::getInstance().getSelf().getDataDir() / LEGACY_FILE_NAME;
     auto content = ll::file_utils::readFile(path);
     if (!content.has_value()) {
         throw std::runtime_error("Failed to read legacy permission file");
@@ -79,7 +79,7 @@ void PermissionStorage::_tryLoadLegacyPermissionFile() {
 
         json_utils::json2structTryPatch(mData, json);
 
-        LeviTPSystem::getInstance().getSelf().getLogger().info(
+        TeleportSystem::getInstance().getSelf().getLogger().info(
             "Loaded legacy permissions, {} entries",
             mData.mPlayerPerms.size()
         );
@@ -92,7 +92,7 @@ void PermissionStorage::_renameLegacyPermissionFile() const {
     if (!_hasLegacyPermissionFile()) {
         return;
     }
-    auto path = LeviTPSystem::getInstance().getSelf().getDataDir() / LEGACY_FILE_NAME;
+    auto path = TeleportSystem::getInstance().getSelf().getDataDir() / LEGACY_FILE_NAME;
     std::filesystem::rename(path, path.replace_extension(".old"));
 }
 
@@ -180,7 +180,7 @@ Result<std::vector<PermissionStorage::Permission>> PermissionStorage::resolve(st
     if (permissions.empty()) {
         return std::unexpected("Please provide permissions");
     }
-    auto&                                      logger = LeviTPSystem::getInstance().getSelf().getLogger();
+    auto&                                      logger = TeleportSystem::getInstance().getSelf().getLogger();
     std::vector<PermissionStorage::Permission> result;
     std::stringstream                          ss(permissions);
     std::string                                token;

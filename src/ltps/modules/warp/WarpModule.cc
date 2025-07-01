@@ -2,7 +2,7 @@
 
 #include "WarpCommand.h"
 #include "event/WarpEvents.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/PriceCalculate.h"
 #include "ltps/database/PermissionStorage.h"
@@ -86,7 +86,7 @@ bool WarpModule::enable() {
 
             if (!price) {
                 mc_utils::sendText<mc_utils::Error>(player, "计算价格失败"_trl(localeCode));
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                TeleportSystem::getInstance().getSelf().getLogger().error(
                     "[WarpModule]: Calculate price failed! player: {}, warpName: {}, error: {}",
                     realName,
                     ev.getWarp().name,
@@ -132,7 +132,7 @@ bool WarpModule::enable() {
             auto res = storage->addWarp(warp);
             if (!res) {
                 mc_utils::sendText<mc_utils::Error>(player, "添加公共传送点失败"_trl(localeCode));
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                TeleportSystem::getInstance().getSelf().getLogger().error(
                     "[WarpModule]: Add warp failed! player: {}, warpName: {}, error: {}",
                     realName,
                     warp.name,
@@ -209,7 +209,7 @@ bool WarpModule::enable() {
             auto res = storage->removeWarp(name);
             if (!res) {
                 mc_utils::sendText<mc_utils::Error>(player, "删除公共传送点失败"_trl(player.getLocaleCode()));
-                LeviTPSystem::getInstance().getSelf().getLogger().error(
+                TeleportSystem::getInstance().getSelf().getLogger().error(
                     "[WarpModule]: Remove warp failed! player: {}, warpName: {}, error: {}",
                     player.getRealName(),
                     name,

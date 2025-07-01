@@ -23,7 +23,7 @@ private:
     explicit StorageManager(ll::thread::ThreadPoolExecutor& threadPoolExecutor);
 
     friend IStorage;
-    friend class LeviTPSystem;
+    friend class TeleportSystem;
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(StorageManager);

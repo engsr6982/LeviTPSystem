@@ -1,5 +1,5 @@
 #include "SettingStorage.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/utils/JsonUtls.h"
 #include "nlohmann/json.hpp"
 #include <expected>
@@ -35,14 +35,14 @@ void SettingStorage::load() {
             mSettingDatas[key] = settingData;
         }
 
-        LeviTPSystem::getInstance().getSelf().getLogger().info("Loaded {} player settings", mSettingDatas.size());
+        TeleportSystem::getInstance().getSelf().getLogger().info("Loaded {} player settings", mSettingDatas.size());
     } catch (const nlohmann::json::parse_error& e) {
         throw std::runtime_error("Failed to parse player settings: " + std::string(e.what()));
     }
 }
 
 void SettingStorage::unload() {
-    LeviTPSystem::getInstance().getSelf().getLogger().trace("Unloading player settings");
+    TeleportSystem::getInstance().getSelf().getLogger().trace("Unloading player settings");
     writeBack();
 }
 

@@ -1,6 +1,6 @@
-#include "ltps/LeviTPSystem.h"
 #include "ll/api/mod/NativeMod.h"
 #include "ll/api/mod/RegisterHelper.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/Version.h"
 #include "ltps/base/BaseCommand.h"
 #include "ltps/base/Config.h"
@@ -19,6 +19,7 @@
 #include "modules/tpr/TprModule.h"
 #include <memory>
 
+
 namespace ltps {
 
 
@@ -29,26 +30,26 @@ extern void Test_Main();
 #endif
 
 
-LeviTPSystem& LeviTPSystem::getInstance() {
-    static LeviTPSystem instance;
+TeleportSystem& TeleportSystem::getInstance() {
+    static TeleportSystem instance;
     return instance;
 }
 
 
-bool LeviTPSystem::load() {
+bool TeleportSystem::load() {
     auto& logger = mSelf.getLogger();
     logger.info("Version: {}", LTPS_VERSION_STRING);
 #ifdef TPS_DEBUG
     logger.setLevel(ll::io::LogLevel::Trace);
-    logger.warn("LeviTPSystem is running in debug mode!");
+    logger.warn("TeleportSystem is running in debug mode!");
 #endif
 #ifdef TPS_TEST
-    logger.warn("LeviTPSystem is running in test mode!");
+    logger.warn("TeleportSystem is running in test mode!");
 #endif
 
-    mThreadPool           = std::make_unique<ll::thread::ThreadPoolExecutor>("LeviTPSystem-ThreadPool", 2);
+    mThreadPool           = std::make_unique<ll::thread::ThreadPoolExecutor>("TeleportSystem-ThreadPool", 2);
     mServerThreadExecutor = std::make_unique<ll::thread::ServerThreadExecutor>(
-        "LeviTPSystem-ServerThreadExecutor",
+        "TeleportSystem-ServerThreadExecutor",
         std::chrono::milliseconds{30},
         16
     );
@@ -80,7 +81,7 @@ bool LeviTPSystem::load() {
     return true;
 }
 
-bool LeviTPSystem::enable() {
+bool TeleportSystem::enable() {
     mModuleManager->enableModules(); // 启用模块
     BaseCommand::setup();            // 基础命令
 
@@ -91,7 +92,7 @@ bool LeviTPSystem::enable() {
     return true;
 }
 
-bool LeviTPSystem::disable() {
+bool TeleportSystem::disable() {
     mModuleManager->disableModules(); // 禁用模块
     mStorageManager->postUnload();    // 卸载 Storage
 
@@ -104,18 +105,20 @@ bool LeviTPSystem::disable() {
     return true;
 }
 
-bool LeviTPSystem::unload() {
+bool TeleportSystem::unload() {
     // TODO: 卸载插件
     return true;
 }
 
-LeviTPSystem::LeviTPSystem() : mSelf(*ll::mod::NativeMod::current()) {}
-ll::mod::NativeMod&                     LeviTPSystem::getSelf() const { return mSelf; }
-ll::thread::ThreadPoolExecutor&         LeviTPSystem::getThreadPool() { return *mThreadPool; }
-ll::thread::ServerThreadExecutor const& LeviTPSystem::getServerThreadExecutor() const { return *mServerThreadExecutor; }
-StorageManager&                         LeviTPSystem::getStorageManager() { return *mStorageManager; }
-ModuleManager&                          LeviTPSystem::getModuleManager() { return *mModuleManager; }
+TeleportSystem::TeleportSystem() : mSelf(*ll::mod::NativeMod::current()) {}
+ll::mod::NativeMod&                     TeleportSystem::getSelf() const { return mSelf; }
+ll::thread::ThreadPoolExecutor&         TeleportSystem::getThreadPool() { return *mThreadPool; }
+ll::thread::ServerThreadExecutor const& TeleportSystem::getServerThreadExecutor() const {
+    return *mServerThreadExecutor;
+}
+StorageManager& TeleportSystem::getStorageManager() { return *mStorageManager; }
+ModuleManager&  TeleportSystem::getModuleManager() { return *mModuleManager; }
 
 } // namespace ltps
 
-LL_REGISTER_MOD(ltps::LeviTPSystem, ltps::LeviTPSystem::getInstance());
+LL_REGISTER_MOD(ltps::TeleportSystem, ltps::TeleportSystem::getInstance());

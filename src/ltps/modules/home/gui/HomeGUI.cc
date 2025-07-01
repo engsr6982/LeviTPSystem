@@ -3,7 +3,7 @@
 #include "ll/api/form/CustomForm.h"
 #include "ll/api/form/SimpleForm.h"
 #include "ltps/Global.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/common/BackSimpleForm.h"
 #include "ltps/modules/home/HomeStorage.h"
@@ -55,12 +55,10 @@ void HomeGUI::sendAddHomeGUI(Player& player) {
     auto localeCode = player.getLocaleCode();
 
     CustomForm fm{"Home - Add"_trl(localeCode)};
-    fm.appendLabel(
-        "输入要创建的家园名称，例如: My Home\n注意：家园名称不能超过 {} 个字符。"_trl(
-            localeCode,
-            getConfig().modules.home.nameLength
-        )
-    );
+    fm.appendLabel("输入要创建的家园名称，例如: My Home\n注意：家园名称不能超过 {} 个字符。"_trl(
+        localeCode,
+        getConfig().modules.home.nameLength
+    ));
 
     fm.appendInput(
         "name",
@@ -90,7 +88,7 @@ void HomeGUI::sendChooseHomeGUI(Player& player, ChooseHomeCallback chooseCB) {
     auto fm = BackSimpleForm::make<HomeGUI::sendMainMenu>(BackCB{});
     fm.setTitle("Choose Home"_trl(localeCode)).setContent("请选择一个家"_trl(localeCode));
 
-    auto storage = LeviTPSystem::getInstance().getStorageManager().getStorage<HomeStorage>();
+    auto storage = TeleportSystem::getInstance().getStorageManager().getStorage<HomeStorage>();
 
     auto homes = storage->getHomes(player.getRealName());
     for (auto& home : homes) {
@@ -127,18 +125,16 @@ void HomeGUI::_sendEditHomeGUI(Player& player, HomeStorage::Home home) {
 
     auto fm = BackSimpleForm::make<HomeGUI::sendEditHomeGUI>();
     fm.setTitle("Home - Edit"_trl(localeCode))
-        .setContent(
-            "名称: {}\n坐标: {}.{}.{}\n维度: {}\n创建时间: {}\n更改时间: {}"_trl(
-                localeCode,
-                home.name,
-                home.x,
-                home.y,
-                home.z,
-                VanillaDimensions::toString(home.dimid),
-                home.createdTime,
-                home.modifiedTime
-            )
-        )
+        .setContent("名称: {}\n坐标: {}.{}.{}\n维度: {}\n创建时间: {}\n更改时间: {}"_trl(
+            localeCode,
+            home.name,
+            home.x,
+            home.y,
+            home.z,
+            VanillaDimensions::toString(home.dimid),
+            home.createdTime,
+            home.modifiedTime
+        ))
         .appendButton(
             "修改名称"_trl(localeCode),
             "textures/ui/book_edit_default",
@@ -176,15 +172,13 @@ void HomeGUI::_sendEditHomeNameGUI(Player& player, std::string const& name) {
                 return;
             }
 
-            ll::event::EventBus::getInstance().publish(
-                PlayerRequestEditHomeEvent{
-                    self,
-                    name,
-                    PlayerRequestEditHomeEvent::Type::Name,
-                    std::nullopt,
-                    std::move(newName)
-                }
-            );
+            ll::event::EventBus::getInstance().publish(PlayerRequestEditHomeEvent{
+                self,
+                name,
+                PlayerRequestEditHomeEvent::Type::Name,
+                std::nullopt,
+                std::move(newName)
+            });
         });
 }
 

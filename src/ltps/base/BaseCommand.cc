@@ -2,7 +2,7 @@
 #include "ll/api/command/Command.h"
 #include "ll/api/command/CommandHandle.h"
 #include "ll/api/command/CommandRegistrar.h"
-#include "ltps/LeviTPSystem.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/Version.h"
 #include "ltps/base/Config.h"
 #include "ltps/database/PermissionStorage.h"
@@ -68,7 +68,7 @@ void BaseCommand::setup() {
         }
 
         loadConfig();
-        LeviTPSystem::getInstance().getModuleManager().reconfigureModules();
+        TeleportSystem::getInstance().getModuleManager().reconfigureModules();
         mc_utils::sendText(output, "配置已重载"_tr());
     });
 
@@ -102,7 +102,7 @@ void BaseCommand::setup() {
                 break;
             }
             case PermListActionParam::Action::Default: {
-                auto storage = LeviTPSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
+                auto storage = TeleportSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
                 if (!storage) {
                     mc_utils::sendText<mc_utils::Error>(output, "权限存储不可用"_tr());
                     return;
@@ -132,7 +132,7 @@ void BaseCommand::setup() {
                 return;
             }
 
-            auto storage = LeviTPSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
+            auto storage = TeleportSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
             if (!storage) {
                 mc_utils::sendText<mc_utils::Error>(output, "权限存储不可用"_tr());
                 return;
@@ -174,7 +174,7 @@ void BaseCommand::setup() {
                 return;
             }
 
-            auto storage = LeviTPSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
+            auto storage = TeleportSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
             if (!storage) {
                 mc_utils::sendText<mc_utils::Error>(output, "权限存储不可用"_tr());
                 return;
@@ -219,7 +219,7 @@ void BaseCommand::setup() {
                 return;
             }
 
-            auto storage = LeviTPSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
+            auto storage = TeleportSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
             if (!storage) {
                 mc_utils::sendText<mc_utils::Error>(output, "权限存储不可用"_tr());
                 return;
@@ -267,7 +267,7 @@ void BaseCommand::setup() {
                 return;
             }
 
-            auto storage = LeviTPSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
+            auto storage = TeleportSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
             if (!storage) {
                 mc_utils::sendText<mc_utils::Error>(output, "权限存储不可用"_tr());
                 return;
@@ -317,7 +317,7 @@ void BaseCommand::setup() {
                 return;
             }
 
-            auto storage = LeviTPSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
+            auto storage = TeleportSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
             if (!storage) {
                 mc_utils::sendText<mc_utils::Error>(output, "权限存储不可用"_tr());
                 return;
