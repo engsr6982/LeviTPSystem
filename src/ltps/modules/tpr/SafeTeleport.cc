@@ -194,23 +194,20 @@ SafeTeleport::SafeTeleport(ll::thread::ServerThreadExecutor const& serverThreadE
     mInterruptableSleep = std::make_shared<ll::coro::InterruptableSleep>();
     mPollingAbortFlag   = std::make_shared<std::atomic_bool>(false);
 
-    ll::coro::keepThis(
-        [/*this,*/ sleep = mInterruptableSleep, abortFlag = mPollingAbortFlag]() -> ll::coro::CoroTask<> {
-            while (!abortFlag->load()) {
-                co_await sleep->sleepFor(ll::chrono::ticks{10});
-                if (abortFlag->load()) break;
-                try {
-                    // polling();
-                    // TODO: 修复热卸载时，此协程引发异常
-                } catch (...) {
-                    TeleportSystem::getInstance().getSelf().getLogger().error(
-                        "An exception occurred while polling SafeTeleport tasks"
-                    );
-                }
+    ll::coro::keepThis([this, sleep = mInterruptableSleep, abortFlag = mPollingAbortFlag]() -> ll::coro::CoroTask<> {
+        while (!abortFlag->load()) {
+            co_await sleep->sleepFor(ll::chrono::ticks{10});
+            if (abortFlag->load()) break;
+            try {
+                polling();
+            } catch (...) {
+                TeleportSystem::getInstance().getSelf().getLogger().error(
+                    "An exception occurred while polling SafeTeleport tasks"
+                );
             }
-            co_return;
         }
-    ).launch(serverThreadExecutor.getDefault());
+        co_return;
+    }).launch(serverThreadExecutor.getDefault());
 }
 
 SafeTeleport::~SafeTeleport() {
