@@ -215,7 +215,7 @@ SafeTeleport::SafeTeleport(ll::thread::ServerThreadExecutor const& serverThreadE
 
 SafeTeleport::~SafeTeleport() {
     mPollingAbortFlag->store(true);
-    mInterruptableSleep->interrupt();
+    mInterruptableSleep->interrupt(true);
     for (auto& [_, task] : mTasks) {
         task->abort();
     }

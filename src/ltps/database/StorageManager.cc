@@ -33,7 +33,7 @@ StorageManager::StorageManager(ll::thread::ThreadPoolExecutor& threadPoolExecuto
 
 StorageManager::~StorageManager() {
     mWriteBackTaskAbortFlag->store(true);
-    mInterruptableSleep->interrupt();
+    mInterruptableSleep->interrupt(true);
 }
 
 void StorageManager::postLoad() {

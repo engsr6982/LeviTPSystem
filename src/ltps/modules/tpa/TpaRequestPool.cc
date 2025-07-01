@@ -24,7 +24,7 @@ TpaRequestPool::TpaRequestPool(ll::thread::ThreadPoolExecutor& executor) {
 }
 TpaRequestPool::~TpaRequestPool() {
     mPollingAbortFlag->store(true);
-    mInterruptableSleep->interrupt();
+    mInterruptableSleep->interrupt(true);
 }
 
 
