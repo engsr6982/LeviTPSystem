@@ -18,9 +18,7 @@ namespace v5 {
 using DisallowedDimensions = std::unordered_set<int>;
 
 struct Config {
-    int              version  = 10;
-    ll::io::LogLevel logLevel = ll::io::LogLevel::Info;
-
+    int              version  = 11;
     EconomySystem::Config economySystem{};
 
     struct {
