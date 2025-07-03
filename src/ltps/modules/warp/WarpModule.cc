@@ -244,6 +244,143 @@ bool WarpModule::enable() {
         ll::event::EventPriority::High
     ));
 
+
+    // Admin
+    mListeners.emplace_back(bus.emplaceListener<AdminRequestGoWarpEvent>(
+        [this](AdminRequestGoWarpEvent& ev) {
+            auto& bus    = ll::event::EventBus::getInstance();
+            auto& player = ev.getAdmin();
+            auto& warp   = ev.getWarp();
+
+            auto ing = AdminTeleportingWarpEvent{player, warp};
+            bus.publish(ing);
+
+            if (ing.isCancelled()) {
+                return;
+            }
+
+            warp.teleport(player);
+
+            auto ed = AdminTeleportedWarpEvent{player, warp};
+            bus.publish(ed);
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<AdminRequestCreateWarpEvent>(
+        [this](AdminRequestCreateWarpEvent& ev) {
+            auto& bus        = ll::event::EventBus::getInstance();
+            auto& player     = ev.getAdmin();
+            auto  localeCode = player.getLocaleCode();
+            auto& name       = ev.getName();
+            auto& pos        = ev.getPosition();
+            auto  dimid      = ev.getDimid();
+
+            auto ing = AdminCreateingWarpEvent{player, name, dimid, pos};
+            bus.publish(ing);
+
+            if (ing.isCancelled()) {
+                return;
+            }
+
+            auto warp = WarpStorage::Warp::make(pos, dimid, name);
+
+            auto storage = this->getStorage();
+            if (auto res = storage->addWarp(warp)) {
+                mc_utils::sendText(player, "创建公共传送点 {} 成功"_trl(localeCode, name));
+            } else {
+                mc_utils::sendText<mc_utils::Error>(
+                    player,
+                    "创建公共传送点 {} 失败: {}"_trl(localeCode, name, res.error())
+                );
+            }
+        },
+        ll::event::EventPriority::High
+    ));
+    mListeners.emplace_back(bus.emplaceListener<AdminCreateingWarpEvent>(
+        [this](AdminCreateingWarpEvent& ev) {
+            auto& player     = ev.getAdmin();
+            auto  localeCode = player.getLocaleCode();
+            auto& name       = ev.getName();
+            auto  dimid      = ev.getDimid();
+
+            if (getConfig().modules.warp.disallowedDimensions.contains(dimid)) {
+                mc_utils::sendText<mc_utils::Error>(player, "该维度无法创建公共传送点"_trl(localeCode));
+                ev.cancel();
+                return;
+            }
+
+            if (getStorage()->hasWarp(name)) {
+                mc_utils::sendText<mc_utils::Error>(player, "公共传送点名称重复，请使用其它名称"_trl(localeCode));
+                ev.cancel();
+                return;
+            }
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<AdminRequestEditWarpEvent>(
+        [this](AdminRequestEditWarpEvent& ev) {
+            auto& bus     = ll::event::EventBus::getInstance();
+            auto& player  = ev.getAdmin();
+            auto& warp    = ev.getWarp();
+            auto& newWarp = ev.getNewWarp();
+
+            auto ing = AdminEditingWarpEvent{player, warp, newWarp};
+            bus.publish(ing);
+
+            if (ing.isCancelled()) {
+                return;
+            }
+
+            auto storage = this->getStorage();
+            if (auto res = storage->updateWarp(warp.name, newWarp)) {
+                mc_utils::sendText(player, "修改公共传送点 {} 成功"_trl(player.getLocaleCode(), warp.name));
+            } else {
+                mc_utils::sendText<mc_utils::Error>(
+                    player,
+                    "修改公共传送点 {} 失败: {}"_trl(player.getLocaleCode(), warp.name, res.error())
+                );
+            }
+
+            auto ed = AdminEditedWarpEvent{player, warp, newWarp};
+            bus.publish(ed);
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<AdminRequestRemoveWarpEvent>(
+        [this](AdminRequestRemoveWarpEvent& ev) {
+            auto& bus    = ll::event::EventBus::getInstance();
+            auto& player = ev.getAdmin();
+
+            auto& warp = ev.getWarp();
+
+            auto ing = AdminRemovingWarpEvent{player, warp};
+            bus.publish(ing);
+
+            if (ing.isCancelled()) {
+                return;
+            }
+
+            auto storage = this->getStorage();
+            if (auto res = storage->removeWarp(warp.name)) {
+                mc_utils::sendText(player, "删除公共传送点 {} 成功"_trl(player.getLocaleCode(), warp.name));
+            } else {
+                mc_utils::sendText<mc_utils::Error>(
+                    player,
+                    "删除公共传送点 {} 失败: {}"_trl(player.getLocaleCode(), warp.name, res.error())
+                );
+                return;
+            }
+
+            auto rm = AdminRemovedWarpEvent{player, warp};
+            bus.publish(rm);
+        },
+        ll::event::EventPriority::High
+    ));
+
+
     WarpCommand::setup();
     return true;
 }

@@ -5,9 +5,12 @@
 #include "gui/WarpGUI.h"
 #include "ll/api/event/EventBus.h"
 #include "ltps/TeleportSystem.h"
+#include "ltps/database/PermissionStorage.h"
+#include "ltps/modules/warp/gui/WarpOperatorGUI.h"
 #include "ltps/utils/McUtils.h"
 #include <ll/api/command/CommandHandle.h>
 #include <mc/world/level/dimension/VanillaDimensions.h>
+
 
 namespace ltps::warp {
 
@@ -105,7 +108,24 @@ void WarpCommand::setup() {
         }
     );
 
-    // TODO: warp mgr
+    // warp mgr
+    cmd.overload().text("mgr").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        if (origin.getOriginType() != CommandOriginType::Player) {
+            mc_utils::sendText<mc_utils::Error>(output, "此命令只能由玩家执行"_tr());
+            return;
+        }
+
+        auto& player = *static_cast<Player*>(origin.getEntity());
+
+        auto st = TeleportSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
+
+        if (!st->hasPermission(player.getRealName(), PermissionStorage::Permission::ManagerPanel)) {
+            mc_utils::sendText<mc_utils::Error>(output, "你没有权限使用此命令"_trl(player.getLocaleCode()));
+            return;
+        }
+
+        WarpOperatorGUI::sendMainGUI(player);
+    });
 }
 
 
