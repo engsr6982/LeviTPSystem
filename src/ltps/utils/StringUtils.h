@@ -15,4 +15,21 @@ inline size_t length(std::string const& str) {
 
 inline bool isLengthValid(std::string const& str, size_t max_len) { return length(str) <= max_len; }
 
+inline std::string snake_to_pascal(std::string_view snake_str) {
+    std::string result;
+    result.reserve(snake_str.size());
+    bool next_upper = true;
+    for (char c : snake_str) {
+        if (c == '_') {
+            next_upper = true;
+        } else if (next_upper) {
+            result     += static_cast<char>(std::toupper(c));
+            next_upper  = false;
+        } else {
+            result += static_cast<char>(std::tolower(c));
+        }
+    }
+    return result;
+}
+
 } // namespace string_utils

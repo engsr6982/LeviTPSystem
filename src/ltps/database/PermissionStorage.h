@@ -1,6 +1,7 @@
 #pragma once
 #include "ltps/Global.h"
 #include "ltps/database/IStorage.h"
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -87,9 +88,9 @@ public:
     TPSNDAPI Result<std::pair<std::vector<Permission>, std::vector<Permission>>>
              tracePermissions(RealName const& realName) const;
 
-    TPSNDAPI static std::string             toString(Permission permission);    // 权限转字符串(枚举键)
-    TPSNDAPI static Permission              fromString(std::string const& str); // 字符串转权限
-    TPSNDAPI static std::vector<Permission> getPermissions();                   // 获取所有权限
+    TPSNDAPI static std::string               toString(Permission permission);    // 权限转字符串(枚举键)
+    TPSNDAPI static std::optional<Permission> fromString(std::string const& str); // 字符串转权限
+    TPSNDAPI static std::vector<Permission>   getPermissions();                   // 获取所有权限
     TPSNDAPI static Result<std::vector<PermissionStorage::Permission>> resolve(std::string const& permissions);
 
     static inline constexpr auto STORAGE_KEY      = "permission";

@@ -1,12 +1,15 @@
 #include "PermissionStorage.h"
 #include "ll/api/io/FileUtils.h"
+#include "ll/api/utils/StringUtils.h"
 #include "ltps/TeleportSystem.h"
 #include "ltps/utils/JsonUtls.h"
+#include "ltps/utils/StringUtils.h"
 #include "magic_enum/magic_enum.hpp"
 #include "mc/world/actor/player/Player.h"
 #include "nlohmann/json.hpp"
 #include "nlohmann/json_fwd.hpp"
 #include <filesystem>
+#include <optional>
 
 
 namespace ltps {
@@ -164,11 +167,12 @@ PermissionStorage::tracePermissions(RealName const& realName) const {
 
 
 std::string PermissionStorage::toString(Permission permission) {
-    return std::string(magic_enum::enum_name(permission));
+    // return std::string(magic_enum::enum_name(permission));
+    return ll::string_utils::toSnakeCase(std::string(magic_enum::enum_name(permission)));
 }
 
-PermissionStorage::Permission PermissionStorage::fromString(std::string const& str) {
-    return magic_enum::enum_cast<Permission>(str).value_or(Permission::None);
+std::optional<PermissionStorage::Permission> PermissionStorage::fromString(std::string const& str) {
+    return magic_enum::enum_cast<Permission>(string_utils::snake_to_pascal(str));
 }
 
 std::vector<PermissionStorage::Permission> PermissionStorage::getPermissions() {
@@ -189,7 +193,7 @@ Result<std::vector<PermissionStorage::Permission>> PermissionStorage::resolve(st
             logger.trace("Empty token, skipping");
             continue;
         }
-        auto perm = magic_enum::enum_cast<PermissionStorage::Permission>(token);
+        auto perm = fromString(token);
         if (!perm.has_value()) {
             return std::unexpected("Parsing failed, invalid permissions: " + token);
         }
