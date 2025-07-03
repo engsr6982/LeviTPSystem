@@ -162,7 +162,7 @@ void HomeStorage::Home::updatePosition(Vec3 const& vec3) {
 
 std::string HomeStorage::Home::toString() const { return "{} => {}"_tr(name, toPosString()); }
 std::string HomeStorage::Home::toPosString() const {
-    return "{}({}.{}.{})"_tr(VanillaDimensions::toString(dimid), x, y, z);
+    return "{}({},{},{})"_tr(VanillaDimensions::toString(dimid), x, y, z);
 }
 
 } // namespace ltps::home

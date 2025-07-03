@@ -22,6 +22,9 @@ public:
         TPSAPI void updateModifiedTime();
 
         TPSAPI void updatePosition(Vec3 const& vec3);
+
+        TPSNDAPI std::string toString() const;
+        TPSNDAPI std::string toPosString() const;
     };
     using Warps = std::vector<Warp>;
 

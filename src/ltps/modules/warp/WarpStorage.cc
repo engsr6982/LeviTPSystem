@@ -5,6 +5,7 @@
 #include "ltps/utils/TimeUtils.h"
 #include "mc/deps/core/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
+#include "mc/world/level/dimension/VanillaDimensions.h"
 #include "nlohmann/json.hpp"
 
 namespace ltps::warp {
@@ -139,6 +140,10 @@ void WarpStorage::Warp::updatePosition(Vec3 const& vec3) {
     x = vec3.x;
     y = vec3.y;
     z = vec3.z;
+}
+std::string WarpStorage::Warp::toString() const { return "{} => {}"_tr(name, toPosString()); }
+std::string WarpStorage::Warp::toPosString() const {
+    return "{}({},{},{})"_tr(VanillaDimensions::toString(dimid), x, y, z);
 }
 
 

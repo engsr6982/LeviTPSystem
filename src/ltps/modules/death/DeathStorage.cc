@@ -109,7 +109,7 @@ void DeathStorage::DeathInfo::teleport(Player& player) const {
 
 std::string DeathStorage::DeathInfo::toString() const { return "{} => {}"_tr(time, toPosString()); }
 std::string DeathStorage::DeathInfo::toPosString() const {
-    return "{}({}.{}.{})"_tr(VanillaDimensions::toString(dimid), x, y, z);
+    return "{}({},{},{})"_tr(VanillaDimensions::toString(dimid), x, y, z);
 }
 
 
