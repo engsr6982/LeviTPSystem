@@ -6,6 +6,7 @@
 #include "mc/world/actor/player/Player.h"
 #include <functional>
 #include <optional>
+#include <string>
 
 
 namespace ltps::home {
@@ -219,5 +220,188 @@ public:
         std::optional<std::string> newName
     );
 };
+
+
+// =========
+// Admin
+// =========
+
+
+class IAdminEvent {
+protected:
+    Player&         mAdmin;  // 发起请求的管理员
+    RealName const& mTarget; // 目标玩家
+
+public:
+    TPSAPI explicit IAdminEvent(Player& admin, RealName const& target);
+
+    TPSNDAPI Player&         getAdmin() const;
+    TPSNDAPI RealName const& getTarget() const;
+};
+
+class IAdminOperateHomeEvent : public IAdminEvent {
+protected:
+    HomeStorage::Home const& mHome; // 正在操作的家
+
+public:
+    TPSAPI explicit IAdminOperateHomeEvent(Player& admin, RealName const& target, HomeStorage::Home const& home);
+
+    TPSNDAPI HomeStorage::Home const& getHome() const;
+};
+
+/**
+ * @brief 管理员请求传送到玩家的家
+ */
+class AdminRequestGoPlayerHomeEvent final : public Event, public IAdminOperateHomeEvent {
+public:
+    TPSAPI explicit AdminRequestGoPlayerHomeEvent(Player& admin, RealName const& target, HomeStorage::Home const& home);
+};
+
+class AdminTeleportingPlayerHomeEvent final : public Cancellable<Event>, public IAdminOperateHomeEvent {
+public:
+    TPSAPI explicit AdminTeleportingPlayerHomeEvent(
+        Player&                  admin,
+        RealName const&          target,
+        HomeStorage::Home const& home
+    );
+};
+
+class AdminTeleportedPlayerHomeEvent final : public Event, public IAdminOperateHomeEvent {
+public:
+    TPSAPI explicit AdminTeleportedPlayerHomeEvent(
+        Player&                  admin,
+        RealName const&          target,
+        HomeStorage::Home const& home
+    );
+};
+
+
+class IAdminCreateHomeEvent : public IAdminEvent {
+protected:
+    std::string mName;     // 家的名字
+    int         mDimid;    // 家的维度
+    Vec3        mPosition; // 家的位置
+
+public:
+    TPSAPI explicit IAdminCreateHomeEvent(
+        Player&         admin,
+        RealName const& target,
+        std::string     name,
+        int             dimid,
+        Vec3            position
+    );
+
+    TPSNDAPI std::string const& getName() const;
+    TPSNDAPI int                getDimid() const;
+    TPSNDAPI Vec3 const&        getPosition() const;
+};
+
+/**
+ * @brief 管理员请求为玩家创建家
+ */
+class AdminRequestCreateHomeForPlayerEvent final : public Event, public IAdminCreateHomeEvent {
+public:
+    TPSAPI explicit AdminRequestCreateHomeForPlayerEvent(
+        Player&         admin,
+        RealName const& target,
+        std::string     homeName,
+        int             dimid,
+        Vec3            homePosition
+    );
+};
+
+class AdminCreateingHomeForPlayerEvent final : public Cancellable<Event>, public IAdminCreateHomeEvent {
+public:
+    TPSAPI explicit AdminCreateingHomeForPlayerEvent(
+        Player&         admin,
+        RealName const& target,
+        std::string     homeName,
+        int             dimid,
+        Vec3            homePosition
+    );
+};
+
+class AdminCreatedHomeForPlayerEvent final : public Event, public IAdminCreateHomeEvent {
+public:
+    TPSAPI explicit AdminCreatedHomeForPlayerEvent(
+        Player&         admin,
+        RealName const& target,
+        std::string     homeName,
+        int             dimid,
+        Vec3            homePosition
+    );
+};
+
+
+class IAdminEditHomeEvent : public IAdminOperateHomeEvent {
+    HomeStorage::Home const& mNewHome;
+
+public:
+    TPSAPI explicit IAdminEditHomeEvent(
+        Player&                  admin,
+        RealName const&          target,
+        HomeStorage::Home const& home,
+        HomeStorage::Home const& newHomeF
+    );
+
+    TPSNDAPI HomeStorage::Home const& getNewHome() const;
+};
+
+/**
+ * @brief 管理员请求编辑玩家的家
+ */
+class AdminRequestEditPlayerHomeEvent final : public Event, public IAdminEditHomeEvent {
+public:
+    TPSAPI explicit AdminRequestEditPlayerHomeEvent(
+        Player&                  admin,
+        RealName const&          target,
+        HomeStorage::Home const& home,
+        HomeStorage::Home const& newHome
+    );
+};
+
+class AdminEditingPlayerHomeEvent final : public Cancellable<Event>, public IAdminEditHomeEvent {
+public:
+    TPSAPI explicit AdminEditingPlayerHomeEvent(
+        Player&                  admin,
+        RealName const&          target,
+        HomeStorage::Home const& home,
+        HomeStorage::Home const& newHome
+    );
+};
+
+class AdminEditedPlayerHomeEvent final : public Event, public IAdminEditHomeEvent {
+public:
+    TPSAPI explicit AdminEditedPlayerHomeEvent(
+        Player&                  admin,
+        RealName const&          target,
+        HomeStorage::Home const& home,
+        HomeStorage::Home const& newHome
+    );
+};
+
+
+/**
+ * @brief 管理员请求删除玩家的家
+ */
+class AdminRequestRemovePlayerHomeEvent final : public Event, public IAdminOperateHomeEvent {
+public:
+    TPSAPI explicit AdminRequestRemovePlayerHomeEvent(
+        Player&                  admin,
+        RealName const&          target,
+        HomeStorage::Home const& home
+    );
+};
+
+class AdminRemovingPlayerHomeEvent final : public Cancellable<Event>, public IAdminOperateHomeEvent {
+public:
+    TPSAPI explicit AdminRemovingPlayerHomeEvent(Player& admin, RealName const& target, HomeStorage::Home const& home);
+};
+
+class AdminRemovedPlayerHomeEvent final : public Event, public IAdminOperateHomeEvent {
+public:
+    TPSAPI explicit AdminRemovedPlayerHomeEvent(Player& admin, RealName const& target, HomeStorage::Home const& home);
+};
+
 
 } // namespace ltps::home

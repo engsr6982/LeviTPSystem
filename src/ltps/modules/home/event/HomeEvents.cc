@@ -179,4 +179,167 @@ IMPL_EVENT_EMITTER(HomeEditingEvent);
 IMPL_EVENT_EMITTER(HomeEditedEvent);
 
 
+// Admin
+
+// IAdminEvent
+IAdminEvent::IAdminEvent(Player& admin, RealName const& target) : mAdmin(admin), mTarget(target) {}
+Player&         IAdminEvent::getAdmin() const { return mAdmin; }
+RealName const& IAdminEvent::getTarget() const { return mTarget; }
+
+
+// IAdminOperateHomeEvent
+IAdminOperateHomeEvent::IAdminOperateHomeEvent(Player& admin, RealName const& target, HomeStorage::Home const& home)
+: IAdminEvent(admin, target),
+  mHome(home) {}
+HomeStorage::Home const& IAdminOperateHomeEvent::getHome() const { return mHome; }
+
+
+// AdminRequestGoPlayerHomeEvent & AdminTeleportingPlayerHomeEvent & AdminTeleportedPlayerHomeEvent
+AdminRequestGoPlayerHomeEvent::AdminRequestGoPlayerHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home
+)
+: IAdminOperateHomeEvent(admin, target, home) {}
+
+
+AdminTeleportingPlayerHomeEvent::AdminTeleportingPlayerHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home
+)
+: IAdminOperateHomeEvent(admin, target, home) {}
+
+AdminTeleportedPlayerHomeEvent::AdminTeleportedPlayerHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home
+)
+: IAdminOperateHomeEvent(admin, target, home) {}
+
+IMPL_EVENT_EMITTER(AdminRequestGoPlayerHomeEvent);
+IMPL_EVENT_EMITTER(AdminTeleportingPlayerHomeEvent);
+IMPL_EVENT_EMITTER(AdminTeleportedPlayerHomeEvent);
+
+
+// IAdminCreateHomeEvent
+IAdminCreateHomeEvent::IAdminCreateHomeEvent(
+    Player&         admin,
+    RealName const& target,
+    std::string     name,
+    int             dimid,
+    Vec3            position
+)
+: IAdminEvent(admin, target),
+  mName(std::move(name)),
+  mDimid(dimid),
+  mPosition(position) {}
+
+std::string const& IAdminCreateHomeEvent::getName() const { return mName; }
+int                IAdminCreateHomeEvent::getDimid() const { return mDimid; }
+Vec3 const&        IAdminCreateHomeEvent::getPosition() const { return mPosition; }
+
+
+// AdminRequestCreateHomeForPlayerEvent & AdminCreateingHomeForPlayerEvent & AdminCreatedHomeForPlayerEvent
+AdminRequestCreateHomeForPlayerEvent::AdminRequestCreateHomeForPlayerEvent(
+    Player&         admin,
+    RealName const& target,
+    std::string     homeName,
+    int             dimid,
+    Vec3            homePosition
+)
+: IAdminCreateHomeEvent(admin, target, std::move(homeName), dimid, homePosition) {}
+
+AdminCreateingHomeForPlayerEvent::AdminCreateingHomeForPlayerEvent(
+    Player&         admin,
+    RealName const& target,
+    std::string     homeName,
+    int             dimid,
+    Vec3            homePosition
+)
+: IAdminCreateHomeEvent(admin, target, std::move(homeName), dimid, homePosition) {}
+
+AdminCreatedHomeForPlayerEvent::AdminCreatedHomeForPlayerEvent(
+    Player&         admin,
+    RealName const& target,
+    std::string     homeName,
+    int             dimid,
+    Vec3            homePosition
+)
+: IAdminCreateHomeEvent(admin, target, std::move(homeName), dimid, homePosition) {}
+
+IMPL_EVENT_EMITTER(AdminRequestCreateHomeForPlayerEvent);
+IMPL_EVENT_EMITTER(AdminCreateingHomeForPlayerEvent);
+IMPL_EVENT_EMITTER(AdminCreatedHomeForPlayerEvent);
+
+
+// IAdminEditHomeEvent
+IAdminEditHomeEvent::IAdminEditHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home,
+    HomeStorage::Home const& newHomeF
+)
+: IAdminOperateHomeEvent(admin, target, home),
+  mNewHome(newHomeF) {}
+
+HomeStorage::Home const& IAdminEditHomeEvent::getNewHome() const { return mNewHome; }
+
+// AdminRequestEditPlayerHomeEvent & AdminEditingPlayerHomeEvent & AdminEditedPlayerHomeEvent
+AdminRequestEditPlayerHomeEvent::AdminRequestEditPlayerHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home,
+    HomeStorage::Home const& newHome
+)
+: IAdminEditHomeEvent(admin, target, home, newHome) {}
+
+AdminEditingPlayerHomeEvent::AdminEditingPlayerHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home,
+    HomeStorage::Home const& newHome
+)
+: IAdminEditHomeEvent(admin, target, home, newHome) {}
+
+AdminEditedPlayerHomeEvent::AdminEditedPlayerHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home,
+    HomeStorage::Home const& newHome
+)
+: IAdminEditHomeEvent(admin, target, home, newHome) {}
+
+IMPL_EVENT_EMITTER(AdminRequestEditPlayerHomeEvent);
+IMPL_EVENT_EMITTER(AdminEditingPlayerHomeEvent);
+IMPL_EVENT_EMITTER(AdminEditedPlayerHomeEvent);
+
+
+// IAdminRemoveHomeEvent
+AdminRequestRemovePlayerHomeEvent::AdminRequestRemovePlayerHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home
+)
+: IAdminOperateHomeEvent(admin, target, home) {}
+
+AdminRemovingPlayerHomeEvent::AdminRemovingPlayerHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home
+)
+: IAdminOperateHomeEvent(admin, target, home) {}
+
+AdminRemovedPlayerHomeEvent::AdminRemovedPlayerHomeEvent(
+    Player&                  admin,
+    RealName const&          target,
+    HomeStorage::Home const& home
+)
+: IAdminOperateHomeEvent(admin, target, home) {}
+
+IMPL_EVENT_EMITTER(AdminRequestRemovePlayerHomeEvent);
+IMPL_EVENT_EMITTER(AdminRemovingPlayerHomeEvent);
+IMPL_EVENT_EMITTER(AdminRemovedPlayerHomeEvent);
+
+
 } // namespace ltps::home

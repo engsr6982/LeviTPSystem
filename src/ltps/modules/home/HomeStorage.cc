@@ -5,6 +5,7 @@
 #include "ltps/utils/TimeUtils.h"
 #include "mc/deps/core/math/Vec3.h"
 #include "mc/world/actor/player/Player.h"
+#include "mc/world/level/dimension/VanillaDimensions.h"
 #include "nlohmann/json.hpp"
 #include <expected>
 
@@ -32,11 +33,13 @@ void HomeStorage::load() {
             throw std::runtime_error("Could not parse home data");
         }
 
-        for (auto& [key, value] : json.items()) {
-            Home home;
-            json_utils::json2structTryPatch(home, value);
-            mHomes[key].push_back(std::move(home));
-        }
+        // for (auto& [key, value] : json.items()) {
+        //     Home home;
+        //     json_utils::json2structTryPatch(home, value);
+        //     mHomes[key].push_back(std::move(home));
+        // }
+        json_utils::json2struct(mHomes, json);
+
         TeleportSystem::getInstance().getSelf().getLogger().info("Loaded {} homes", mHomes.size());
     } catch (const nlohmann::json::parse_error& e) {
         throw std::runtime_error("Could not parse home data");
@@ -157,5 +160,9 @@ void HomeStorage::Home::updatePosition(Vec3 const& vec3) {
     z = vec3.z;
 }
 
+std::string HomeStorage::Home::toString() const { return "{} => {}"_tr(name, toPosString()); }
+std::string HomeStorage::Home::toPosString() const {
+    return "{}({}.{}.{})"_tr(VanillaDimensions::toString(dimid), x, y, z);
+}
 
 } // namespace ltps::home

@@ -27,6 +27,9 @@ public:
         TPSAPI void updateModifiedTime();
 
         TPSAPI void updatePosition(Vec3 const& vec3);
+
+        TPSNDAPI std::string toString() const;
+        TPSNDAPI std::string toPosString() const;
     };
     using Homes   = std::vector<Home>;
     using HomeMap = std::unordered_map<RealName, Homes>;

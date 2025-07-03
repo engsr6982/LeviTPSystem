@@ -6,10 +6,12 @@
 #include "ll/api/command/Overload.h"
 #include "ll/api/event/EventBus.h"
 #include "ltps/TeleportSystem.h"
+#include "ltps/database/PermissionStorage.h"
 #include "ltps/database/StorageManager.h"
 #include "ltps/modules/home/HomeStorage.h"
 #include "ltps/modules/home/event/HomeEvents.h"
 #include "ltps/modules/home/gui/HomeGUI.h"
+#include "ltps/modules/home/gui/HomeOperatorGUI.h"
 #include "ltps/utils/McUtils.h"
 #include "mc/server/commands/CommandOutput.h"
 #include "mc/world/level/dimension/VanillaDimensions.h"
@@ -153,7 +155,24 @@ void HomeCommand::setup() {
     );
 
 
-    // TODO: home mgr
+    // home mgr
+    cmd.overload().text("mgr").execute([](CommandOrigin const& origin, CommandOutput& output) {
+        if (origin.getOriginType() != CommandOriginType::Player) {
+            mc_utils::sendText<mc_utils::Error>(output, "此命令只能由玩家执行"_tr());
+            return;
+        }
+
+        auto& player = *static_cast<Player*>(origin.getEntity());
+
+        auto st = TeleportSystem::getInstance().getStorageManager().getStorage<PermissionStorage>();
+
+        if (!st->hasPermission(player.getRealName(), PermissionStorage::Permission::ManagerPanel)) {
+            mc_utils::sendText<mc_utils::Error>(output, "你没有权限使用此命令"_trl(player.getLocaleCode()));
+            return;
+        }
+
+        HomeOperatorGUI::sendMainGUI(player);
+    });
 }
 
 

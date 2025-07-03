@@ -355,6 +355,179 @@ bool HomeModule::enable() {
         ll::event::EventPriority::High
     ));
 
+
+    // Admin
+    mListeners.emplace_back(bus.emplaceListener<AdminRequestGoPlayerHomeEvent>(
+        [this](AdminRequestGoPlayerHomeEvent& ev) {
+            auto& bus    = ll::event::EventBus::getInstance();
+            auto& player = ev.getAdmin();
+            auto& target = ev.getTarget();
+            auto& home   = ev.getHome();
+
+            auto ing = AdminTeleportingPlayerHomeEvent{player, target, home};
+            bus.publish(ing);
+
+            if (ing.isCancelled()) {
+                return;
+            }
+
+            home.teleport(player);
+
+            auto ed = AdminTeleportedPlayerHomeEvent{player, target, home};
+            bus.publish(ed);
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<AdminRequestCreateHomeForPlayerEvent>(
+        [this](AdminRequestCreateHomeForPlayerEvent& ev) {
+            auto& bus        = ll::event::EventBus::getInstance();
+            auto& player     = ev.getAdmin();
+            auto  localeCode = player.getLocaleCode();
+            auto& target     = ev.getTarget();
+            auto& name       = ev.getName();
+            auto& pos        = ev.getPosition();
+            auto  dimid      = ev.getDimid();
+
+            auto ing = AdminCreateingHomeForPlayerEvent{player, target, name, dimid, pos};
+            bus.publish(ing);
+
+            if (ing.isCancelled()) {
+                return;
+            }
+
+            auto home = HomeStorage::Home::make(pos, dimid, name);
+
+            auto storage = this->getStorage();
+            if (auto res = storage->addHome(target, home)) {
+                mc_utils::sendText(player, "为玩家 {} 创建家园 {} 成功"_trl(localeCode, target, name));
+            } else {
+                mc_utils::sendText<mc_utils::Error>(
+                    player,
+                    "为玩家 {} 创建家园 {} 失败: {}"_trl(localeCode, target, name, res.error())
+                );
+            }
+        },
+        ll::event::EventPriority::High
+    ));
+    mListeners.emplace_back(bus.emplaceListener<AdminCreateingHomeForPlayerEvent>(
+        [this](AdminCreateingHomeForPlayerEvent& ev) {
+            auto& player     = ev.getAdmin();
+            auto  localeCode = player.getLocaleCode();
+            auto  target     = ev.getTarget();
+            auto& name       = ev.getName();
+            auto  dimid      = ev.getDimid();
+
+            if (getConfig().modules.home.disallowedDimensions.contains(dimid)) {
+                mc_utils::sendText<mc_utils::Error>(player, "该维度无法创建家园"_trl(localeCode));
+                ev.cancel();
+                return;
+            }
+
+            if (!string_utils::isLengthValid(name, getConfig().modules.home.nameLength)) {
+                mc_utils::sendText<mc_utils::Error>(
+                    player,
+                    "家园名称长度不符合要求({}/{})"_trl(
+                        localeCode,
+                        string_utils::length(name),
+                        getConfig().modules.home.nameLength
+                    )
+                );
+                ev.cancel();
+                return;
+            }
+
+            if (getStorage()->hasHome(target, name)) {
+                mc_utils::sendText<mc_utils::Error>(player, "家园名称重复，请使用其它名称"_trl(localeCode));
+                ev.cancel();
+                return;
+            }
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<AdminRequestEditPlayerHomeEvent>(
+        [this](AdminRequestEditPlayerHomeEvent& ev) {
+            auto& bus     = ll::event::EventBus::getInstance();
+            auto& player  = ev.getAdmin();
+            auto& target  = ev.getTarget();
+            auto& home    = ev.getHome();
+            auto& newHome = ev.getNewHome();
+
+            auto ing = AdminEditingPlayerHomeEvent{player, target, home, newHome};
+            bus.publish(ing);
+
+            if (ing.isCancelled()) {
+                return;
+            }
+
+            auto storage = this->getStorage();
+            if (auto res = storage->updateHome(target, home.name, newHome)) {
+                mc_utils::sendText(player, "修改玩家 {} 的家园 {} 成功"_trl(player.getLocaleCode(), target, home.name));
+            } else {
+                mc_utils::sendText<mc_utils::Error>(
+                    player,
+                    "修改玩家 {} 的家园 {} 失败: {}"_trl(player.getLocaleCode(), target, home.name, res.error())
+                );
+            }
+
+            auto ed = AdminEditedPlayerHomeEvent{player, target, home, newHome};
+            bus.publish(ed);
+        },
+        ll::event::EventPriority::High
+    ));
+    mListeners.emplace_back(bus.emplaceListener<AdminEditingPlayerHomeEvent>(
+        [](AdminEditingPlayerHomeEvent& ev) {
+            auto&       player     = ev.getAdmin();
+            auto        localeCode = player.getLocaleCode();
+            auto const& newName    = ev.getNewHome().name;
+
+            if (!string_utils::isLengthValid(newName, getConfig().modules.home.nameLength)) {
+                mc_utils::sendText<mc_utils::Error>(
+                    player,
+                    "家园名称长度不符合要求({}/{})"_trl(
+                        localeCode,
+                        string_utils::length(newName),
+                        getConfig().modules.home.nameLength
+                    )
+                );
+                ev.cancel();
+            }
+        },
+        ll::event::EventPriority::High
+    ));
+
+    mListeners.emplace_back(bus.emplaceListener<AdminRequestRemovePlayerHomeEvent>(
+        [this](AdminRequestRemovePlayerHomeEvent& ev) {
+            auto& bus    = ll::event::EventBus::getInstance();
+            auto& player = ev.getAdmin();
+            auto& target = ev.getTarget();
+            auto& home   = ev.getHome();
+
+            auto ing = AdminRemovingPlayerHomeEvent{player, target, home};
+            bus.publish(ing);
+
+            if (ing.isCancelled()) {
+                return;
+            }
+
+            auto storage = this->getStorage();
+            if (auto res = storage->removeHome(target, home.name)) {
+                mc_utils::sendText(player, "删除玩家 {} 的家园 {} 成功"_trl(player.getLocaleCode(), target, home.name));
+            } else {
+                mc_utils::sendText<mc_utils::Error>(
+                    player,
+                    "删除玩家 {} 的家园 {} 失败: {}"_trl(player.getLocaleCode(), target, home.name, res.error())
+                );
+                return;
+            }
+
+            auto rm = AdminRemovedPlayerHomeEvent{player, target, home};
+            bus.publish(rm);
+        },
+        ll::event::EventPriority::High
+    ));
+
     HomeCommand::setup();
 
     return true;
