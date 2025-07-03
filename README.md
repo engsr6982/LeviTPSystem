@@ -1,275 +1,147 @@
-# LeviTPSystem 传送系统
+# TeleportSystem 传送系统
 
-特性：
+集成 Home, Warp, Tpa, Tpr, Death 等模块的传送系统
 
-- 家园传送
-- 公共传送
-- 随机传送（TPR）
-- 玩家传送（TPA）
-- 死亡点传送
-- 死亡点查询
-- 命令/GUI 操作
-- 玩家自定义规则
+## 功能&特性
 
-## 安装
+|  功能   |        描述        | 状态 |
+| :-----: | :----------------: | :--: |
+|  Home   |      家园传送      | 完工 |
+|  Warp   |     公共传送点     | 完工 |
+|   Tpa   |      玩家传送      | 完工 |
+|   Tpr   |      随机传送      | 完工 |
+|  Death  | 死亡点(传送、查询) | 完工 |
+| Setting |    玩家个性设置    | 完工 |
+
+> 其它特性
+
+- i18n 国际化
+- 权限管理
+- 传送冷却
+- 经济对接
+- 表达式价格计算
+- 模块化设计
+- Home / Warp 管理员 GUI
+- 事件驱动模型(大量事件导出)
+- SDK 导出（完整 API）
+
+## Command 命令
 
 ```bash
-lip install github.com/engsr6982/LeviTPSystem
+# 基础命令
+/ltps version                    # [玩家] 版本
+/ltps reload                     # [控制台] 重载配置文件
+/ltps setting                    # [玩家] 玩家设置
+
+# 权限管理
+/ltps perm list <builtin|default>                             # [控制台] 列出 内置权限 / 默认权限
+/ltps perm list player <realName>                             # [控制台] 列出玩家权限
+/ltps perm <add|remove> default <permission>                  # [控制台] 添加或移除默认权限
+/ltps perm <add|remove> player <realName> <permission>        # [控制台] 添加或移除玩家权限
+/ltps perm batch <add|remove> default <permissions>           # [控制台] 批量添加或移除默认权限 (用'|'分隔)
+/ltps perm batch <add|remove> player <realName> <permissions> # [控制台] 批量添加或移除玩家权限 (用'|'分隔)
+
+# Home 模块
+/home                              # [玩家] GUI
+/home add <name>                   # [玩家] 添加传送点 (当前位置)
+/home remove <name>                # [玩家] 删除传送点
+/home go <name>                    # [玩家] 传送 (传送点名称)
+/home list [name]                  # [玩家] 列出传送点
+/home update name <name> [newName] # [玩家] 更新传送点名称
+/home update position <name>       # [玩家] 更新传送点位置
+/home mgr                          # [管理] 管理员GUI
+
+# Warp 模块
+/warp                              # [玩家] GUI
+/warp add <name>                   # [管理] 添加传送点 (当前位置)
+/warp remove <name>                # [管理] 删除传送点
+/warp go <name>                    # [玩家] 传送 (传送点名称)
+/warp list [name]                  # [玩家] 列出传送点
+/warp mgr                          # [管理] 管理员GUI
+
+# Tpa 模块 √
+/tpa                               # [玩家] GUI
+/tpa <accept|deny>                 # [玩家] 接受|拒绝 传送请求
+/tpa here <player: target>         # [玩家] 发起 Tpa 请求 (目标玩家传送到我)
+/tpa to <player: target>           # [玩家] 发起 Tpa 请求 (我传送到目标玩家)
+
+# Tpr 模块
+/tpr                               # [玩家] GUI
+
+# Death 模块
+/death                             # [玩家] GUI
+/death list                        # [玩家] 列出死亡点
+/death back [id]                   # [玩家] 返回死亡点 (id 按死亡时间排序，默认从新到旧)
+/back                              # [玩家] 返回死亡点 (最近一次，等价于 /death back 0)
 ```
 
-## 命令系统
-
-> LeviTPSystem 的命令系统是以`顶层命令+功能枚举+操作名+参数`组成  
-> 这样可以避免多种同类型插件命令冲突（重复注册）
-
-<details>
-  <summary>命令详解 [点我展开]</summary>
-
-> 注意: 插件默认注册的顶层命令为`tps`, 如有修改请将下文的`tps`换成你修改后的顶层命令
-
-- 家 命令
-
-`/tps home` 家园传送点 GUI（玩家）
-
-`/tps home add <name: string>` 添加一个家（玩家）
-
-`/tps home del <name: string>` 删除一个家（玩家）
-
-`/tps home go <name: string>` 前往家（玩家）
-
-`/tps home list` 列出所有家（玩家）
-
-- 公共传送点命令
-
-`/tps warp` 公共传送点 GUI（玩家）
-
-`/tps warp add <name: string>` 添加一个公共传送点（权限组允许）（玩家）
-
-`/tps warp del <name: string>` 删除一个公共传送点（权限组允许）（玩家）
-
-`/tps warp go <name: string>` 前往公共传送点（玩家）
-
-`/tps warp list` 列出所有公共传送点（玩家）
-
-- Tpa 命令
-
-`/tps tpa` 打开 Tpa GUI（玩家）
-
-`/tps tpa accept` 接受一个 Tpa 请求（玩家）
-
-`/tps tpa deny` 拒绝一个 Tpa 请求（玩家）
-
-`/tps tpa here <player: target>` 发起 Tpa 将目标玩家传送到我这（玩家）
-
-`/tps tpa to <player: target>` 发起 Tpa 传送到目标玩家（玩家）
-
-- 数据库命令
-
-`/tps leveldb del <键1> [键2]` 删除数据库指定键下的数据（控制台）
-
-`/tps leveldb export` 导出当前数据库的所有数据（控制台）
-
-`/tps leveldb import [旧数据模式: boolean]` 将 导出的数据/旧版本数据 导入数据库（控制台）
-
-`/tps leveldb list [键1] [键2]` 列出所有键（控制台）
-
-- 控制台命令
-
-`/tps reload` 重载配置文件（控制台）
-
-- 其他
-
-`/tps` 和 `/tps menu`打开主菜单（玩家）
-
-`/tps mgr` 打开管理 GUI（插件 OP）
-
-`/tps back` 返回死亡点 GUI（玩家）
-
-`/tps death` 查询死亡信息（玩家）
-
-`/tps pr` 打开 Pr GUI（玩家）
-
-`/tps rule` 打开规则配置（玩家）
-
-`/tps tpr` 随机传送 GUI（玩家）
-
-`/tps perm add <realName: string> <permtype: PermType>` 添加一个权限（控制台）
-
-`/tps perm del <realName: string> <permtype: PermType>` 添加一个权限（控制台）
-
-`/tps perm list <realName: string>` 列出玩家拥有的权限（控制台）
-
-</details>
-
-`PermType` 权限类型
-- add_warp 添加公共传送点
-- delete_warp 删除公共传送点
-- edit_warp 编辑公共传送点(add_warp + delete_warp)
-- manager_panel 管理 GUI
-- home_count_unlimited 不限制家园数量
-
-## 配置文件
-
-- Config.json
-
-> "bds\plugins\LeviTPSystem\Config.json"
+## Config 配置文件
 
 ```json
 {
-  "Command": {
-    "Command": "tps", // 顶层命令
-    "Description": "LeviTPSystem" // 命令描述
-  },
-  "EconomySystem": {
+  "version": 10, // 配置文件版本(请勿修改)
+  "economySystem": {
     "enabled": false, // 是否启用经济系统
-    "kit": "LegacyMoney", // 经济套件，支持 LegacyMoney、Scoreboard
-    "currency": "money", // 经济名称
-    "scoreboard": "" // 计分板名称
+    "kit": "LegacyMoney", // 经济套件 目前仅支持 LegacyMoney
+    "scoreboardName": "Scoreboard", // Scoreboard 经济系统使用的计分板名称 (暂不支持)
+    "economyName": "Coin" // 经济系统货币名称
   },
-  "Tpa": {
-    "Enable": true,
-    "Money": 0, // Tpa 成功后扣除的经济
-    "CacheExpirationTime": 120, // Tpa 请求缓存过期时间（秒）
-    "CacehCheckFrequency": 60 // Tpa 请求缓存检查频率（秒）
-  },
-  "Home": {
-    "Enable": true,
-    "CreatHomeMoney": 0, // 创建家园花费的经济
-    "GoHomeMoney": 0, // 前往家园花费的经济
-    "EditHomeMoney": 0, // 编辑家园花费的经济
-    "DeleteHomeMoney": 0, // 删除家园花费的经济
-    "MaxHome": 20 // 最大家园数量
-  },
-  "Warp": {
-    "Enable": true,
-    "GoWarpMoney": 0 // 前往公共传送点花费的经济
-  },
-  "Death": {
-    "Enable": true,
-    "GoDeathMoney": 0, // 死亡传送花费的经济
-    "MaxDeath": 5 // 死亡点最大记录数量
-  },
-  "Tpr": {
-    "Enable": true,
-    "Money": 0, // 随机传送花费的经济
-    "RandomRangeMin": -1000, // 随机传送的最小范围
-    "RandomRangeMax": 1000, // 随机传送的最大范围
-    "Dimensions": [0, 1, 2], // 允许随机传送的维度
-    "DangerousBlocks": ["minecraft:lava", "minecraft:flowing_lava"], // 危险方块列表，落脚点是这些方块则传送失败
-    "RestrictedArea": {
-      // 限制传送范围
-      "Enable": false,
-      "Type": "Circle", // 限制类型，支持 Circle、CenteredSquare
-      "CenterX": 0, // 中心点X坐标
-      "CenterZ": 0, // 中心点Z坐标
-      "Radius": 100, // 半径
-      "UsePlayerPos": false // 是否使用玩家当前位置作为限制中心(以玩家位置为中心进行随机传送)
+  "modules": {
+    "tpa": {
+      "enable": true, // 是否启用 Tpa 模块
+      "createRequestCalculate": "random_num_range(10, 60)", // 创建请求价格
+      "cooldownTime": 10, // 发起请求冷却时间(秒)
+      "expirationTime": 120, // 请求过期时间(秒)
+      "disallowedDimensions": [] // 禁用维度
+    },
+    "home": {
+      "enable": true, // 是否启用 Home 模块
+      "createHomeCalculate": "random_num_range(10, 188)", // 创建传送点价格 变量：count (玩家已创建传送点数量)
+      "goHomeCalculate": "random_num_range(10, 188)", // 传送价格 变量：dimid (传送点所在维度ID)
+      "nameLength": 20, // 传送点名称长度限制
+      "maxHome": 20, // 传送点数量限制
+      "cooldownTime": 10, // 传送冷却时间(秒)
+      "disallowedDimensions": [] // 禁用维度
+    },
+    "warp": {
+      "enable": true, // 是否启用 Warp 模块
+      "cooldownTime": 10, // 传送冷却时间(秒)
+      "goWarpCalculate": "random_num_range(10, 60)", // 传送价格 变量：dimid (传送点所在维度ID)
+      "disallowedDimensions": [] // 禁用维度
+    },
+    "death": {
+      "enable": true, // 是否启用 Death 模块
+      "registerBackCommand": true, // 是否注册 /back 命令
+      "goDeathCalculate": "random_num_range(10, 60)", // 传送价格 变量：dimid (传送点所在维度ID) index (第几个死亡点，从新到旧)
+      "maxDeathInfos": 5, // 最大记录死亡点数量
+      "disallowedDimensions": [] // 禁用的维度
+    },
+    "tpr": {
+      "enable": true, // 是否启用 Tpr 模块
+      "cooldownTime": 10, // 传送冷却时间(秒)
+      "calculate": "random_num_range(40, 80)", // 传送价格
+      "randomRange": {
+        "min": -1000, // 随机传送范围
+        "max": 1000
+      },
+      "dangerousBlocks": [
+        "minecraft:water", // 危险方块
+        "minecraft:lava",
+        "minecraft:fire"
+      ],
+      "restrictedAreas": {
+        // 限制传送区域(启用后randomRange无效)
+        "enable": false,
+        "isCircle": true, // 是否为圆形: true 中心圆, false 中心矩形 (玩家为中心)
+        "center": {
+          "x": 0, // 中心点坐标
+          "z": 0,
+          "radius": 100, // 半径或半边长
+          "usePlayerPositionCenter": false // 是否使用玩家位置作为中心点
+        }
+      },
+      "disallowedDimensions": [] // 禁用维度
     }
-  },
-  "Pr": {
-    "Enable": true,
-    "SendRequestMoney": 0, // 创建请求花费的经济
-    "DeleteRequestMoney": 0 // 删除请求花费的经济
-  },
-  "Rule": {
-    // 玩家自定义规则默认配置
-    "deathPopup": true, // 死亡后弹出返回死亡点弹窗
-    "allowTpa": true, // 玩家是否接受他人发起的 Tpa 请求
-    "tpaPopup": true // Tpa 请求发起后是否弹出提示框
-  },
-  "logLevel": "Info", // 日志等级，支持 Off / Fatal / Error / Warn / Info / Debug / Trace
-  "version": 2 // 配置文件版本号，除非你知道你在做什么，否则不要修改
+  }
 }
-```
-
-- index.json
-
-> "bds\plugins\LeviTPSystem\data\index.json"  
-> 这是`/tps menu`表单的配置文件，支持子表单，类型请看 Ts 定义
-
-```json
-{
-  "title": "LeviTPSystem Menu",
-  "content": "选择一个功能：",
-  "buttons": [
-    {
-      "title": "家园传送",
-      "imageType": "path", // url 或 path
-      "imageData": "textures/ui/village_hero_effect",
-      "callbackType": "cmd", // 支持 cmd function subform
-      "callbackRun": "tps home"
-    },
-    {
-      "title": "公共传送",
-      "imageType": "path",
-      "imageData": "textures/ui/icon_best3",
-      "callbackType": "function",
-      "callbackRun": "warp"
-    },
-    {
-      "title": "玩家传送",
-      "imageType": "path",
-      "imageData": "textures/ui/icon_multiplayer",
-      "callbackType": "cmd",
-      "callbackRun": "tps tpa"
-    },
-    {
-      "title": "死亡传送",
-      "imageType": "path",
-      "imageData": "textures/ui/friend_glyph_desaturated",
-      "callbackType": "cmd",
-      "callbackRun": "tps back"
-    },
-    {
-      "title": "随机传送",
-      "imageType": "path",
-      "imageData": "textures/ui/mashup_world",
-      "callbackType": "cmd",
-      "callbackRun": "tps tpr"
-    },
-    {
-      "title": "个人设置",
-      "imageType": "path",
-      "imageData": "textures/ui/icon_setting",
-      "callbackType": "cmd",
-      "callbackRun": "tps rule"
-    }
-  ]
-}
-```
-
-## 迁移指南
-
-当前移植版本的`LeviTPSystem`与`LSE-TPSystem`的数据库通用  
-但是为了保险起见，我们建议您在导入之前备份`leveldb`文件夹
-
-注意：移植版的`Config.json`与旧版有些许差异，请根据需要修改
-`data/index.json`的文件与旧版本不兼容，请不要使用旧版本的`formJSON.json`
-
-1. 备份`leveldb`文件夹
-2. 删除旧版`LSE-TPSystem`插件
-3. 使用上面的安装命令，安装 LeviTPSystem
-4. 启动服务器，等待插件生成新配置文件
-5. 与旧的`Config.json`对比，修改新版的`Config.json`
-6. 复制`leveldb`文件夹到新版的`bds\plugins\LeviTPSystem`目录下
-7. 启动服务器即可
-
-## 其他信息
-
-### 目录结构
-
-```floder
-LeviTPSystem-x64-windows.zip
-|   Config.json                 // 配置文件
-|   LeviTPSystem_Debug.dll      // 插件本体
-|   LeviTPSystem_Debug.pdb      // 插件调试信息
-|   manifest.json               // 插件入口定义
-|
-+---data
-|       index.json              // 菜单配置文件
-|
-+---export                      // 数据库导出文件夹
-+---import                      // 数据库导入文件夹
-+---lang                        // 语言文件夹（默认不存在）
-\---leveldb                     // 数据库文件夹（与旧版本兼容）
 ```

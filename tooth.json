@@ -3,7 +3,7 @@
     "tooth": "github.com/engsr6982/LeviTPSystem",
     "version": "0.9.0",
     "info": {
-        "name": "LeviTPSystem",
+        "name": "TeleportSystem",
         "description": "| 家园传送 | 公共传送 | 玩家传送 | 随机传送 | 精美UI | 死亡传送 | 死亡查询 | 玩家自定义规则 |",
         "author": "engsr6982",
         "tags": [
@@ -13,15 +13,15 @@
             "tp"
         ]
     },
-    "asset_url": "https://github.com/engsr6982/LeviTPSystem/releases/download/v0.9.0/LeviTPSystem-windows-x64.zip",
+    "asset_url": "https://github.com/engsr6982/TeleportSystem/releases/download/v0.9.0/TeleportSystem-windows-x64.zip",
     "prerequisites": {
         "github.com/LiteLDev/LeviLamina": ">=1.2.0-rc.1 <1.3.0"
     },
     "files": {
         "place": [
             {
-                "src": "LeviTPSystem/*",
-                "dest": "plugins/LeviTPSystem/"
+                "src": "TeleportSystem/*",
+                "dest": "plugins/TeleportSystem/"
             }
         ]
     }

@@ -10,10 +10,12 @@ end
 add_requires("bedrockdata v1.21.80-server.5")
 add_requires("prelink v0.5.0")
 add_requires("levibuildscript 0.4.0")
+add_requires("exprtk 0.0.3")
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
 end
+
 
 option("target_type")
     set_default("server")
@@ -21,7 +23,18 @@ option("target_type")
     set_values("server", "client")
 option_end()
 
-target("LeviTPSystem")
+option("test")
+    set_default(false)
+    set_showmenu(true)
+option_end()
+
+rule("gen_version")
+    before_build(function(target)
+        import("scripts.gen_version")()
+    end)
+
+target("TeleportSystem")
+    add_rules("gen_version")
     add_rules("@levibuildscript/linkrule")
     add_rules("@levibuildscript/modpacker")
     add_cxflags(
@@ -35,25 +48,41 @@ target("LeviTPSystem")
         "/w44738",
         "/w45204"
     )
-    add_defines("NOMINMAX", "UNICODE", "_HAS_CXX23=1")
-    add_files("src/**.cpp", "src/**.cc")
-    add_includedirs("src")
-    add_packages("levilamina")
-    set_exceptions("none") -- To avoid conflicts with /EHa.
     set_kind("shared")
-    set_languages("c++20")
     set_symbols("debug")
+    set_languages("c++20")
+    set_exceptions("none") -- To avoid conflicts with /EHa.
+    add_includedirs("src")
+    add_headerfiles("src/**.h")
+    add_files("src/**.cc")
+    add_defines(
+        "NOMINMAX",
+        "UNICODE",
+        "_HAS_CXX23=1",
+        "TPS_EXPORTS"
+    )
+    add_packages(
+        "levilamina",
+        "exprtk"
+    )
     add_packages("bedrockdata")
 
     if is_mode("debug") then
-        add_defines("DEBUG", "LL_I18N_COLLECT_STRINGS")
+        add_defines("TPS_DEBUG"--[[ , "LL_I18N_COLLECT_STRINGS" ]])
     end
 
-    add_defines("PLUGIN_NAME=\"LeviTPSystem\"")
+    if has_config("test") then
+        add_defines("TPS_TEST")
+        add_includedirs("test")
+        add_files("test/**.cc")
+    end
+
+    add_defines("MOD_NAME=\"TeleportSystem\"")
+
     after_build(function (target)
-        local bindir = path.join(os.projectdir(), "bin")
-        local outputdir = path.join(bindir, target:name())
-        -- copy data files
-        local datadir = path.join(os.projectdir(), "assets", "data")
-        os.cp(datadir, outputdir)
+        -- local bindir = path.join(os.projectdir(), "bin")
+        -- local outputdir = path.join(bindir, target:name())
+        -- -- copy data files
+        -- local datadir = path.join(os.projectdir(), "assets", "data")
+        -- os.cp(datadir, outputdir)
     end)
