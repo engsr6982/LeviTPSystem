@@ -18,7 +18,7 @@ void DeathGUI::sendMainMenu(Player& player, BackCB backCb) {
         TeleportSystem::getInstance().getStorageManager().getStorage<DeathStorage>()->getDeathInfos(player.getRealName()
         );
 
-    if (infos->empty()) {
+    if (!infos || infos->empty()) {
         mc_utils::sendText(player, "您还没有任何死亡信息"_trl(localeCode));
         return;
     }
