@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🐛 问题修复
 
 - 修复 HomeGUI 选择家园时出现崩溃 #23
-- 修复当经济系统关闭时依然需要经济的问题 @21
+- 修复当经济系统关闭时依然需要经济的问题 #21
+- 修复玩家没有死亡记录时打开死亡点 GUI 时引发的异常 #22
 
 ## [0.11.0-rc.1] - 2025-7-3
 
