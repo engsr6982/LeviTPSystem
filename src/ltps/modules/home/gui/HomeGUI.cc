@@ -93,7 +93,7 @@ void HomeGUI::sendChooseHomeGUI(Player& player, ChooseHomeCallback chooseCB) {
     auto homes = storage->getHomes(player.getRealName());
     for (auto& home : homes) {
         auto _name = home.name; // 拷贝名称，避免 move 后显示空字符串
-        fm.appendButton(_name, [cb = std::move(chooseCB), home = std::move(home)](Player& self) { cb(self, home); });
+        fm.appendButton(_name, [chooseCB, home = std::move(home)](Player& self) { chooseCB(self, home); });
     }
 
     fm.sendTo(player);
