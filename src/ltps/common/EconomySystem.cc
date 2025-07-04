@@ -2,6 +2,7 @@
 #include "ll/api/i18n/I18n.h"
 #include "ll/api/service/Bedrock.h"
 #include "ll/api/service/PlayerInfo.h"
+#include "ltps/TeleportSystem.h"
 #include "ltps/base/Config.h"
 #include "ltps/utils/JsonUtls.h"
 #include "mc/world/actor/player/Player.h"
@@ -19,14 +20,22 @@ namespace ltps {
 
 std::shared_ptr<EconomySystem> EconomySystemManager::createEconomySystem() const {
     auto& cfg = getConfig();
+    if (!cfg.enabled) {
+        TeleportSystem::getInstance().getSelf().getLogger().debug("EconomySystem not enabled, using EmptyEconomySystem."
+        );
+        return std::make_shared<internals::EmptyEconomySystem>(); // 未启用经济系统，使用空实现
+    }
+
     switch (cfg.kit) {
     case ltps::EconomySystem::Kit::LegacyMoney: {
+        TeleportSystem::getInstance().getSelf().getLogger().debug("EconomySystem using LegacyMoney EconomySystem.");
         return std::make_shared<internals::LegacyMoneyEconomySystem>();
     }
     case ltps::EconomySystem::Kit::ScoreBoard: {
         throw std::runtime_error("ScoreBoard Economy System not implemented yet.");
     }
     }
+
     throw std::runtime_error("Unknown EconomySystem Kit.");
 }
 
@@ -237,6 +246,25 @@ bool LegacyMoneyEconomySystem::transfer(mce::UUID const& from, mce::UUID const& 
 #endif
 
 
+} // namespace internals
+
+
+namespace internals {
+EmptyEconomySystem::EmptyEconomySystem() = default;
+llong EmptyEconomySystem::get(Player&) const { return 0; }
+llong EmptyEconomySystem::get(mce::UUID const&) const { return 0; }
+
+bool EmptyEconomySystem::set(Player&, llong) const { return true; }
+bool EmptyEconomySystem::set(mce::UUID const&, llong) const { return true; }
+
+bool EmptyEconomySystem::add(Player&, llong) const { return true; }
+bool EmptyEconomySystem::add(mce::UUID const&, llong) const { return true; }
+
+bool EmptyEconomySystem::reduce(Player&, llong) const { return true; }
+bool EmptyEconomySystem::reduce(mce::UUID const&, llong) const { return true; }
+
+bool EmptyEconomySystem::transfer(Player&, Player&, llong) const { return true; }
+bool EmptyEconomySystem::transfer(mce::UUID const&, mce::UUID const&, llong) const { return true; }
 } // namespace internals
 
 
