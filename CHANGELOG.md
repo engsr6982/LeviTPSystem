@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2025-7-16
+
+### 🧹 其他改动
+
+- 适配 LeviLamina v1.4.1
+
+## [0.11.1] - 2025-7-16
+
+### 🐛 问题修复
+
+- 修复 LegacyMoneny 离线接口调用函数错误导致栈溢出
+
 ## [0.11.0] - 2025-7-16
 
 ### 🐛 问题修复
