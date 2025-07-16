@@ -3,13 +3,11 @@ add_rules("mode.debug", "mode.release")
 add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 
 if is_config("target_type", "server") then
-    add_requires("levilamina 1.3.1", {configs = {target_type = "server"}})
+    add_requires("levilamina 1.4.1", {configs = {target_type = "server"}})
 else
     add_requires("levilamina 1.0.0-rc.3", {configs = {target_type = "client"}})
 end
-add_requires("bedrockdata v1.21.80-server.5")
-add_requires("prelink v0.5.0")
-add_requires("levibuildscript 0.4.0")
+add_requires("levibuildscript")
 add_requires("exprtk 0.0.3")
 
 if not has_config("vs_runtime") then
@@ -65,7 +63,6 @@ target("TeleportSystem")
         "levilamina",
         "exprtk"
     )
-    add_packages("bedrockdata")
 
     if is_mode("debug") then
         add_defines("TPS_DEBUG"--[[ , "LL_I18N_COLLECT_STRINGS" ]])
