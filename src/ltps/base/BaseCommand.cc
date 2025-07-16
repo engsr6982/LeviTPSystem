@@ -69,6 +69,7 @@ void BaseCommand::setup() {
 
         loadConfig();
         TeleportSystem::getInstance().getModuleManager().reconfigureModules();
+        EconomySystemManager::getInstance().reloadEconomySystem();
         mc_utils::sendText(output, "配置已重载"_tr());
     });
 

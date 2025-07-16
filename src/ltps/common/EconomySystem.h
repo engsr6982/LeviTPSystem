@@ -65,16 +65,15 @@ class EconomySystemManager final {
 
     explicit EconomySystemManager();
 
-    void initEconomySystem();   // 初始化经济系统
-    void reloadEconomySystem(); // 重载经济系统（当 kit 改变时）
-
     friend class EconomySystem;
-    friend class TeleportSystem;
 
 public:
     TPS_DISALLOW_COPY_AND_MOVE(EconomySystemManager);
 
     TPSNDAPI static EconomySystemManager& getInstance();
+
+    TPSAPI void initEconomySystem();   // 初始化经济系统
+    TPSAPI void reloadEconomySystem(); // 重载经济系统（当 kit 改变时）
 
     TPSNDAPI std::shared_ptr<EconomySystem> getEconomySystem() const;
 
